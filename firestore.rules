@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Bailado Carioca • Gestão de Aulas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Favicon inline (evita 404) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="50%" x="50%" dominant-baseline="middle" text-anchor="middle" font-size="48">💃</text></svg>'>
+  <style>
+    :root { --bg:#0b0f14; --card:#121923; --muted:#7f8ea3; --text:#e6eef8; --accent:#6cc644; --danger:#ff6b6b; --warn:#ffcc00; }
+    *{box-sizing:border-box} body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; background:var(--bg); color:var(--text);}
+    header{position:sticky; top:0; z-index:5; background:#0e141b; border-bottom:1px solid #1f2b3a}
+    .wrap{max-width:1100px; padding:24px; margin:0 auto}
+    .row{display:grid; gap:16px}
+    @media(min-width:960px){ .row{grid-template-columns:1fr 1fr} }
+    h1{font-size:22px; margin:0}
+    h2{font-size:18px; margin:16px 0 8px; color:#c9d7ea}
+    p.muted{color:var(--muted); margin:6px 0 0}
+    .card{background:var(--card); border:1px solid #1f2b3a; border-radius:14px; padding:16px; box-shadow:0 2px 12px rgba(0,0,0,.2)}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    label{font-size:12px; color:#b5c3d6}
+    input,select,textarea{width:100%; padding:10px 12px; border:1px solid #2a3a52; border-radius:10px; background:#0e141b; color:#e6eef8;}
+    textarea{min-height:80px; resize:vertical}
+    .actions{display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap}
+    button{border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600}
+    .btn{background:#1e2a3a; color:#cfe4ff; border:1px solid #2a3a52}
+    .btn.primary{background:var(--accent); color:#0a1119; border:none}
+    .btn.ghost{background:transparent; border:1px dashed #2a3a52; color:#b8c7da}
+    .btn.danger{background:transparent; border:1px solid #532a32; color:#ff9292}
+    .list{display:flex; flex-direction:column; gap:8px; max-height:340px; overflow:auto; padding-right:2px}
+    .item{border:1px solid #233146; border-radius:10px; padding:10px; background:#0f1620}
+    .item b{color:#d7e6fb}
+    small.badge{border:1px solid #28425b; padding:2px 8px; border-radius:999px; font-size:11px; color:#a9bfd8}
+    .divider{height:1px; background:#1f2b3a; margin:12px 0}
+    .notice{padding:12px; border:1px solid #27435a; border-radius:10px; background:#0f1a24; color:#cde3fb; font-size:14px}
+    .alert{position:fixed; right:16px; bottom:16px; background:#0f1822; border:1px solid #25405a; color:#cfe6ff; padding:12px 14px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.35); display:none}
+    .calendar{font-size:14px; color:#c7d6ea}
+    .footer{color:#8ea4bf; font-size:12px; margin-top:6px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:16px">
+      <div>
+        <h1>Bailado Carioca — Gestão de Aulas</h1>
+        <p class="muted">App simples • Firestore em tempo real • Login Google</p>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="btnExportJSON">Exportar JSON</button>
+        <button class="btn ghost" id="btnImportJSON">Importar JSON</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== LOGIN GOOGLE ====== -->
+  <div id="authGate" style="padding:24px; max-width:480px; margin:32px auto">
+    <div class="card">
+      <h2>Entrar</h2>
+      <p class="muted">Apenas acesso do proprietário.</p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnGoogle">Entrar com Google</button>
+      </div>
+    </div>
+  </div>
+  <div id="authBar" class="wrap" style="display:none; padding-top:12px">
+    <div class="notice" id="authInfo">Logado como …</div>
+    <div class="actions" style="margin-top:8px">
+      <button class="btn" id="btnSignout">Sair</button>
+    </div>
+  </div>
+  <!-- ====== /LOGIN GOOGLE ====== -->
+
+  <main class="wrap" style="display:none">
+    <div class="row">
+      <!-- ============== ALUNOS ============== -->
+      <section class="card">
+        <h2>Alunos</h2>
+        <form id="studentForm" class="grid-2">
+          <div><label>Nome</label><input id="studentName" placeholder="Nome completo" required /></div>
+          <div><label>Telefone</label><input id="studentPhone" placeholder="(21) 9xxxx-xxxx" /></div>
+          <div><label>E-mail</label><input id="studentEmail" placeholder="email@exemplo.com" /></div>
+          <div><label>Ativo</label>
+            <select id="studentActive">
+              <option value="true" selected>Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
+          </div>
+          <div><label>Início Pacote</label><input id="studentPackageStart" type="date" /></div>
+          <div><label>Fim Pacote</label><input id="studentPackageEnd" type="date" /></div>
+          <div><label>Total de Aulas no Pacote</label><input id="studentTotalLessons" type="number" min="0" value="0" /></div>
+          <div><label>Aulas Concluídas</label><input id="studentCompletedLessons" type="number" min="0" value="0" /></div>
+          <div class="grid-2" style="grid-column:1/-1">
+            <div style="grid-column:1/-1"><label>Observações</label><textarea id="studentNotes" placeholder="Anotações gerais"></textarea></div>
+          </div>
+          <div class="actions" style="grid-column:1/-1">
+            <button class="btn primary" type="submit">Salvar Aluno</button>
+            <button class="btn" type="button" id="btnClearStudent">Limpar</button>
+          </div>
+        </form>
+        <div class="divider"></div>
+        <div class="list" id="studentsList"></div>
+      </section>
+
+      <!-- ============== AULAS ============== -->
+      <section class="card">
+        <h2>Aulas</h2>
+        <form id="lessonForm" class="grid-2">
+          <div><label>Data</label><input id="lessonDate" type="datetime-local" required /></div>
+          <div><label>Aluno</label>
+            <select id="lessonStudent" required></select>
+          </div>
+          <div><label>Estilo</label>
+            <select id="lessonStyle">
+              <option value="Roots">Roots</option>
+              <option value="Universitário">Universitário</option>
+            </select>
+          </div>
+          <div><label>Nível</label>
+            <select id="lessonLevel">
+              <option>Iniciante</option><option>Intermediário 1</option><option>Intermediário 2</option><option>Roots Intermediário</option>
+            </select>
+          </div>
+          <div><label>Tipo</label>
+            <select id="lessonType"><option>Particular</option><option>Grupo</option></select>
+          </div>
+          <div><label>Modelo</label>
+            <select id="lessonModel"><option>Padrão</option><option>Pacote</option></select>
+          </div>
+          <div><label>Duração (min)</label><input id="lessonDuration" type="number" min="15" step="5" value="60" /></div>
+          <div><label>Preço (R$)</label><input id="lessonPrice" type="number" min="0" step="1" value="0" /></div>
+          <div><label>Local</label><input id="lessonPlace" placeholder="Botafogo / Rua..." /></div>
+          <div><label>Status</label>
+            <select id="lessonStatus">
+              <option value="0" selected>Agendada</option>
+              <option value="1">Confirmada</option>
+              <option value="2">Realizada</option>
+              <option value="3">Cancelada</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1"><label>Observações</label><textarea id="lessonNotes" placeholder="Conteúdos, foco, ajustes..."></textarea></div>
+          <div class="actions" style="grid-column:1/-1">
+            <button class="btn primary" type="submit">Salvar Aula</button>
+            <button class="btn" type="button" id="btnClearLesson">Limpar</button>
+          </div>
+        </form>
+        <div class="divider"></div>
+        <div class="list" id="lessonsList"></div>
+      </section>
+
+      <!-- ============== EVOLUÇÃO ============== -->
+      <section class="card">
+        <h2>Evolução</h2>
+        <form id="evolutionForm" class="grid-2">
+          <div><label>Data</label><input id="evolutionDate" type="date" required /></div>
+          <div><label>Aluno</label><select id="evolutionStudent" required></select></div>
+          <div><label>Estilo</label>
+            <select id="evolutionStyle">
+              <option value="Roots">Roots</option>
+              <option value="Universitário">Universitário</option>
+            </select>
+          </div>
+          <div><label>Nível</label>
+            <select id="evolutionLevel">
+              <option>Iniciante</option><option>Intermediário 1</option><option>Intermediário 2</option><option>Roots Intermediário</option>
+            </select>
+          </div>
+          <div><label>Duração (min)</label><input id="evolutionDuration" type="number" min="15" step="5" value="60" /></div>
+          <div style="grid-column:1/-1"><label>Conteúdo</label><textarea id="evolutionContent" placeholder="O que foi trabalhado"></textarea></div>
+          <div><label>Progresso</label><input id="evolutionProgress" placeholder="Ex.: melhorou condução..." /></div>
+          <div><label>Dificuldades</label><input id="evolutionDifficulties" placeholder="Ex.: tempo, conexão..." /></div>
+          <div><label>Próximos Passos</label><input id="evolutionNextSteps" placeholder="Ex.: revisar dobra..." /></div>
+          <div><label>Avaliação</label><input id="evolutionRating" placeholder="1-5" /></div>
+          <div><label>Humor</label><input id="evolutionMood" placeholder="Animado / cansado..." /></div>
+          <div style="grid-column:1/-1"><label>Observações</label><textarea id="evolutionNotes" placeholder="Qualquer outro detalhe"></textarea></div>
+          <div class="actions" style="grid-column:1/-1">
+            <button class="btn primary" type="submit">Salvar Anotação</button>
+            <button class="btn" type="button" id="btnClearEvolution">Limpar</button>
+          </div>
+        </form>
+        <div class="divider"></div>
+        <div class="list" id="evolutionsList"></div>
+      </section>
+
+      <!-- ============== RELATÓRIOS / CALENDÁRIO ============== -->
+      <section class="card">
+        <h2>Relatórios</h2>
+        <div id="reports" class="notice">Relatórios simples: total de aulas e receita por mês.</div>
+        <div class="footer">* Podemos sofisticar depois (dashboards, filtros, períodos, exportação).</div>
+        <div class="divider"></div>
+        <h2>Calendário</h2>
+        <div id="calendar" class="calendar">Próximas aulas serão listadas aqui.</div>
+      </section>
+    </div>
+  </main>
+
+  <div class="alert" id="appAlert">Alerta</div>
+
+  <!-- =========================
+       FIREBASE + GOOGLE AUTH + FIRESTORE
+       ========================= -->
+  <script type="module">
+    // --- Firebase SDKs ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signOut,
+      GoogleAuthProvider, signInWithPopup
+    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, doc,
+      updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    // --- Configuração ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBh6CIne05dCuO0mu7JX6icZv8l7c2bw_8",
+      authDomain: "meu-app-edson.firebaseapp.com",
+      projectId: "meu-app-edson",
+      storageBucket: "meu-app-edson.firebasestorage.app",
+      messagingSenderId: "555388653411",
+      appId: "1:555388653411:web:e9184f7f5e443174934d56"
+    };
+
+    // Inicializa
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    window.__db = db;
+
+    // ======= MODO DEV (pular login se quiser) =======
+    const AUTH_DISABLED = false; // troque para true se quiser abrir sem login
+
+    // ======= Estado =======
+    let students = [];
+    let lessons = [];
+    let evolutions = [];
+    window.currentEditingStudent = null;
+    window.currentEditingLesson = null;
+    window.currentEditingEvolution = null;
+
+    // ======= Helpers UI =======
+    const $ = (id) => document.getElementById(id);
+    const showAlert = (msg, type="info") => {
+      const el = $("appAlert");
+      el.textContent = msg;
+      el.style.borderColor = type === "error" ? "#5a2a2a" : (type==="success"?"#2a5a3a":"#25405a");
+      el.style.display = "block";
+      setTimeout(()=>{ el.style.display="none"; }, 2200);
+    };
+    window.showAlert = showAlert;
+
+    window.clearStudentForm   = () => { $("studentForm").reset();   window.currentEditingStudent   = null; };
+    window.clearLessonForm    = () => { $("lessonForm").reset();    window.currentEditingLesson    = null; };
+    window.clearEvolutionForm = () => { $("evolutionForm").reset(); window.currentEditingEvolution = null; };
+
+    // ======= Render =======
+    function updateStudentsList() {
+      const box = $("studentsList");
+      box.innerHTML = "";
+      students.forEach(s => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div>
+              <b>${s.name || "(sem nome)"}</b>
+              <div class="footer">${s.email || ""} ${s.phone ? "• "+s.phone : ""}</div>
+              <div class="footer">Pacote: ${s.totalLessons ?? 0} aulas • Feitas: ${s.completedLessons ?? 0} ${s.active ? '<small class="badge">Ativo</small>' : '<small class="badge">Inativo</small>'}</div>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick='editStudent("${s.id}")'>Editar</button>
+              <button class="btn danger" onclick='deleteStudent("${s.id}")'>Excluir</button>
+            </div>
+          </div>
+        `;
+        box.appendChild(div);
+      });
+      populateStudentSelect();
+      populateEvolutionStudentSelect();
+    }
+    window.updateStudentsList = updateStudentsList;
+
+    function updateLessonsList() {
+      const box = $("lessonsList");
+      box.innerHTML = "";
+      lessons.forEach(l => {
+        const st = students.find(s => s.id === l.studentId);
+        const name = st?.name || "(Aluno removido)";
+        const statusMap = ["Agendada","Confirmada","Realizada","Cancelada"];
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div>
+              <b>${name}</b> — ${l.style || ""} • ${l.level || ""}
+              <div class="footer">${new Date(l.date||Date.now()).toLocaleString()} • ${l.place||"—"} • ${statusMap[+l.status||0]}</div>
+              <div class="footer">R$ ${Number(l.price||0).toFixed(2)} • ${l.duration||60} min</div>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick='editLesson("${l.id}")'>Editar</button>
+              <button class="btn danger" onclick='deleteLesson("${l.id}")'>Excluir</button>
+            </div>
+          </div>
+        `;
+        box.appendChild(div);
+      });
+      updateCalendar();
+      updateReports();
+    }
+    window.updateLessonsList = updateLessonsList;
+
+    function updateEvolutionTimeline() {
+      const box = $("evolutionsList");
+      box.innerHTML = "";
+      evolutions.forEach(e => {
+        const st = students.find(s => s.id === e.studentId);
+        const name = st?.name || "(Aluno removido)";
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div>
+              <b>${name}</b> — ${e.style || ""} • ${e.level || ""}
+              <div class="footer">${new Date(e.date||Date.now()).toLocaleDateString()} • progresso: ${e.progress||"—"} • próximos: ${e.nextSteps||"—"}</div>
+              <div class="footer">${e.content||""}</div>
+            </div>
+            <div class="actions">
+              <button class="btn" onclick='editEvolution("${e.id}")'>Editar</button>
+              <button class="btn danger" onclick='deleteEvolution("${e.id}")'>Excluir</button>
+            </div>
+          </div>
+        `;
+        box.appendChild(div);
+      });
+      updateReports();
+    }
+    window.updateEvolutionTimeline = updateEvolutionTimeline;
+
+    function updateReports() {
+      const totalRealizadas = lessons.filter(l => +l.status === 2).length;
+      const receita = lessons.filter(l => +l.status === 2)
+        .reduce((sum, l) => sum + Number(l.price||0), 0);
+      $("reports").innerHTML = `
+        <div><b>Total de aulas realizadas:</b> ${totalRealizadas}</div>
+        <div><b>Receita acumulada:</b> R$ ${receita.toFixed(2)}</div>
+      `;
+    }
+    window.updateReports = updateReports;
+
+    function updateCalendar() {
+      const upcoming = [...lessons]
+        .filter(l => +l.status <= 1)
+        .sort((a,b)=> new Date(a.date) - new Date(b.date))
+        .slice(0,8);
+      $("calendar").innerHTML = upcoming.map(l=>{
+        const st = students.find(s=>s.id===l.studentId);
+        return `• ${new Date(l.date||Date.now()).toLocaleString()} — ${st?.name||"(Aluno)"} — ${l.place||"—"}`;
+      }).join("<br>") || "Sem aulas próximas.";
+    }
+    window.updateCalendar = updateCalendar;
+
+    function populateStudentSelect() {
+      const sel = $("lessonStudent");
+      sel.innerHTML = `<option value="">Selecione...</option>` + students.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
+    }
+    window.populateStudentSelect = populateStudentSelect;
+
+    function populateEvolutionStudentSelect() {
+      const sel = $("evolutionStudent");
+      sel.innerHTML = `<option value="">Selecione...</option>` + students.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
+    }
+    window.populateEvolutionStudentSelect = populateEvolutionStudentSelect;
+
+    // ======= Firestore (coleções PT-BR) =======
+    const colStudents  = collection(db, "alunos");
+    const colLessons   = collection(db, "aulas");
+    const colEvolution = collection(db, "evolucoes");
+    const withId = (snap) => ({ id: snap.id, ...snap.data() });
+
+    // ======= Realtime =======
+    let unsubStudents = null, unsubLessons = null, unsubEvolutions = null;
+    function attachListeners() {
+      unsubStudents   = onSnapshot(query(colStudents,  orderBy("name","asc")),   qs=>{ students  = qs.docs.map(withId); updateStudentsList(); });
+      unsubLessons    = onSnapshot(query(colLessons,   orderBy("date","asc")),   qs=>{ lessons   = qs.docs.map(withId); updateLessonsList(); });
+      unsubEvolutions = onSnapshot(query(colEvolution, orderBy("date","desc")),  qs=>{ evolutions= qs.docs.map(withId); updateEvolutionTimeline(); });
+    }
+    function detachListeners() {
+      unsubStudents?.(); unsubLessons?.(); unsubEvolutions?.();
+      unsubStudents = unsubLessons = unsubEvolutions = null;
+      students=[]; lessons=[]; evolutions=[];
+      updateStudentsList(); updateLessonsList(); updateEvolutionTimeline();
+      $("calendar").innerHTML = "—";
+      $("reports").innerHTML = "—";
+    }
+
+    // ======= Guard de sessão (Google + modo DEV) =======
+    onAuthStateChanged(auth, (user) => {
+      const gate = document.getElementById("authGate");
+      const bar  = document.getElementById("authBar");
+      const main = document.querySelector("main");
+
+      if (AUTH_DISABLED) {
+        console.log("[AUTH] DEV MODE: sem login");
+        gate.style.display = "none";
+        bar.style.display  = "none";
+        main.style.display = "block";
+        attachListeners();
+        return;
+      }
+
+      if (user) {
+        console.log("[AUTH] UID:", user.uid);
+        document.getElementById("authInfo").textContent = `Logado como ${user.email} (UID: ${user.uid})`;
+        gate.style.display = "none";
+        bar.style.display  = "block";
+        main.style.display = "block";
+        attachListeners();
+      } else {
+        gate.style.display = "block";
+        bar.style.display  = "none";
+        main.style.display = "none";
+        detachListeners();
+      }
+    });
+
+    // ======= Google Sign-In =======
+    const provider = new GoogleAuthProvider();
+    document.getElementById("btnGoogle")?.addEventListener("click", async ()=>{
+      try {
+        await signInWithPopup(auth, provider);
+        showAlert("Login com Google realizado!","success");
+      } catch (err) {
+        console.error(err);
+        showAlert("Erro no login com Google.", "error");
+      }
+    });
+
+    document.getElementById("btnSignout")?.addEventListener("click", async ()=>{
+      await signOut(auth);
+      showAlert("Sessão encerrada.", "success");
+    });
+
+    // ======= CRUD (ownerUid em CREATE) =======
+    // ALUNO
+    $("studentForm")?.addEventListener("submit", async (ev)=>{
+      ev.preventDefault();
+
+      const base = {
+        name: $("studentName").value.trim(),
+        phone: $("studentPhone").value,
+        email: $("studentEmail").value,
+        active: ($("studentActive").value==="true"),
+        packageStart: $("studentPackageStart").value,
+        packageEnd: $("studentPackageEnd").value,
+        totalLessons: +($("studentTotalLessons").value||0),
+        completedLessons: +($("studentCompletedLessons").value||0),
+        notes: $("studentNotes").value,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (window.currentEditingStudent?.id) {
+          await updateDoc(doc(db,"alunos",window.currentEditingStudent.id), base);
+        } else {
+          const payload = {
+            ...base,
+            ownerUid: (auth.currentUser?.uid || "dev-no-auth"),
+            createdAt: serverTimestamp()
+          };
+          await addDoc(colStudents, payload);
+        }
+        showAlert("Aluno salvo com sucesso!","success");
+        clearStudentForm();
+      } catch(e){ console.error(e); showAlert("Erro ao salvar aluno.","error"); }
+    });
+
+    // AULA
+    $("lessonForm")?.addEventListener("submit", async (ev)=>{
+      ev.preventDefault();
+
+      const base = {
+        date: $("lessonDate").value,
+        studentId: $("lessonStudent").value,
+        style: $("lessonStyle").value,
+        level: $("lessonLevel").value,
+        type: $("lessonType").value,
+        model: $("lessonModel").value,
+        duration: +($("lessonDuration").value||60),
+        price: +($("lessonPrice").value||0),
+        place: $("lessonPlace").value,
+        status: +($("lessonStatus").value||0),
+        notes: $("lessonNotes").value,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (window.currentEditingLesson?.id) {
+          await updateDoc(doc(db,"aulas",window.currentEditingLesson.id), base);
+        } else {
+          const payload = {
+            ...base,
+            ownerUid: (auth.currentUser?.uid || "dev-no-auth"),
+            createdAt: serverTimestamp()
+          };
+          await addDoc(colLessons, payload);
+        }
+        showAlert("Aula salva com sucesso!","success");
+        clearLessonForm();
+      } catch(e){ console.error(e); showAlert("Erro ao salvar aula.","error"); }
+    });
+
+    // EVOLUÇÃO
+    $("evolutionForm")?.addEventListener("submit", async (ev)=>{
+      ev.preventDefault();
+
+      const base = {
+        date: $("evolutionDate").value,
+        studentId: $("evolutionStudent").value,
+        style: $("evolutionStyle").value,
+        level: $("evolutionLevel").value,
+        duration: +($("evolutionDuration").value||60),
+        content: $("evolutionContent").value,
+        progress: $("evolutionProgress").value,
+        difficulties: $("evolutionDifficulties").value,
+        nextSteps: $("evolutionNextSteps").value,
+        rating: $("evolutionRating").value,
+        mood: $("evolutionMood").value,
+        notes: $("evolutionNotes").value,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (window.currentEditingEvolution?.id) {
+          await updateDoc(doc(db,"evolucoes",window.currentEditingEvolution.id), base);
+        } else {
+          const payload = {
+            ...base,
+            ownerUid: (auth.currentUser?.uid || "dev-no-auth"),
+            createdAt: serverTimestamp()
+          };
+          await addDoc(colEvolution, payload);
+        }
+        showAlert("Anotação salva com sucesso!","success");
+        clearEvolutionForm();
+      } catch(e){ console.error(e); showAlert("Erro ao salvar anotação.","error"); }
+    });
+
+    // ======= Ações globais =======
+    window.editStudent = (id)=>{
+      const s = students.find(x=>x.id===id); if(!s) return;
+      $("studentName").value = s.name||"";
+      $("studentPhone").value = s.phone||"";
+      $("studentEmail").value = s.email||"";
+      $("studentActive").value = String(!!s.active);
+      $("studentPackageStart").value = s.packageStart||"";
+      $("studentPackageEnd").value = s.packageEnd||"";
+      $("studentTotalLessons").value = s.totalLessons??0;
+      $("studentCompletedLessons").value = s.completedLessons??0;
+      $("studentNotes").value = s.notes||"";
+      window.currentEditingStudent = s;
+      showAlert("Editando aluno…");
+    };
+
+    window.editLesson = (id)=>{
+      const l = lessons.find(x=>x.id===id); if(!l) return;
+      $("lessonDate").value = toInputDateTime(l.date);
+      $("lessonStudent").value = l.studentId||"";
+      $("lessonStyle").value = l.style||"Roots";
+      $("lessonLevel").value = l.level||"Iniciante";
+      $("lessonType").value = l.type||"Particular";
+      $("lessonModel").value = l.model||"Padrão";
+      $("lessonDuration").value = l.duration||60;
+      $("lessonPrice").value = l.price||0;
+      $("lessonPlace").value = l.place||"";
+      $("lessonStatus").value = String(l.status||0);
+      $("lessonNotes").value = l.notes||"";
+      window.currentEditingLesson = l;
+      showAlert("Editando aula…");
+    };
+
+    window.editEvolution = (id)=>{
+      const e = evolutions.find(x=>x.id===id); if(!e) return;
+      $("evolutionDate").value = (e.date||"").slice(0,10);
+      $("evolutionStudent").value = e.studentId||"";
+      $("evolutionStyle").value = e.style||"Roots";
+      $("evolutionLevel").value = e.level||"Iniciante";
+      $("evolutionDuration").value = e.duration||60;
+      $("evolutionContent").value = e.content||"";
+      $("evolutionProgress").value = e.progress||"";
+      $("evolutionDifficulties").value = e.difficulties||"";
+      $("evolutionNextSteps").value = e.nextSteps||"";
+      $("evolutionRating").value = e.rating||"";
+      $("evolutionMood").value = e.mood||"";
+      $("evolutionNotes").value = e.notes||"";
+      window.currentEditingEvolution = e;
+      showAlert("Editando anotação…");
+    };
+
+    window.deleteStudent = async (id)=>{
+      try { await deleteDoc(doc(db,"alunos", id)); showAlert("Aluno removido.","success"); }
+      catch(e){ console.error(e); showAlert("Erro ao remover aluno.","error"); }
+    };
+    window.deleteLesson = async (id)=>{
+      try { await deleteDoc(doc(db,"aulas", id)); showAlert("Aula removida.","success"); }
+      catch(e){ console.error(e); showAlert("Erro ao remover aula.","error"); }
+    };
+    window.deleteEvolution = async (id)=>{
+      try { await deleteDoc(doc(db,"evolucoes", id)); showAlert("Anotação removida.","success"); }
+      catch(e){ console.error(e); showAlert("Erro ao remover anotação.","error"); }
+    };
+
+    // ======= Exportar / Importar =======
+    $("btnExportJSON")?.addEventListener("click", async ()=>{
+      const dump = { alunos: students, aulas: lessons, evolucoes: evolutions, exportedAt: new Date().toISOString() };
+      const data = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dump,null,2));
+      const a = document.createElement("a");
+      a.href = data; a.download = "bailado-backup.json"; a.click();
+    });
+
+    $("btnImportJSON")?.addEventListener("click", async ()=>{
+      const input = document.createElement("input");
+      input.type="file"; input.accept="application/json";
+      input.onchange = async (e)=>{
+        const file = e.target.files[0]; if(!file) return;
+        const text = await file.text();
+        try {
+          const data = JSON.parse(text);
+          if (Array.isArray(data.alunos)) {
+            for (const s of data.alunos) {
+              const {id, ownerUid, ...rest} = s;
+              await addDoc(colStudents, { ...rest, ownerUid: (auth.currentUser?.uid || "dev-no-auth"), importedAt: serverTimestamp() });
+            }
+          }
+          if (Array.isArray(data.aulas)) {
+            for (const l of data.aulas) {
+              const {id, ownerUid, ...rest} = l;
+              await addDoc(colLessons, { ...rest, ownerUid: (auth.currentUser?.uid || "dev-no-auth"), importedAt: serverTimestamp() });
+            }
+          }
+          if (Array.isArray(data.evolucoes)) {
+            for (const ev of data.evolucoes) {
+              const {id, ownerUid, ...rest} = ev;
+              await addDoc(colEvolution, { ...rest, ownerUid: (auth.currentUser?.uid || "dev-no-auth"), importedAt: serverTimestamp() });
+            }
+          }
+          showAlert("Importação concluída!","success");
+        } catch(err){ console.error(err); showAlert("Falha ao importar JSON.","error"); }
+      };
+      input.click();
+    });
+
+    // ======= Utils =======
+    function toInputDateTime(iso){
+      try {
+        const d = new Date(iso);
+        const pad = (n)=> String(n).padStart(2,"0");
+        const yyyy = d.getFullYear();
+        const mm = pad(d.getMonth()+1);
+        const dd = pad(d.getDate());
+        const hh = pad(d.getHours());
+        const mi = pad(d.getMinutes());
+        return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+      } catch { return ""; }
+    }
+
+  </script>
+
+  <!--
+  =======================
+  LEMBRETE DE RULES (seguras por ownerUid)
+  =======================
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      function signedIn() { return request.auth != null; }
+      function isOwner() { return signedIn() && resource.data.ownerUid == request.auth.uid; }
+      function setsOwnerToSelf() { return signedIn() && request.resource.data.ownerUid == request.auth.uid; }
+      function missingOwner() { return !(resource.data.keys().hasAny(['ownerUid'])); }
+
+      match /alunos/{id}     { allow read: if isOwner() || (signedIn() && missingOwner()); allow create: if signedIn() && setsOwnerToSelf(); allow update, delete: if isOwner() || (signedIn() && missingOwner() && setsOwnerToSelf()); }
+      match /aulas/{id}      { allow read: if isOwner() || (signedIn() && missingOwner()); allow create: if signedIn() && setsOwnerToSelf(); allow update, delete: if isOwner() || (signedIn() && missingOwner() && setsOwnerToSelf()); }
+      match /evolucoes/{id}  { allow read: if isOwner() || (signedIn() && missingOwner()); allow create: if signedIn() && setsOwnerToSelf(); allow update, delete: if isOwner() || (signedIn() && missingOwner() && setsOwnerToSelf()); }
+      match /{collection}/{docId} { allow read, write: if false; }
+    }
+  }
+  -->
+</body>
+</html>

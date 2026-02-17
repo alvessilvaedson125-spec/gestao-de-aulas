@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Bailado Carioca • Gestão de Aulas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="50%" x="50%" dominant-baseline="middle" text-anchor="middle" font-size="48">💃</text></svg>'>
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#111827">
+
+<!-- iOS (instalável em tela cheia) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+<!-- jsPDF para recibos -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0b0f14; --bg-soft:#0f1620; --card:#121923; --elev:#0e141b;
+    --muted:#7f8ea3; --text:#e6eef8; --text-soft:#c9d7ea;
+    --line:#1f2b3a; --chip:#1b2740; --ok:#25c08a; --warn:#ffc24a; --danger:#ff6b6b;
+    --brand:#7a6cff; --brand-2:#5ea0ff; --dot:#28425b;
+  }
+  [data-theme="light"]{
+    --bg:#f5f7fb; --bg-soft:#eef3fb; --card:#ffffff; --elev:#ffffff;
+    --muted:#5a6a7f; --text:#1a2738; --text-soft:#334a66;
+    --line:#e7edf5; --chip:#eef3fb; --ok:#199b72; --warn:#c88a00; --danger:#e05252;
+    --brand:#635bff; --brand-2:#3578ff; --dot:#d8e4f5;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; background:var(--bg); color:var(--text);}
+  a{color:inherit; text-decoration:none}
+  header{position:sticky; top:0; z-index:50; background:var(--elev); border-bottom:1px solid var(--line)}
+  .wrap{max-width:1200px; margin:0 auto; padding:16px}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .spacer{flex:1}
+  .pill{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--line); background:var(--card); border-radius:999px; color:var(--text-soft)}
+  .pill.active{outline:2px solid var(--brand); color:var(--text)}
+  .btn{border:1px solid var(--line); background:var(--chip); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600}
+  .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-2)); border:none}
+  .btn.ghost{background:transparent}
+  .btn.small{padding:6px 10px; font-size:12px}
+  input,select,textarea{border:1px solid var(--line); background:var(--bg-soft); color:var(--text); border-radius:10px; padding:10px 12px; width:100%}
+  textarea{min-height:90px; resize:vertical}
+  label{display:block; margin:6px 0 4px; font-size:12px; color:var(--text-soft)}
+/* UX extra */
+.cal-cell.today{ outline:2px solid rgba(122,108,255,.35); background:rgba(122,108,255,.06); }
+.kbd{display:inline-block; padding:2px 6px; border:1px solid var(--line); border-radius:6px; font-size:12px; background:var(--elev); color:var(--text-soft)}
+.hint{font-size:12px; color:var(--muted)}
+.empty{border:1px dashed var(--line); background:transparent; color:var(--muted); padding:16px; border-radius:12px; text-align:center}
+.pill-mini{display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:11px; color:var(--text-soft)}
+  /* capa */
+  #hero{padding:24px 0}
+  .hero-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; position:relative; overflow:hidden}
+  .hero-card h1{margin:0 0 8px; font-size:28px}
+  .hero-card p{margin:0; color:var(--muted)}
+  .hero-glow{position:absolute; right:-120px; top:-60px; width:480px; height:480px; background:radial-gradient(closest-side, rgba(122,108,255,.25), transparent 60%); pointer-events:none}
+
+  /* seções */
+  main .section{display:none}
+  main .section.show{display:block}
+  section.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin:18px 0}
+  h2{margin:0 0 12px; color:var(--text-soft)}
+  .muted{color:var(--muted)}
+  .footer{color:var(--muted); font-size:12px; margin-top:6px}
+
+  /* calendário */
+  .cal-wrap{display:grid; grid-template-columns:1.35fr .9fr; gap:16px}
+  .cal-head{display:flex; gap:8px; align-items:center; margin-bottom:12px; position:sticky; top:64px; z-index:5; background:var(--card); padding:8px; border:1px dashed var(--line); border-radius:12px}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px}
+  .dow{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; margin:6px 0 8px 0; position:sticky; top:116px; z-index:5; background:var(--card); padding:8px; border:1px dashed var(--line); border-radius:12px}
+  .dow div{color:var(--muted); text-align:center; font-size:12px; font-weight:700}
+  .cal-cell{border:1px dashed var(--line); border-radius:14px; min-height:120px; padding:8px; background:var(--bg-soft); position:relative; cursor:pointer}
+  .cal-cell:hover{outline:1px solid var(--dot);}
+  .cal-num{font-size:12px; color:var(--muted)}
+  .cal-dot{position:absolute; right:8px; top:8px; background:var(--chip); color:#cfe4ff; padding:2px 7px; border:1px solid var(--dot); border-radius:999px; font-size:12px}
+  .chip{display:inline-block; background:var(--chip); border:1px solid var(--dot); padding:6px 10px; border-radius:20px; font-size:12px; color:#d7e6fb; margin:6px 6px 0 0}
+  .chip.done{background:rgba(37,192,138,.12); border-color:#2a6653; color:#a4f3d8}
+  .chip.cancel{background:rgba(255,107,107,.12); border-color:#6a3333; color:#ffb4b4}
+  .cal-cell.sel{box-shadow:inset 0 0 0 2px rgba(90,120,255,.35); background:rgba(90,120,255,.06);}
+  .side{border:1px solid var(--line); background:var(--bg-soft); border-radius:14px; padding:12px; min-height:420px}
+
+  /* próximos dias */
+  .upcoming-row{display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--line); background:var(--bg-soft); border-radius:10px; padding:10px; margin-top:8px}
+  .upcoming-row .who{font-weight:600}
+
+  /* alunos / pacote */
+  .student-item{border:1px solid var(--line); border-radius:14px; padding:12px; background:var(--bg-soft); margin:10px 0}
+  .student-head{display:flex; align-items:center; justify-content:space-between; gap:12px}
+  .badge{border:1px solid var(--dot); padding:2px 8px; border-radius:999px; font-size:11px; color:#a9bfd8}
+  .badge.warn{border-color:#6b541b; color:#ffe19b; background:rgba(255,194,74,.08)}
+  .pkgbar{height:8px; background:#0e1b28; border:1px solid var(--line); border-radius:999px; overflow:hidden; margin-top:8px}
+  .pkgbar .fill{height:100%; width:0; transition:width .25s}
+  .fill.ok{background:linear-gradient(90deg,#35d6a7,#25c08a)}
+  .fill.warn{background:linear-gradient(90deg,#ffc24a,#ff9b21)}
+  .fill.danger{background:linear-gradient(90deg,#ff6b6b,#ff3d3d)}
+
+  /* cards simples */
+  .kpi{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  .kpi .cardx{background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:12px}
+  .kpi .n{font-weight:800; font-size:20px}
+
+  /* gráfico barras */
+  .chart-card{background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:12px}
+
+  /* modal genérico */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.4); z-index:100}
+  .modal.show{display:flex}
+  .modal .box{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; width:min(900px,95vw);max-height: calc(var(--vh) * 90);
+ overflow:auto}
+  .box h3{margin:0 0 10px; color:var(--text-soft)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media(max-width:900px){ .cal-wrap{grid-template-columns:1fr} .grid2{grid-template-columns:1fr} .kpi{grid-template-columns:1fr 1fr} }
+
+  .alert{position:fixed; right:16px; bottom:16px; background:var(--elev); border:1px solid var(--line); color:var(--text); padding:12px 14px; border-radius:12px; display:none}
+
+  /* árvore de evolução */
+  .evo-wrap{display:grid; grid-template-columns:280px 1fr; gap:14px}
+  .tree{border:1px solid var(--line); background:var(--bg-soft); border-radius:12px; padding:10px; max-height:520px; overflow:auto}
+  .tree h4{margin:0 0 8px; color:var(--text-soft); font-size:14px}
+  .tree ul{list-style:none; margin:0; padding-left:10px}
+  .tree li{margin:4px 0}
+  .tree button{background:transparent; border:none; color:var(--text); cursor:pointer; padding:4px 6px; border-radius:6px}
+  .tree button:hover{background:rgba(90,120,255,.12)}
+  .tree .muted{font-size:11px}
+  /* ====== MOBILE TUNING ====== */
+:root{ --vh: 1vh; --header-h: 56px; }
+@supports (height: 100dvh){ :root{ --vh: 1dvh; } }
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior: none; }
+
+img, canvas, iframe, table { max-width: 100%; height: auto; }
+
+.row > * { min-width: 0; }
+.cal-grid > * { min-width: 0; }
+
+.wrap, .cal-head, .upcoming-row, .student-item { overflow-wrap: anywhere; word-break: break-word; }
+
+header{ height: var(--header-h); display:flex; align-items:center; }
+main{ min-height: calc(100 * var(--vh) - var(--header-h)); }
+#hero{ padding-top: 8px; }
+
+/* BOTAO-EVO: impede quebra de palavra nos botões da lista de Evolução */
+.upcoming-row .btn,
+.upcoming-row [class*="btn"]{
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-head{
+  position: sticky;
+  top: var(--header-h);
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+}
+.dow{
+  position: sticky;
+  top: calc(var(--header-h) + 50px);
+  gap: 6px;
+}
+
+.cal-grid{ gap: 6px; }
+.cal-cell{ min-height: clamp(80px, 20vw, 120px); padding: 6px; }
+.cal-dot{ top:6px; right:6px; font-size:11px; padding:2px 6px; }
+.chip{ font-size:11px; padding:4px 8px; margin-top:4px; }
+
+select.btn{ min-width:auto; max-width:46vw; }
+#filterStudent.btn{ max-width:100%; }
+
+@media (max-width: 900px){
+  .cal-wrap{ grid-template-columns: 1fr; }
+  .side{ min-height:auto; }
+  .kpi{ grid-template-columns: 1fr 1fr; }
+  .grid2{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px){
+  .wrap{ padding:12px; }
+  .hero-card h1{ font-size: clamp(20px, 6vw, 28px); }
+  h2{ font-size:18px; }
+  .btn{ padding:8px 12px; font-size:14px; }
+  .btn.small{ padding:5px 9px; font-size:12px; }
+  .pill{ padding:8px 12px; font-size:14px; }
+  .kpi .cardx{ padding:10px; }
+  .upcoming-row{ gap:8px; padding:8px; }
+}
+
+/* Modais e colunas roláveis */
+body.modal-open{ overflow:hidden; }
+.modal .box{ max-height: calc(100 * var(--vh) - 32px); overflow:auto; }
+.side{ max-height: calc(100 * var(--vh) - var(--header-h) - 180px); overflow:auto; }
+#evolutionsList, #studentsList, #inactiveList{ max-height: none; }
+
+  /* topo da agenda: deixa quebrar linha e caber tudo */
+  .cal-head{
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    top: 56px;            /* fica um pouco mais alto para não esmagar */
+  }
+  .dow{ top: 106px; }     /* acompanha o topo da cal-head */
+
+  /* botões e pills mais compactos */
+  .btn{ padding:8px 12px; font-size:14px; }
+  .btn.small{ padding:5px 9px; font-size:12px; }
+  .pill{ padding:8px 12px; font-size:14px; }
+  select.btn{ min-width:auto; }   /* evita largura fixa no mobile */
+
+  /* calendário mais “respirável” em telas estreitas */
+  .cal-grid{ gap:6px; }
+  .cal-cell{ min-height:96px; padding:6px; }
+  .chip{ font-size:11px; padding:4px 8px; }
+  .dow div{ font-size:11px; }
+
+/* Evita que algo “estoure” a largura por engano */
+img, canvas, iframe, table{ max-width:100%; }
+/* ====== MOBILE TUNING ====== */
+html, body { max-width: 100%; overflow-x: hidden; }
+img, canvas, iframe, table { max-width: 100%; height: auto; }
+
+/* grids e colunas viram 1 coluna antes */
+@media (max-width: 900px){
+  .cal-wrap{ grid-template-columns: 1fr; }
+  .side{ min-height: auto; }
+  .kpi{ grid-template-columns: 1fr 1fr; }
+  .grid2{ grid-template-columns: 1fr; }
+}
+
+/* otimizações mais agressivas para telas estreitas */
+@media (max-width: 600px){
+  .wrap{ padding:12px; }
+  .hero-card h1{ font-size: clamp(20px, 6vw, 28px); }
+  h2{ font-size:18px; }
+
+  /* cabeçalho da agenda: deixar respirar e quebrar linha */
+  .cal-head{
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    top: 56px;                 /* um pouco mais alto para não colar no topo */
+  }
+
+
+  /* selects e botões mais compactos no mobile */
+  .btn{ padding:8px 12px; font-size:14px; }
+  .btn.small{ padding:5px 9px; font-size:12px; }
+  .pill{ padding:8px 12px; font-size:14px; }
+  select.btn{ min-width:auto; max-width: 46vw; }  /* evita estourar linha */
+  #filterStudent.btn{ max-width: 100%; }          /* o maior pode ocupar a linha toda */
+
+  /* calendário: reduzir densidade um pouco */
+  .cal-grid{ gap:6px; }
+  .cal-cell{ min-height: 96px; padding:6px; }
+  .cal-dot{ top:6px; right:6px; font-size:11px; padding:2px 6px; }
+  .chip{ font-size:11px; padding:4px 8px; margin-top:4px; }
+  .dow div{ font-size:11px; }
+  
+  /* cards de KPIs e listas mais “apertadinhos” */
+  .kpi .cardx{ padding:10px; }
+  .upcoming-row{ gap:8px; padding:8px; }
+}
+
+/* melhora a altura de viewport em PWAs (barra do navegador móvel) */
+:root{
+  --vh: 1vh;
+}
+@supports (height: 100dvh){
+  :root{ --vh: 1dvh; }
+}
+/* --- Fundamentos de layout mobile --- */
+/* nada deve forçar largura maior que a tela */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
+
+/* filhos de flex/grid não “estourarem” */
+.row > * { min-width: 0; }
+.cal-grid > * { min-width: 0; }
+
+/* quebras de texto seguras (nome de aluno grande, e-mail, etc.) */
+.wrap, .cal-head, .upcoming-row, .student-item { overflow-wrap: anywhere; word-break: break-word; }
+
+/* alturas responsivas (evita corte em celulares pequenos) */
+.cal-cell{ 
+  min-height: clamp(80px, 20vw, 120px);
+  padding: 6px;
+}
+.dow { gap: 6px; }
+.cal-grid{ gap: 6px; }
+
+/* linhas com muitos controles precisam poder quebrar */
+.cal-head{
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* selects/botões não travarem a linha */
+select.btn{ min-width: auto; max-width: 46vw; }
+#filterStudent.btn{ max-width: 100%; }
+
+/* lista de “Próximas aulas” mais compacta no mobile */
+@media (max-width: 600px){
+  .upcoming-row{ gap:8px; padding:8px; }
+  .chip{ padding:4px 8px; font-size:11px; margin-top:4px; }
+  .cal-dot{ top:6px; right:6px; font-size:11px; padding:2px 6px; }
+}
+:root{ --vh: 1vh; --header-h: 56px; } /* header-h ~ sua altura real do topo */
+@supports (height: 100dvh){
+  :root{ --vh: 1dvh; }
+}
+
+/* cada página ocupa a tela toda menos o cabeçalho */
+main{ min-height: calc(100 * var(--vh) - var(--header-h)); }
+
+/* evita “elástico”/navegação acidental no iOS/Android */
+html, body{ overscroll-behavior: none; }
+header{ height: var(--header-h); display:flex; align-items:center; }
+#hero{ padding-top: 8px; }         /* evita colar no header */
+.dow{ position: sticky; top: calc(var(--header-h) + 50px); }  /* acompanha a .cal-head */
+.cal-head{ position: sticky; top: var(--header-h); }
+body.modal-open{ overflow: hidden; }
+.modal .box{ max-height: calc(100 * var(--vh) - 32px); overflow:auto; }
+.side{
+  max-height: calc(100 * var(--vh) - var(--header-h) - 180px);
+  overflow:auto;
+}
+#evolutionsList, #studentsList, #inactiveList{
+  max-height: none; /* deixe expandir na página */
+}
+@media (max-width: 600px){
+  .cal-grid{
+    grid-template-columns: repeat(7, minmax(88px, 1fr));
+    gap: 6px;
+  }
+  .cal-cell{ min-height: 96px; padding: 6px; }
+  .chip{
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: keep-all;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .cal-dot{ top:6px; right:6px; font-size:11px; padding:2px 6px; }
+  .dow div{ font-size:11px; }
+}
+/* ===== Ajustes extras para celulares pequenos (≤480px) ===== */
+@media (max-width: 480px) {
+
+  /* Margens e paddings ainda mais compactos */
+  .wrap {
+    padding: 8px;
+  }
+  .row {
+    gap: 6px;
+  }
+
+  /* Títulos e textos principais menores */
+  h1 {
+    font-size: clamp(18px, 6vw, 22px);
+  }
+  h2 {
+    font-size: clamp(16px, 5vw, 20px);
+  }
+  p, label, .muted {
+    font-size: 14px;
+  }
+
+  /* Agenda em coluna única com colunas mais estreitas */
+  .cal-wrap {
+    grid-template-columns: 1fr;
+  }
+  .cal-grid {
+    grid-template-columns: repeat(7, minmax(76px, 1fr)); /* deixa mais estreito para caber */
+    gap: 4px;
+  }
+  .cal-cell {
+    min-height: 90px;
+    padding: 4px;
+  }
+  .dow div {
+    font-size: 10px;
+  }
+
+  /* Chips ainda mais enxutos */
+  .chip {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  .cal-dot {
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+
+  /* Botões e selects ajustados para polegar */
+  .btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .btn.small {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  select.btn {
+    max-width: 100%; /* ocupa a linha inteira se necessário */
+  }
+
+  /* Modais quase em tela cheia */
+  .modal .box {
+    width: 95%;
+    max-width: none;
+    margin: 0 auto;
+  }
+}
+/* ===== Ajustes específicos para Alunos, Evolução e Relatórios ===== */
+@media (max-width: 768px) {
+
+  /* Alunos: a lista e cada item ocupam 100% da largura */
+  #studentsList .listrow,
+  #inactiveList .listrow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  #studentsList .listrow > div:last-child,
+  #inactiveList .listrow > div:last-child {
+    margin-top: 6px;
+  }
+
+  /* Evolução: árvore e lista empilham em 1 coluna */
+  .evo-wrap {
+    grid-template-columns: 1fr;
+  }
+  #evoTree {
+    margin-bottom: 12px;
+  }
+
+  /* Relatórios: cards um abaixo do outro */
+  .reports-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Deixa tudo mais compacto em celulares menores */
+  #studentsList .listrow,
+  #inactiveList .listrow {
+    padding: 8px;
+  }
+
+  .evo-wrap {
+    gap: 12px;
+  }
+
+  .reports-wrap {
+    gap: 12px;
+  }
+
+  .btn, .btn.small {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+/* ===== Correção para listas de Alunos, Evolução e Relatórios no mobile ===== */
+@media (max-width: 768px){
+  /* cada item vira coluna */
+  .student-item,
+  .evolution-item,
+  .report-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  /* bloco de botões (actions) vai para baixo, em linha com wrap */
+  .student-item .actions,
+  .evolution-item .actions,
+  .report-item .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  /* botões dividem o espaço em 2 colunas */
+  .student-item .actions .btn,
+  .evolution-item .actions .btn,
+  .report-item .actions .btn {
+    flex: 1 1 45%;
+    min-width: 120px;
+    font-size: 14px;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 480px){
+  /* em celulares muito estreitos, botões ocupam a linha inteira */
+  .student-item .actions .btn,
+  .evolution-item .actions .btn,
+  .report-item .actions .btn {
+    flex: 1 1 100%;
+    min-width: unset;
+  }
+}
+}
+</style>
+</head>
+<body>
+  <script>
+  // Ajusta --vh para refletir a altura útil (corrige barras do navegador mobile)
+  function setVH(){
+    const vh = window.innerHeight * 0.01; // define 'vh' corretamente
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+</script>
+<script>
+  // Registro do Service Worker (requer HTTPS ou localhost)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        // detectar updates (opcional)
+        reg.onupdatefound = () => {
+          const nw = reg.installing;
+          nw && (nw.onstatechange = () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('Nova versão disponível — recarregue para aplicar.');
+              // aqui você pode mostrar um toast e, se quiser:
+              // location.reload();
+            }
+          });
+        };
+      }).catch(err => console.error('SW register fail:', err));
+    });
+  }
+</script>
+
+<header>
+  <div class="wrap">
+    <div class="row">
+      <div class="pill">GA</div>
+      <div style="font-weight:700">Gestão de Aulas</div>
+      <div class="muted">Agenda, Alunos, Evolução, Relatórios e Backup</div>
+      <div class="spacer"></div>
+      <button id="btnTheme" class="btn">🌙 Tema</button>
+      <button id="btnGoogle" class="btn primary">Entrar com Google</button>
+      <div id="authEmail" class="pill" style="display:none"></div>
+      <button id="btnSignout" class="btn" style="display:none">Sair</button>
+    </div>
+  </div>
+</header>
+
+<!-- CAPA -->
+<section id="hero">
+  <div class="wrap">
+    <div class="hero-card" id="heroCard">
+      <div class="hero-glow"></div>
+      <h1>Gestão de Aulas</h1>
+      <p>Tudo em um único lugar — agenda interativa, alunos, evolução, relatórios e backup.</p>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+        <span class="pill">📅 Agenda</span><span class="pill">👥 Alunos</span><span class="pill">🧭 Evolução</span><span class="pill">📊 Relatórios</span><span class="pill">💾 Backup</span>
+      </div>
+      <div style="margin-top:12px">
+        <button id="btnEnterSystem" class="btn primary">+ Entrar no Sistema</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <!-- Abas -->
+  <div class="row" id="tabs" style="margin:6px 0 10px 0; display:none">
+    <a href="#agenda" class="pill active" data-tab="agenda">📅 Agenda</a>
+    <a href="#alunos" class="pill" data-tab="alunos">👥 Alunos</a>
+    <a href="#evolucao" class="pill" data-tab="evolucao">🧭 Evolução</a>
+    <a href="#relatorios" class="pill" data-tab="relatorios">📊 Relatórios</a>
+    <a href="#backup" class="pill" data-tab="backup">💾 Backup</a>
+  </div>
+
+  <!-- AGENDA -->
+  <section id="agenda" class="section card">
+    <h2>Agenda</h2>
+  <div class="cal-head">
+  <button id="calPrev" class="btn small">◀</button>
+  <div id="calTitle" class="pill">mês ano</div>
+  <button id="calNext" class="btn small">▶</button>
+
+  <select id="selMonth" class="btn">
+    <option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option>
+    <option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option>
+    <option>Set</option><option>Out</option><option>Nov</option><option>Dez</option>
+  </select>
+
+  <select id="selYear" class="btn"></select>
+
+  <!-- ✅ Filtro por aluno (estava faltando o <select>) -->
+  <select id="filterStudent" class="btn">
+    <option value="">Todos os alunos</option>
+  </select>
+
+  <select id="filterStatus" class="btn">
+    <option value="" selected>Todos os status</option>
+    <option value="0">Agendada</option>
+    <option value="1">Confirmada</option>
+    <option value="2">Realizada</option>
+    <option value="3">Cancelada</option>
+  </select>
+
+  <button id="btnToday" class="btn">Hoje</button>
+  <button id="btnClearFilters" class="btn">Limpar filtros</button>
+
+  <span id="calFiltersEcho" class="pill hint" style="display:none"></span>
+
+  <span class="hint" id="dragHint" style="margin-left:auto">
+    Dica: arraste chips entre dias • segure <span class="kbd">Shift</span> para <b>copiar</b>
+  </span>
+
+  <button id="btnNewLesson" class="btn primary">+ Aula</button>
+  <button id="btnCalRefresh" class="btn">Atualizar</button>
+</div>
+
+    <div class="cal-wrap">
+      <div>
+        <div class="dow" id="dowRow">
+          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="side">
+        <h3 style="margin:8px 0 6px 0">Selecione um dia</h3>
+        <div id="dayDetails" class="muted">Nenhum dia selecionado.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div style="display:flex; gap:10px; align-items:center">
+        <h3 style="margin:8px 0">Próximas aulas</h3>
+        <select id="upcomingRange" class="btn">
+          <option value="7">Próximos 7 dias</option>
+          <option value="30" selected>Próximos 30 dias</option>
+          <option value="60">Próximos 60 dias</option>
+        </select>
+      </div>
+      <div id="upcomingList" class="footer">—</div>
+    </div>
+  </section>
+
+  <!-- ALUNOS -->
+  <section id="alunos" class="section card">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h2>Alunos</h2>
+      <span class="badge">Gerencie cadastro e pacotes • Arraste para ordenar</span>
+    </div>
+
+    <div class="row" style="gap:12px; flex-wrap:wrap">
+      <div style="flex:1 1 420px"><label>Nome</label><input id="studentName" placeholder="Nome completo"></div>
+      <div style="flex:1 1 300px"><label>Telefone</label><input id="studentPhone" placeholder="(21) 9xxxx-xxxx"></div>
+      <div style="flex:1 1 420px"><label>E-mail</label><input id="studentEmail" placeholder="email@exemplo.com"></div>
+      <div style="flex:1 1 160px"><label>Ativo</label><select id="studentActive"><option value="true" selected>Ativo</option><option value="false">Inativo</option></select></div>
+      <div style="flex:1 1 200px"><label>Início do Pacote</label><input id="studentPackageStart" placeholder="dd/mm/aaaa"></div>
+      <div style="flex:1 1 200px"><label>Fim do Pacote</label><input id="studentPackageEnd" placeholder="dd/mm/aaaa"></div>
+      <div style="flex:1 1 200px"><label>Total de Aulas no Pacote</label><input id="studentTotalLessons" type="number" value="0" min="0"></div>
+      <div style="flex:1 1 100%"><label>Observações</label><input id="studentNotes" placeholder="Obs gerais"></div>
+    </div>
+    <div class="actions"><button id="btnSaveStudent" class="btn primary">Salvar</button><button id="btnClearStudent" class="btn">Limpar</button></div>
+
+    <div id="studentsList" style="margin-top:14px"></div>
+    <!-- Lista de inativos (colapsável) -->
+<div id="inactiveWrap" style="margin-top:14px; display:none">
+  <div class="row" style="align-items:center; justify-content:space-between">
+    <h3 style="margin:0">Alunos inativos <span class="muted" id="inactiveCount">(0)</span></h3>
+    <button id="toggleInactive" class="btn small">Mostrar</button>
+  </div>
+  <div id="inactiveList" style="margin-top:10px"></div>
+</div>
+  </section>
+
+  <!-- EVOLUÇÃO -->
+  <section id="evolucao" class="section card">
+    <h2>Evolução</h2>
+
+    <div class="kpi" id="kpiEvo">
+      <div class="cardx"><div>Anotações (hoje)</div><div class="n" id="evoDay">0</div></div>
+      <div class="cardx"><div>Anotações (mês)</div><div class="n" id="evoMonth">0</div></div>
+      <div class="cardx"><div>Duração (mês)</div><div class="n" id="evoMonthMin">0'</div></div>
+      <div class="cardx"><div>Alunos anotados (mês)</div><div class="n" id="evoMonthStu">0</div></div>
+    </div>
+
+    <!-- PASTAS / SUBPASTAS (Aluno > Ano > Mês) -->
+    <div class="evo-wrap" style="margin-top:10px">
+      <aside class="tree">
+        <h4>Pastas de Anotações</h4>
+        <div class="muted" style="margin-bottom:6px">Aluno → Ano → Mês</div>
+        <div id="evoTree"></div>
+      </aside>
+
+      <div>
+        <div class="grid2">
+          <div><label>Data</label><input id="evolutionDate" type="date"></div>
+          <div><label>Aluno</label><select id="evolutionStudent"></select></div>
+        </div>
+        <div class="grid2">
+          <div><label>Estilo</label><input id="evolutionStyle" placeholder="Estilo"></div>
+          <div><label>Nível</label>
+            <select id="evolutionLevel">
+              <option>Iniciante</option><option>Intermediário</option><option>Avançado</option>
+            </select></div>
+        </div>
+        <div class="grid2">
+          <div><label>Duração (min)</label><input id="evolutionDuration" type="number" min="15" step="5" value="60"></div>
+          <div><label>Progresso</label><textarea id="evolutionProgress" placeholder="Ex.: condução…"></textarea></div>
+        </div>
+        <div class="grid2">
+          <div><label>Dificuldades</label><textarea id="evolutionDifficulties" placeholder="Ex.: tempo…"></textarea></div>
+          <div><label>Próximos Passos</label><textarea id="evolutionNextSteps" placeholder="Ex.: revisar dobra…"></textarea></div>
+        </div>
+        <label>Conteúdo</label><textarea id="evolutionContent" placeholder="O que foi trabalhado"></textarea>
+        <label>Observações</label><textarea id="evolutionNotes" placeholder="Outros detalhes"></textarea>
+        <div class="actions">
+          <button id="btnSaveEvolution" class="btn primary">Salvar Anotação</button>
+          <button id="btnClearEvolution" class="btn">Limpar</button>
+        </div>
+
+        <div class="divider"></div>
+        <div id="evolutionsList" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELATÓRIOS -->
+  <section id="relatorios" class="section card">
+  <div class="row" style="align-items:center; justify-content:space-between; margin-bottom:6px">
+    <h2>Relatórios</h2>
+    <div class="row" style="gap:8px">
+      <div>
+        <label style="margin-bottom:0">Ano</label>
+        <select id="repYear" class="btn"></select>
+      </div>
+
+      <div>
+        <label style="margin-bottom:0">Comparar com</label>
+        <select id="repCompare" class="btn"></select>
+      </div>
+
+      <div>
+        <label style="margin-bottom:0">Mês</label>
+        <select id="repMonth" class="btn"></select>
+      </div>
+    </div>
+  </div>
+
+    <div class="kpi" id="kpiBox">
+      <div class="cardx"><div>Hoje</div><div class="n" id="kpiDay">0</div></div>
+      <div class="cardx"><div>Mês (aulas)</div><div class="n" id="kpiMonth">0</div></div>
+      <div class="cardx"><div>Receita (mês)</div><div class="n" id="kpiMonthRev">R$ 0,00</div></div>
+      <div class="cardx">
+        <div>Receita (ano)</div>
+        <div class="n" id="kpiYearRev">R$ 0,00</div>
+        <div class="footer">Variação vs <span id="cmpYear">—</span>: <span id="kpiYearDelta">—</span></div>
+      </div>
+    </div>
+    <!-- Relatório por aluno -->
+<div class="row" style="gap:8px; margin-top:8px">
+  <div>
+    <label style="margin-bottom:0">Aluno</label>
+    <select id="repStuSelect" class="btn" style="min-width:260px">
+      <option value="">Selecione um aluno…</option>
+    </select>
+  </div>
+
+  <div class="pill muted">Ano atual de filtro: <span id="repYearEcho">—</span></div>
+</div>
+
+<div class="cardx" id="repStuBox" style="margin-top:10px">
+  <div class="muted">Selecione um aluno para ver o detalhamento.</div>
+</div>
+
+    <div class="kpi" style="margin-top:12px">
+      <div class="chart-card" style="grid-column:span 2">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <div>Arrecadação mês a mês</div><div class="muted">Ano: <span id="barsYear">—</span></div>
+        </div>
+        <canvas id="chartYear" height="140"></canvas>
+        <div class="footer">Total no ano: <b id="yearTotalFooter">R$ 0,00</b></div>
+      </div>
+
+      <div class="cardx">
+        <div>Média por aluno (ano)</div>
+        <div class="n" id="avgPerStudent">R$ 0,00</div>
+        <div class="footer">Receita anual / alunos com aulas no ano</div>
+      </div>
+<label for="repYearInvest">Ano:</label>
+<select id="repYearInvest" class="btn">
+  <option value="2025">2025</option>
+  <option value="2024">2024</option>
+  <option value="2023">2023</option>
+</select>
+
+      <div class="cardx" style="grid-column:span 4">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <div>Investido por aluno (ano)</div>
+          <div class="muted">Investido por aluno — <span id="listYear"></span></div>
+        </div>
+        <div class="listbox" id="byStudentList"></div>
+      </div>
+    </div>
+
+    <div class="footer" id="kpiExtra">* Receita considera apenas aulas com status “Realizada”.</div>
+  </section>
+
+  <!-- BACKUP -->
+  <section id="backup" class="section card">
+    <h2>Backup</h2>
+    <div class="row" style="gap:8px">
+      <button id="btnExportJSON" class="btn">Exportar JSON</button>
+      <button id="btnImportJSON" class="btn">Importar JSON</button>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL AULA -->
+<div class="modal" id="lessonModal">
+  <div class="box">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3 id="lessonTitle">Aula</h3>
+      <button class="btn small" id="btnCloseLesson">Fechar</button>
+    </div>
+    <div class="grid2">
+      <div><label>Data</label><input id="lessonDate" type="datetime-local"></div>
+      <div><label>Aluno</label><select id="lessonStudent"></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>Estilo (livre)</label><input id="lessonStyle" placeholder="Dança de Salão, Samba, Tango…"></div>
+      <div><label>Nível</label>
+        <select id="lessonLevel"><option>Iniciante</option><option>Intermediário</option><option>Avançado</option></select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><label>Tipo</label><select id="lessonType"><option>Particular</option><option>Grupo</option></select></div>
+      <div><label>Modelo</label><select id="lessonModel"><option>Padrão</option><option>Pacote</option></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>Duração (min)</label><input id="lessonDuration" type="number" min="15" step="5" value="60"></div>
+    <div><label>Preço (R$)</label><input id="lessonPrice" type="text" inputmode="numeric" placeholder="R$ 0,00" value=""></div>
+    </div>
+    <div class="grid2">
+      <div><label>Local</label><input id="lessonPlace" placeholder="Botafogo / Rua…"></div>
+      <div><label>Status</label>
+        <select id="lessonStatus">
+          <option value="0">Agendada</option>
+          <option value="1">Confirmada</option>
+          <option value="2">Realizada</option>
+          <option value="3">Cancelada</option>
+        </select></div>
+    </div>
+    <label>Observações</label><textarea id="lessonNotes" placeholder="Conteúdos, foco, ajustes…"></textarea><!-- Recorrência -->
+<div class="grid2" id="recurrenceBox" style="margin-top:8px">
+  <div>
+    <label>Repetir</label>
+    <div class="row" style="gap:8px">
+      <label class="pill" style="cursor:pointer">
+        <input id="recEnabled" type="checkbox" style="margin-right:8px"> Ativar recorrência
+      </label>
+    </div>
+  </div>
+  <div>
+    <label>Frequência e quantidade</label>
+    <div class="row" style="gap:8px">
+      <select id="recEvery" class="btn">
+        <option value="7" selected>Semanal (cada 1 semana)</option>
+        <option value="14">Quinzenal (cada 2 semanas)</option>
+        <option value="21">A cada 3 semanas</option>
+        <option value="28">Mensal aproximado (cada 4 semanas)</option>
+      </select>
+      <input id="recCount" type="number" min="0" value="0" class="btn" style="width:120px" />
+    </div>
+    <div class="muted" style="margin-top:6px">
+      * “Quantidade” = <b>aulas futuras adicionais</b> (além da atual). Ex.: 3 ⇒ cria mais 3 datas.
+    </div>
+  </div>
+</div>
+
+    <div class="actions">
+      <button id="btnSaveLesson" class="btn primary">Salvar Aula</button>
+      <button id="btnDelLesson" class="btn" style="display:none">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO PACOTE -->
+<div class="modal" id="pkgModal">
+  <div class="box" style="max-width:560px">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3>Novo Pacote</h3>
+      <button id="btnPkgClose" class="btn small">Fechar</button>
+    </div>
+    <div class="grid2">
+      <div><label>Início do Pacote</label><input id="pkgStart" placeholder="dd/mm/aaaa"></div>
+      <div><label>Fim do Pacote</label><input id="pkgEnd" placeholder="dd/mm/aaaa"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Total de Aulas</label><input id="pkgTotal" type="number" min="0" value="4"></div>
+      <div><label>Observação (opcional)</label><input id="pkgNote" placeholder="ex.: renovação de plano"></div>
+    </div>
+    <div class="actions">
+      <button id="btnPkgSave" class="btn primary">Salvar Pacote</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECIBO -->
+<div class="modal" id="receiptModal">
+  <div class="box" style="max-width:900px">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3>Recibo</h3>
+      <button id="btnReceiptClose" class="btn small">Fechar</button>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label>Tipo</label>
+        <select id="recType">
+          <option value="avulsa">Aula Avulsa</option>
+          <option value="pacote">Pacote</option>
+        </select>
+      </div>
+      <div>
+        <label>Data de emissão</label>
+        <input id="recEmitDate" type="date">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div><label>Professor</label><input id="recTeacher" value="Edson Silva"></div>
+      <div><label>Aluno</label><select id="recStudent"></select></div>
+    </div>
+
+    <div class="grid2">
+      <div><label>CNPJ (emitente)</label><input id="recCNPJ" placeholder="00.000.000/0000-00"></div>
+      <div><label>Forma de pagamento</label><input id="recPayMethod" placeholder="PIX / Cartão / Dinheiro" value="PIX"></div>
+    </div>
+
+    <!-- Avulsa -->
+    <div id="recBoxAvulsa">
+      <div class="grid2">
+        <div><label>Data da aula</label><input id="recAvulsaDate" type="date"></div>
+        <div><label>Valor (R$)</label><input id="recAvulsaValue" type="text" inputmode="numeric" placeholder="R$ 0,00" value=""></div>
+      </div>
+      <div><label>Observações</label><input id="recObsAvulsa" placeholder="ex.: pagamento antecipado"></div>
+    </div>
+
+    <!-- Pacote -->
+    <div id="recBoxPacote" style="display:none">
+      <div class="grid2">
+        <div><label>Início do pacote</label><input id="recPkgStart" type="date"></div>
+        <div><label>Fim do pacote</label><input id="recPkgEnd" type="date"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Qtde de aulas (no período)</label><input id="recPkgQty" type="number" min="0" value="0" readonly></div>
+        <div><label>Total pago (R$)</label><input id="recPkgTotal" type="number" min="0" step="1" value="0" readonly></div>
+      </div>
+      <div><label>Datas do período (auto)</label><textarea id="recPkgDates" readonly placeholder="—"></textarea></div>
+      <div><label>Observações</label><input id="recObsPacote" placeholder="ex.: pagamento antecipado"></div>
+    </div>
+
+    <div class="actions">
+      <button id="btnReceiptPDF" class="btn primary">Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="alert" id="appAlert">Alerta</div>
+
+<script type="module">
+/* ======================= Firebase ======================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBh6CIne05dCuO0mu7JX6icZv8l7c2bw_8",
+  authDomain: "meu-app-edson.firebaseapp.com",
+  projectId: "meu-app-edson",
+  storageBucket: "meu-app-edson.firebasestorage.app",
+  messagingSenderId: "555388653411",
+  appId: "1:555388653411:web:e9184f7f5e443174934d56"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+/* ======================= Config ======================= */
+// Assinatura usada nas mensagens de WhatsApp
+const BRAND_NAME = "Edson Silva";
+
+/* ======================= Helpers ======================= */
+const $ = (id)=>document.getElementById(id);
+const els = (sel,ctx=document)=>[...ctx.querySelectorAll(sel)];
+const fmtBRL = (n)=> (Number(n||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pad2 = (n)=> String(n).padStart(2,'0');
+const ymdKey = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const parseBR = (v)=>{ const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v||""); return m? new Date(+m[3],+m[2]-1,+m[1],0,0,0,0): null; };
+// interpreta "YYYY-MM-DD" como data LOCAL (sem deslocamento de fuso)
+// interpreta "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM" como data LOCAL
+function parseISODateLocal(iso){
+  if (!iso) return new Date(NaN);
+  const [datePart, timePart = "00:00"] = String(iso).split("T");
+  const [Y, M, D] = datePart.split("-").map(Number);
+  const [h, m] = timePart.split(":").map(Number);
+  return new Date(Y, (M || 1) - 1, (D || 1), h || 0, m || 0, 0, 0);
+}
+function hasActivePackage(s){
+  return (Number(s.totalLessons||0) > 0) && !!s.packageStart && !!s.packageEnd;
+}
+
+const toInputDate = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const money=(n)=>fmtBRL(n);
+function showAlert(txt, kind="ok"){ const a=$("appAlert"); a.textContent=txt; a.style.display="block"; setTimeout(()=>a.style.display="none", 1800); }
+/* ===== Máscara BRL on-type ===== */
+function formatBRLFromCents(c){ 
+  return (Number(c||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function onlyDigits(s){ return String(s||"").replace(/\D+/g,''); }
+function maskBRLInput(e){
+  const cents = Number(onlyDigits(e.target.value) || 0);
+  e.target.value = formatBRLFromCents(cents);
+}
+/* Converte "R$ 1.234,56" -> Number 1234.56 */
+function parseNumberFromBRL(str){
+  const clean = String(str||'')
+    .replace(/\s/g,'')
+    .replace(/^R\$\s?/, '')
+    .replace(/\./g,'')
+    .replace(',', '.');
+  const n = Number(clean);
+  return isNaN(n) ? 0 : n;
+}
+
+/* Liga a máscara nos inputs (uma vez) */
+(function bindBRLMasks(){
+  const ids = ["lessonPrice","recAvulsaValue"];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    // valor inicial bonito
+    if(!el.value) el.value = formatBRLFromCents(0);
+    // máscara a cada digito
+    el.addEventListener('input', maskBRLInput);
+    // ao colar, também normaliza
+    el.addEventListener('paste', (ev)=>{
+      setTimeout(()=> maskBRLInput({target: el}), 0);
+    });
+    // ao focar vazio, mostra 0
+    el.addEventListener('focus', ()=>{
+      if(!el.value) el.value = formatBRLFromCents(0);
+    });
+  });
+})();
+
+/* Constrói string local YYYY-MM-DDTHH:MM a partir de Date */
+function toLocalDateTimeString(d){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function hhmmLocal(iso){
+  const s = String(iso||"");
+  if (s.length >= 16) return s.slice(11,16); // "YYYY-MM-DDTHH:MM"
+  const d = parseISODateLocal(iso);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+// --- WhatsApp helpers ---
+function firstName(full="") {
+  const t=(full||"").trim().split(/\s+/)[0]||"";
+  // capitaliza só a primeira letra
+  return t.charAt(0).toUpperCase()+t.slice(1);
+}
+function normalizePhoneBR(raw="") {
+  // mantém só dígitos e garante DDI 55 (ex.: "(21) 9xxxx-xxxx" -> "5521....")
+  const d = String(raw).replace(/\D+/g,"");
+  if (!d) return "";                // sem telefone, abriremos só o texto
+  if (d.startsWith("55")) return d; // já está com DDI
+  return "55"+d;
+}
+function buildWhatsAppMessage({studentName, when, style, level, place}) {
+  // when: Date em horário local
+  const dia = pad2(when.getDate())+"/"+pad2(when.getMonth()+1)+"/"+when.getFullYear();
+  const hora = pad2(when.getHours())+":"+pad2(when.getMinutes());
+  return (
+`Oi, ${firstName(studentName)}! Tudo bem? 😊
+
+Confirmação da sua aula:
+• Data: ${dia} às ${hora}
+• Estilo: ${style||"—"} — Nível: ${level||"—"}
+• Local: ${place||"—"}
+
+Nos vemos em breve!
+— ${BRAND_NAME}`
+  );
+}
+/* ======================= Estado ======================= */
+let user=null;
+let students=[], lessons=[], evolutions=[];
+let unsubS=null, unsubL=null, unsubE=null;
+
+const colStudents = collection(db,"alunos");
+const colLessons  = collection(db,"aulas");
+const colEvol     = collection(db,"evolucoes");
+const withId = (d)=>({id:d.id, ...d.data()});
+
+/* ======================= Tema ======================= */
+(function(){
+  const saved=localStorage.getItem("theme")||"dark";
+  document.documentElement.setAttribute("data-theme", saved);
+  $("btnTheme").textContent = saved==="dark"?"🌙 Tema":"☀️ Tema";
+})();
+$("btnTheme").onclick=()=>{
+  const cur=document.documentElement.getAttribute("data-theme")||"dark";
+  const next=cur==="dark"?"light":"dark";
+  document.documentElement.setAttribute("data-theme",next);
+  localStorage.setItem("theme",next);
+  $("btnTheme").textContent = next==="dark"?"🌙 Tema":"☀️ Tema";
+};
+
+/* ======================= Abas ======================= */
+const sections={agenda:$("agenda"), alunos:$("alunos"), evolucao:$("evolucao"), relatorios:$("relatorios"), backup:$("backup")};
+function hideAllSections(){ Object.values(sections).forEach(s=>s.classList.remove("show")); els("#tabs a").forEach(a=>a.classList.remove("active")); }
+function showCover(){ hideAllSections(); $("tabs").style.display="none"; $("hero").style.display="block"; try{ window.scrollTo({top:0, behavior:"instant"}); }catch{} }
+function showTab(name){ hideAllSections(); sections[name]?.classList.add("show"); els("#tabs a").forEach(a=>a.classList.toggle("active", a.dataset.tab===name));// Se entrou na aba Relatórios, garante filtros e 1ª render
+if (name === "relatorios") {
+  // dá tempo do DOM da seção montar
+  setTimeout(() => {
+    const repYear    = document.getElementById("repYear");
+    const repCompare = document.getElementById("repCompare");
+    const repMonth   = document.getElementById("repMonth");
+    if (!repYear || !repMonth) return;
+
+    // Preenche selects (inclui Mês)
+    if (typeof initReportFilters === "function") {
+      try { initReportFilters(); } catch (e) { console.error("initReportFilters:", e); }
+    }
+
+    // Bind de eventos (evita duplicar)
+    ["repYear","repCompare","repMonth"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.dataset._repBound !== "1") {
+        el.addEventListener("change", renderReportStats);
+        el.dataset._repBound = "1";
+      }
+    });
+
+    // Primeira renderização
+    if (typeof renderReportStats === "function") {
+      try { renderReportStats(); } catch (e) { console.error("renderReportStats:", e); }
+    }
+  }, 0);
+}
+if (name === "relatorios") {
+    initReportFilters();     // preenche Ano, Comparar e Mês
+    renderReportStats();     // renderiza os KPIs/gráfico já com o mês
+  }
+} if(user) $("hero").style.display="none"; 
+els("#tabs a").forEach(a=>a.onclick=(e)=>{e.preventDefault(); showTab(a.dataset.tab);});
+$("btnEnterSystem").onclick = ()=> $("btnGoogle").click();
+
+/* ======================= Auth ======================= */
+const provider=new GoogleAuthProvider();
+$("btnGoogle").onclick=async()=>{ try{ await signInWithPopup(auth,provider);}catch(e){console.error(e);} };
+$("btnSignout").onclick=async()=>{ try{ await signOut(auth);}catch{} };
+
+/* Attach/Detach listeners */
+function attach(){
+  const qS = query(colStudents, orderBy("createdAt","desc"));
+  const qL = query(colLessons,  orderBy("date","asc"));     // 'date' é string local "YYYY-MM-DDTHH:MM"
+  const qE = query(colEvol,     orderBy("date","desc"));
+
+  unsubS = onSnapshot(qS,(snap)=>{ students = snap.docs.map(withId); fillStudentSelects(); renderStudentFilter(); fillRepStudentSelect(); initRepStudentArea(); 
+ renderStudents(); renderDashboard(); buildEvoTree(); initRepStudentArea(); });
+  unsubL = onSnapshot(qL,(snap)=>{ lessons  = snap.docs.map(withId); renderCalendar(); renderUpcoming(); renderDayDetails( state.selKey ); renderDashboard(); renderKPIs(); renderEvoKPIs(); renderStudents(); });
+  unsubE = onSnapshot(qE,(snap)=>{ evolutions = snap.docs.map(withId); renderEvolutions(); renderEvoKPIs(); buildEvoTree(); initRepStudentArea();   // recalcula o relatório quando as aulas mudam
+ });
+}
+function detach(){ unsubS?.(); unsubL?.(); unsubE?.(); }
+onAuthStateChanged(auth,(u)=>{
+  user=u||null;
+  const logged=!!user;
+  $("btnGoogle").style.display = logged?"none":"inline-flex";
+  $("btnSignout").style.display = logged?"inline-flex":"none";
+  $("authEmail").style.display = logged?"inline-flex":"none";
+  $("authEmail").textContent = logged?user.email:"";
+  if(!logged){ showCover(); detach(); return; }
+  $("hero").style.display="none"; $("tabs").style.display="flex"; attach(); 
+  
+  // === RELATÓRIOS: garantir filtros e 1ª render ===
+(function initReportsIfPresent(){
+  const repYear    = document.getElementById("repYear");
+  const repCompare = document.getElementById("repCompare");
+  const repMonth   = document.getElementById("repMonth");
+
+  // Se ainda não estamos na aba Relatórios, sai em silêncio
+  if (!repYear || !repCompare || !repMonth) return;
+
+  // Preenche selects (inclusive meses)
+  if (typeof initReportFilters === "function") {
+    try { initReportFilters(); } catch(e){ console.error("initReportFilters:", e); }
+  }
+
+  // Evita registrar listeners duplicados
+  const bindOnce = (el) => {
+    if (!el || el.dataset._repBound === "1") return;
+    el.addEventListener("change", renderReportStats);
+    el.dataset._repBound = "1";
+  };
+  bindOnce(repYear);
+  bindOnce(repCompare);
+  bindOnce(repMonth);
+
+  // Primeira renderização
+  if (typeof renderReportStats === "function") {
+    try { renderReportStats(); } catch(e){ console.error("renderReportStats:", e); }
+  }
+})();
+ showTab("agenda");
+});
+function renderUpcoming(){
+  const days = +$("upcomingRange").value || 30;
+  const s = $("filterStudent")?.value || "";
+  const t = $("filterStatus")?.value  || "";
+
+  const start = new Date(); start.setHours(0,0,0,0);
+  const end   = new Date(start); end.setDate(end.getDate() + days);
+
+  const items = lessons
+    .filter(l => {
+      const d = parseISODateLocal(l.date);
+      return d >= start && d < end;
+    })
+    .filter(l => !s || l.studentId === s)
+    .filter(l => !t || String(l.status) === String(t))
+    .sort((a,b) => parseISODateLocal(a.date) - parseISODateLocal(b.date));
+
+  const box = $("upcomingList");
+  if (!items.length){
+    box.innerHTML = `<div class="muted">Sem aulas neste período.</div>`;
+    return;
+  }
+
+  box.innerHTML = "";
+  for (const a of items){
+    const st  = students.find(s=>s.id===a.studentId);
+    const nm  = st?.name || "(Aluno)";
+    const stat= ["Agendada","Confirmada","Realizada","Cancelada"][a.status||0];
+    const d   = parseISODateLocal(a.date);
+
+    const row = document.createElement("div");
+    row.className="upcoming-row";
+    row.innerHTML = `
+      <div>
+        <div><span class="who">${nm}</span> — ${a.style||""}${a.level?" • "+a.level:""}</div>
+        <div class="muted">
+          ${d.toLocaleString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+          • ${a.place||"—"} • ${stat} • ${fmtBRL(a.price||0)}
+        </div>
+      </div>
+      <div>${a.duration||60}'</div>`;
+    box.appendChild(row);
+  }
+}
+/* ======================= Calendário ======================= */
+const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const state={ y:(new Date()).getFullYear(), m:(new Date()).getMonth(), selKey: ymdKey(new Date()) };
+
+function renderCalendar(){ 
+  const filterStudent = ($("filterStudent")?.value ?? "");
+const filterStatus  = ($("filterStatus")?.value ?? "");
+  $("calTitle").textContent = `${months[state.m]} ${state.y}`;
+  const ysel=$("selYear");
+  if(ysel.childElementCount===0){ const now=(new Date()).getFullYear(); for(let y=now-3;y<=now+3;y++){ const o=document.createElement("option"); o.value=y; o.textContent=y; ysel.appendChild(o);} }
+  $("selMonth").selectedIndex = state.m; $("selYear").value=String(state.y);
+
+  const grid=$("calGrid"); grid.innerHTML="";
+  const first=new Date(state.y,state.m,1);
+  const start=new Date(first);
+  /* IMPORTANTE: iniciar na DOMINGO (0) para alinhar com D O M ... S Á B */
+  start.setDate(1 - first.getDay()); // começa no domingo da semana da 1ª data
+
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const key=ymdKey(d);
+    const cell=document.createElement("div");
+    cell.className="cal-cell"; const todayKey = ymdKey(new Date());
+if(key===todayKey) cell.classList.add("today");
+if (key === state.selKey) cell.classList.add("sel");
+cell.innerHTML=`<div class="cal-num">${d.getDate()}</div>`;
+    
+    const list = lessons
+    .filter(l=>{
+        const nd= parseISODateLocal(l.date);
+        return ymdKey(nd)===key;
+    })
+    .filter(l => !filterStudent || l.studentId === filterStudent)
+    .filter(l => !filterStatus  || String(l.status) === filterStatus)
+    .sort((a,b)=>  parseISODateLocal(a.date) -  parseISODateLocal(b.date));
+
+    if(list.length){
+      const b=document.createElement("div"); b.className="cal-dot"; b.textContent=list.length; cell.appendChild(b);
+      for(const a of list){
+        const st=students.find(s=>s.id===a.studentId); const nm=st?.name||"(Aluno)";
+        const hhmm = hhmmLocal(a.date);
+        const chip=document.createElement("div"); chip.className="chip"+(a.status==2?" done":(a.status==3?" cancel":"")); chip.textContent=nm;
+        chip.title=`${nm} — ${a.style||""}${a.level?" • "+a.level:""} • ${hhmm}`;
+        chip.onclick=(ev)=>{ ev.stopPropagation(); editLesson(a.id); };
+        chip.setAttribute("draggable","true");
+        chip.addEventListener("dragstart", e=>{ e.dataTransfer.setData("text/lessonId", a.id); });
+        cell.appendChild(chip);
+      }
+      cell.addEventListener("dragover", e=>e.preventDefault());
+      cell.addEventListener("drop", async (e)=>{
+        e.preventDefault();
+        const id=e.dataTransfer.getData("text/lessonId");
+        const origin=lessons.find(x=>x.id===id); if(!origin) return;
+        const time = hhmmLocal(origin.date); // HH:MM local sem fuso
+        const dropDateStr = key + "T" + time; // mantém horário original
+        try{
+          if(e.shiftKey){
+            const {id:_, ...rest}=origin;
+            await addDoc(colLessons,{...rest, date:dropDateStr, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+          }else{
+            await updateDoc(doc(db,"aulas",id),{date:dropDateStr, updatedAt:serverTimestamp()});
+          }
+          showAlert("Salvo com sucesso.");
+        }catch(err){ console.error(err); showAlert("Erro ao mover aula","error"); }
+      });
+    }
+    cell.onclick=()=>{ state.selKey=key; renderCalendar(); renderDayDetails(key); };
+    grid.appendChild(cell);
+  }
+}
+$("calPrev").onclick=()=>{ state.m--; if(state.m<0){state.m=11; state.y--;} renderCalendar(); };
+$("calNext").onclick=()=>{ state.m++; if(state.m>11){state.m=0; state.y++;} renderCalendar(); };
+$("selMonth").onchange=()=>{ state.m=$("selMonth").selectedIndex; renderCalendar(); };
+$("selYear").onchange=()=>{ state.y=+$("selYear").value; renderCalendar(); };
+$("btnCalRefresh").onclick=()=>{ renderCalendar(); renderUpcoming();renderDayDetails(state.selKey); renderFilterEcho(); };
+$("btnToday").onclick = () => {
+  const now = new Date();
+  state.y = now.getFullYear();
+  state.m = now.getMonth();
+  state.selKey = ymdKey(now);
+  renderCalendar();
+  renderDayDetails(state.selKey);
+  renderFilterEcho();
+};
+
+$("btnClearFilters").onclick = () => {
+  const fs = $("filterStudent");
+  const ft = $("filterStatus");
+  if (fs) fs.value = "";
+  if (ft) ft.value = "";
+  renderCalendar();
+  renderUpcoming();
+  renderDayDetails(state.selKey);
+  renderFilterEcho();
+};
+
+// filtro por aluno
+$("filterStudent").onchange = () => {
+  renderCalendar();
+  renderUpcoming();
+  renderDayDetails(state.selKey);
+  renderFilterEcho();
+};
+
+// filtro por status
+$("filterStatus").onchange = () => {
+  renderCalendar();
+  renderUpcoming();
+  renderDayDetails(state.selKey);
+  renderFilterEcho();
+};
+function renderFilterEcho(){
+  const s = $("filterStudent")?.value || "";
+  const t = $("filterStatus")?.value  || "";
+  const span = $("calFiltersEcho"); if(!span) return;
+
+  const sTxt = s ? (students.find(x=>x.id===s)?.name || "Aluno") : "";
+  const tTxt = t==="" ? "" : ["Agendada","Confirmada","Realizada","Cancelada"][Number(t)||0];
+  const parts = [sTxt, tTxt].filter(Boolean);
+
+  if(parts.length===0){ span.style.display="none"; span.textContent=""; return; }
+  span.textContent = "Filtro: " + parts.join(" • ") + "  (Esc limpa)";
+  span.style.display="inline-flex";
+}
+// Esc limpa filtros
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const fs = $("filterStudent");
+    const ft = $("filterStatus");
+    if (fs) fs.value = "";
+    if (ft) ft.value = "";
+    renderCalendar();
+    renderUpcoming();
+    renderDayDetails(state.selKey);
+    renderFilterEcho();
+    showAlert("Filtros limpos (Esc)");
+  }
+});
+
+/* Lateral do dia */
+function renderDayDetails(key){
+  const box=$("dayDetails");
+  if(!key){ box.innerHTML=`<span class="muted">Nenhum dia selecionado.</span>`; return; }
+
+  const s = $("filterStudent")?.value || "";
+  const t = $("filterStatus")?.value  || "";
+
+  let list=lessons
+    .filter(l=> ymdKey(parseISODateLocal(l.date))===key)
+    .filter(l => !s || l.studentId === s)
+    .filter(l => !t || String(l.status) === String(t))
+    .sort((a,b)=> parseISODateLocal(a.date) - parseISODateLocal(b.date));
+
+  if(!list.length){ box.innerHTML=`<span class="muted">Sem aulas neste dia.</span>`; return; }
+
+  box.innerHTML="";
+  for(const a of list){
+    const st=students.find(s=>s.id===a.studentId); const nm=st?.name||"(Aluno)";
+    const stat=["Agendada","Confirmada","Realizada","Cancelada"][a.status||0];
+    const hhmm = hhmmLocal(a.date);
+    const row=document.createElement("div"); row.className="upcoming-row";
+    row.innerHTML=`<div><div><span class="who">${nm}</span> — ${a.style||""}${a.level?" • "+a.level:""}</div>
+      <div class="muted">${hhmm} • ${a.place||"—"} • ${stat} • ${fmtBRL(a.price||0)}</div></div>
+      <div style="display:flex; gap:6px">
+        <button class="btn small" data-act="wa">WhatsApp</button>
+        <button class="btn small" data-act="rec">Recibo</button>
+        <button class="btn small" data-act="edit">Editar</button>
+        <button class="btn small" data-act="del">Excluir</button>
+      </div>`;
+    row.querySelector('[data-act="edit"]').onclick=(ev)=>{ ev.stopPropagation(); editLesson(a.id); };
+    row.querySelector('[data-act="del"]').onclick=(ev)=>{ ev.stopPropagation(); deleteLesson(a.id); };
+    row.querySelector('[data-act="rec"]').onclick=(ev)=>{ ev.stopPropagation(); openReceiptFromLesson(a); };
+    box.appendChild(row);
+    row.querySelector('[data-act="wa"]').onclick = (ev)=>{
+  ev.stopPropagation();
+  const when  = parseISODateLocal(a.date);
+  const msg   = buildWhatsAppMessage({
+    studentName: nm,
+    when,
+    style: a.style,
+    level: a.level,
+    place: a.place
+  });
+
+  const phone = normalizePhoneBR(st?.phone || "");
+  const encoded = encodeURIComponent(msg);
+
+  // se tiver telefone -> abre conversa com número; senão -> só o texto (usuário escolhe o contato)
+  const url = phone
+    ? `https://wa.me/${phone}?text=${encoded}`
+    : `https://wa.me/?text=${encoded}`;
+
+  window.open(url, "_blank");
+};
+  }
+}
+
+/* Próximos dias */
+$("upcomingRange").onchange=()=>renderUpcoming();
+
+
+/* ======================= Alunos ======================= */
+let editingStudentId=null;
+$("btnSaveStudent").onclick=async()=>{
+  const base={
+    name:$("studentName").value.trim(),
+    phone:$("studentPhone").value.trim(),
+    email:$("studentEmail").value.trim(),
+    active:$("studentActive").value==="true",
+    packageStart:$("studentPackageStart").value,
+    packageEnd:$("studentPackageEnd").value,
+    totalLessons:+$("studentTotalLessons").value||0,
+    notes:$("studentNotes").value,
+    ownerUid:user?.uid||"dev",
+    updatedAt:serverTimestamp()
+  };
+  try{
+    if(editingStudentId){
+      await updateDoc(doc(db,"alunos",editingStudentId), base);
+      showAlert("Salvo com sucesso.");
+    }else{
+      await addDoc(colStudents,{...base, orderIndex: (students?.length||0)+1, createdAt:serverTimestamp()});
+      showAlert("Salvo com sucesso.");
+    }
+    clearStudentForm();
+  }catch(e){ console.error(e); showAlert("Falha ao salvar aluno.","error"); }
+};
+$("btnClearStudent").onclick=clearStudentForm;
+function clearStudentForm(){
+  ["studentName","studentPhone","studentEmail","studentPackageStart","studentPackageEnd","studentTotalLessons","studentNotes"].forEach(id=>$(id).value="");
+  $("studentActive").value="true"; editingStudentId=null;
+}
+function inPkgRange(a, s){
+  const d = parseISODateLocal(a.date);
+
+  // Preferir o reset com data/hora (zera a contagem imediatamente ao salvar o pacote)
+  const iDT = s.packageResetAt ? parseISODateLocal(s.packageResetAt) : null;
+
+  // Se não houver reset, cair para o início do pacote (data cheia)
+  const i = iDT || (s.packageStart ? parseBR(s.packageStart) : null);
+
+  // Fim do pacote (inclui o dia inteiro)
+  const f = s.packageEnd ? parseBR(s.packageEnd) : null;
+
+  if (i && d < i) return false;
+  if (f && d > new Date(f.getFullYear(), f.getMonth(), f.getDate(), 23, 59, 59)) return false;
+  return true;
+}
+
+function renderStudents(){
+  // Toggle da área de INATIVOS (bind uma vez)
+const _tgl = $("toggleInactive");
+if (_tgl && !_tgl.dataset.bound){
+  _tgl.dataset.bound = "1";
+  _tgl.onclick = () => {
+    const list = $("inactiveList");
+    const isOpen = list?.style.display !== "none";
+    list.style.display = isOpen ? "none" : "block";
+    _tgl.textContent = isOpen ? "Mostrar" : "Ocultar";
+  };
+}
+
+  const box = $("studentsList");
+  const ibox = $("inactiveList");
+  const iwrap = $("inactiveWrap");
+  if (!box) return;
+
+  box.innerHTML = "";
+  if (ibox) ibox.innerHTML = "";
+// === Atualiza contagem e visibilidade da seção Inativos ===
+
+  const ordered = [...students].sort(
+    (a,b)=>(a.orderIndex??1e9)-(b.orderIndex??1e9) || (a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)
+  );
+
+  const actives   = ordered.filter(s => s.active !== false);
+  const inactives = ordered.filter(s => s.active === false);
+  $("inactiveCount").textContent = `(${inactives.length})`;
+$("inactiveWrap").style.display = inactives.length ? "block" : "none";
+
+ const buildItem = (s, inactive = false) => {
+  const it = document.createElement("div");
+  it.className = "student-item";
+  it.dataset.id = s.id;
+  if (!inactive) it.setAttribute("draggable","true");
+
+  const pkgOn = hasActivePackage(s);
+
+  const total = pkgOn ? (+s.totalLessons || 0) : 0;
+  const done  = pkgOn ? lessons.filter(a=> a.studentId===s.id && a.status===2 && inPkgRange(a,s)).length : 0;
+  const rest  = pkgOn ? Math.max(0, total - done) : 0;
+  const pct   = pkgOn && total>0 ? Math.min(100, Math.round((done/total)*100)) : 0;
+
+  const yearNow = (new Date()).getFullYear();
+  const investYear = lessons
+    .filter(l => l.studentId===s.id && l.status===2 && parseISODateLocal(l.date).getFullYear()===yearNow)
+    .reduce((sum,l)=> sum + (+l.price||0), 0);
+
+  let cls="ok";
+  if (pkgOn){
+    if (rest<=2) cls="warn";
+    if (rest<=0) cls="danger";
+  }
+
+  it.innerHTML = `
+    <div class="student-head">
+      <div>
+        <div style="font-weight:700">
+          ${s.name||"(sem nome)"} ${inactive? "<span class='badge'>Inativo</span>":""}
+          ${!pkgOn ? "<span class='badge'>Avulso</span>" : ""}
+        </div>
+        <div class="muted">${s.email||""} ${s.phone? "• "+s.phone:""}</div>
+
+        ${pkgOn ? `
+          <div class="muted">
+            Pacote: <b>${total}</b> — Realizadas: <b>${done}</b> — <b>Restam: ${rest}</b>
+            ${(rest<=2) ? "<span class='badge warn'>Atenção: perto de acabar</span>" : ""}
+          </div>
+          <div class="pkgbar"><div class="fill ${cls}" style="width:${pct}%"></div></div>
+          <div class="footer">De ${s.packageStart||"—"} até ${s.packageEnd||"—"}
+            • Investiu em ${yearNow}: <b>${money(investYear)}</b></div>
+        ` : `
+          <div class="muted">Aluno <b>avulso</b> (sem pacote ativo)</div>
+          <div class="footer">Investiu em ${yearNow}: <b>${money(investYear)}</b></div>
+        `}
+      </div>
+      <div style="display:flex; gap:6px">
+        ${inactive ? `
+          <button class="btn small" data-act="activate">Ativar</button>
+          <button class="btn small" data-act="edit">Editar</button>
+          <button class="btn small" data-act="del">Excluir</button>
+        ` : `
+          <button class="btn small" data-act="receipt">Recibo</button>
+          <button class="btn small" data-act="newpkg">Novo pacote</button>
+          <button class="btn small" data-act="edit">Editar</button>
+          <button class="btn small" data-act="deactivate">Inativar</button>
+          <button class="btn small" data-act="del">Excluir</button>
+        `}
+      </div>
+    </div>`;
+
+    // ações comuns
+    it.querySelector('[data-act="edit"]')?.addEventListener("click", ()=>{
+      editingStudentId=s.id;
+      $("studentName").value=s.name||"";
+      $("studentPhone").value=s.phone||"";
+      $("studentEmail").value=s.email||"";
+      $("studentActive").value=String(!!s.active);
+      $("studentPackageStart").value=s.packageStart||"";
+      $("studentPackageEnd").value=s.packageEnd||"";
+      $("studentTotalLessons").value=s.totalLessons??0;
+      $("studentNotes").value=s.notes||"";
+      showAlert("Modo edição: "+(s.name||""));
+      window.scrollTo({top: $("alunos").offsetTop - 60, behavior:"smooth"});
+    });
+    
+    // ações de ATIVOS
+    it.querySelector('[data-act="receipt"]')?.addEventListener("click", ()=> openReceiptFromStudent(s));
+    it.querySelector('[data-act="newpkg"]')?.addEventListener("click", ()=> openPkgModal(s.id));
+    it.querySelector('[data-act="deactivate"]')?.addEventListener("click", async ()=>{
+      try{
+        await updateDoc(doc(db,"alunos",s.id), { active:false, updatedAt:serverTimestamp() });
+        showAlert("Aluno inativado.");
+      }catch(e){ console.error(e); showAlert("Erro ao inativar.","error"); }
+    });
+
+    // ações de INATIVOS
+    it.querySelector('[data-act="activate"]')?.addEventListener("click", async ()=>{
+      try{
+        await updateDoc(doc(db,"alunos",s.id), { active:true, updatedAt:serverTimestamp() });
+        showAlert("Aluno ativado.");
+      }catch(e){ console.error(e); showAlert("Erro ao ativar.","error"); }
+    });
+
+    return it;
+  };
+
+  // renderiza ATIVOS (com drag)
+  for (const s of actives) box.appendChild(buildItem(s, false));
+
+  // renderiza INATIVOS (sem drag)
+  if (iwrap){
+    if (inactives.length){
+      iwrap.style.display = "block";
+      $("inactiveCount").textContent = `(${inactives.length})`;
+      for (const s of inactives) ibox.appendChild(buildItem(s, true));
+    }else{
+      iwrap.style.display = "none";
+    }
+  }
+
+  // drag somente para ativos
+  enableStudentDrag(box);
+
+}
+
+/* Drag & drop para reordenar alunos */
+function enableStudentDrag(container){
+  let draggingId=null;
+  const items = container.querySelectorAll(".student-item[draggable='true']");
+  items.forEach(el=>{
+    el.addEventListener("dragstart", ()=>{ draggingId=el.dataset.id; el.style.opacity=".5"; });
+    el.addEventListener("dragend",   ()=>{ draggingId=null; el.style.opacity="1"; });
+    el.addEventListener("dragover", (e)=>{
+      e.preventDefault();
+      const over=el;
+      const dragging=container.querySelector(`.student-item[data-id="${draggingId}"]`);
+      if(!dragging || dragging===over) return;
+      const after = (e.clientY - over.getBoundingClientRect().top) > (over.offsetHeight/2);
+      if(after) over.after(dragging); else over.before(dragging);
+    });
+  });
+
+  container.addEventListener("drop", async ()=>{
+    const ids=[...container.querySelectorAll(".student-item[draggable='true']")].map(n=>n.dataset.id);
+    for(let i=0;i<ids.length;i++){
+      try{ await updateDoc(doc(db,"alunos",ids[i]), {orderIndex:i+1, updatedAt:serverTimestamp()}); }catch(e){console.error(e);}
+    }
+    showAlert("Salvo com sucesso.");
+  });
+}
+
+/* Modal Novo Pacote */
+let pkgTargetId=null;
+function openPkgModal(studentId){
+  pkgTargetId=studentId;
+  const s=students.find(x=>x.id===studentId);
+  const today=new Date();
+  const defStart = s?.packageEnd ? s.packageEnd : `${pad2(today.getDate())}/${pad2(today.getMonth()+1)}/${today.getFullYear()}`;
+  const d2=new Date(today); d2.setDate(d2.getDate()+30);
+  $("pkgStart").value = defStart;
+  $("pkgEnd").value   = `${pad2(d2.getDate())}/${pad2(d2.getMonth()+1)}/${d2.getFullYear()}`;
+  $("pkgTotal").value = s?.totalLessons || 4;
+  $("pkgNote").value  = "";
+  $("pkgModal").classList.add("show");
+}
+$("btnPkgClose").onclick=()=> $("pkgModal").classList.remove("show");
+$("btnPkgSave").onclick = async ()=>{
+  if(!pkgTargetId) return;
+  try{
+    await updateDoc(doc(db,"alunos",pkgTargetId),{
+      packageStart: $("pkgStart").value,
+      packageEnd:   $("pkgEnd").value,
+      totalLessons: +$("pkgTotal").value || 0,
+
+      // 🔹 marca o “marco” de reset com data/hora local (zera a barra já)
+      packageResetAt: toLocalDateTimeString(new Date()),
+
+      notes: (students.find(x=>x.id===pkgTargetId)?.notes||"") + ($("pkgNote").value? ` | ${$("pkgNote").value}` : ""),
+      updatedAt: serverTimestamp()
+    });
+    $("pkgModal").classList.remove("show");
+    showAlert("Salvo com sucesso.");
+  }catch(e){ 
+    console.error(e); 
+    alert("Falha ao salvar pacote."); 
+  }
+};
+
+/* ======================= Evolução ======================= */
+function fillStudentSelects(){
+  const a=$("lessonStudent"), b=$("evolutionStudent"), c=$("recStudent");
+  const opts = `<option value="">Selecione…</option>` + students.map(s=>`<option value="${s.id}">${s.name||"(sem nome)"}</option>`).join("");
+  if(a) a.innerHTML=opts; if(b) b.innerHTML=opts; if(c) c.innerHTML=opts;
+}
+function renderStudentFilter(){
+  const sel = $("filterStudent"); 
+  if (!sel) return;
+  const cur = sel.value; // guarda a seleção atual
+
+  sel.innerHTML =
+    `<option value="">Todos os alunos</option>` +
+    students.map(s => `<option value="${s.id}">${s.name||"(sem nome)"}</option>`).join("");
+
+  // restaura a seleção se ainda existir
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+$("btnSaveEvolution").onclick=async()=>{
+  const payload={
+    date:$("evolutionDate").value, studentId:$("evolutionStudent").value,
+    style:$("evolutionStyle").value, level:$("evolutionLevel").value,
+    duration:+($("evolutionDuration").value||60),
+    content:$("evolutionContent").value, progress:$("evolutionProgress").value,
+    difficulties:$("evolutionDifficulties").value, nextSteps:$("evolutionNextSteps").value,
+    rating:null, mood:null, notes:$("evolutionNotes").value,
+    ownerUid:user?.uid||"dev", createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+  };
+  try{ await addDoc(colEvol,payload); clearEvol(); showAlert("Salvo com sucesso."); }catch(e){console.error(e);}
+};
+$("btnClearEvolution").onclick=clearEvol;
+function clearEvol(){ ["evolutionDate","evolutionStyle","evolutionDuration","evolutionContent","evolutionProgress","evolutionDifficulties","evolutionNextSteps","evolutionNotes"].forEach(id=>$(id).value=""); $("evolutionStudent").value=""; $("evolutionLevel").value="Iniciante"; }
+
+function renderEvolutions(filter={}){  // filter: {studentId, year, monthIndex}
+  const box=$("evolutionsList"); box.innerHTML="";
+  let list=[...evolutions];
+  if(filter.studentId) list=list.filter(e=>e.studentId===filter.studentId);
+  if (filter.year)
+  list = list.filter(e => {
+    const d = parseISODateLocal(e.date);
+    return d.getFullYear() === filter.year;
+  });
+
+if (typeof filter.monthIndex === "number")
+  list = list.filter(e => parseISODateLocal(e.date).getMonth() === filter.monthIndex);
+
+
+  for(const e of list){
+    const st=students.find(s=>s.id===e.studentId); const nm=st?.name||"(Aluno)";
+    const it=document.createElement("div"); it.className="upcoming-row";
+    it.innerHTML=`<div>
+        <div><b>${nm}</b> — ${e.style||""} ${e.level||""}</div>
+        <div class="muted">${(e.date||"").slice(0,10)} • ${e.duration||60}'</div>
+        <div class="muted"><b>Conteúdo:</b> ${e.content||"—"}</div>
+        <div class="muted"><b>Progresso:</b> ${e.progress||"—"} • <b>Dificuldades:</b> ${e.difficulties||"—"} • <b>Próx. passos:</b> ${e.nextSteps||"—"}</div>
+      </div>
+      <div style="display:flex; gap:6px">
+        <button class="btn small" data-act="edit">Editar</button>
+        <button class="btn small" data-act="share">PDF</button>
+        <button class="btn small" data-act="del">Excluir</button>
+      </div>`;
+    it.querySelector('[data-act="edit"]').onclick=()=> {
+      $("evolutionDate").value=(e.date||"").slice(0,10);
+      $("evolutionStudent").value=e.studentId||"";
+      $("evolutionStyle").value=e.style||"";
+      $("evolutionLevel").value=e.level||"Iniciante";
+      $("evolutionDuration").value=e.duration||60;
+      $("evolutionContent").value=e.content||"";
+      $("evolutionProgress").value=e.progress||"";
+      $("evolutionDifficulties").value=e.difficulties||"";
+      $("evolutionNextSteps").value=e.nextSteps||"";
+      $("evolutionNotes").value=e.notes||"";
+      window.scrollTo({top:$("evolucao").offsetTop-60, behavior:"smooth"});
+    };
+    it.querySelector('[data-act="share"]').onclick=()=> exportEvolutionPDF(e, nm);
+    it.querySelector('[data-act="del"]').onclick = async () => {
+    if (confirm("Excluir esta anotação?")) {
+        try {
+            await deleteDoc(doc(db, "evolucoes", e.id));
+            showAlert("Anotação excluída.");
+        } catch (err) {
+            console.error(err);
+            showAlert("Erro ao excluir anotação.", "error");
+        }
+    }
+};
+
+    box.appendChild(it);
+  }
+}
+
+/* Monta árvore Aluno > Ano > Mês */
+function buildEvoTree(){
+  const root=$("evoTree"); if(!root) return;
+  const monthsLbl=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const map = new Map(); // studentId -> year -> month
+  for(const e of evolutions){
+    const sid=e.studentId||"_";
+    // corrigido para respeitar a data local (sem fuso/UTC)
+const d = parseISODateLocal(e.date);
+
+    const y=d.getFullYear(); const m=d.getMonth();
+    if(!map.has(sid)) map.set(sid, new Map());
+    const ymap=map.get(sid);
+    if(!ymap.has(y)) ymap.set(y, new Map());
+    const mmap=ymap.get(y);
+    mmap.set(m, (mmap.get(m)||0)+1);
+  }
+
+  let html = "<ul>";
+  for(const s of students){
+    const sid=s.id;
+    const ymap=map.get(sid);
+    if(!ymap) continue;
+    html+=`<li><button data-sid="${sid}" data-year="" data-month="">📁 ${s.name}</button><ul>`;
+    const years=[...ymap.keys()].sort((a,b)=>b-a);
+    for(const y of years){
+      const mmap=ymap.get(y);
+      html+=`<li><button data-sid="${sid}" data-year="${y}" data-month="">📂 ${y}</button><ul>`;
+      const monthsIdx=[...mmap.keys()].sort((a,b)=>a-b);
+      for(const m of monthsIdx){
+        const count=mmap.get(m)||0;
+        html+=`<li><button data-sid="${sid}" data-year="${y}" data-month="${m}">🗂️ ${monthsLbl[m]} <span class="muted">(${count})</span></button></li>`;
+      }
+      html+="</ul></li>";
+    }
+    html+="</ul></li>";
+  }
+  html+="</ul>";
+  root.innerHTML=html;
+
+  root.querySelectorAll("button").forEach(btn=>{
+    btn.onclick=()=>{
+      const sid=btn.getAttribute("data-sid")||null;
+      const y = btn.getAttribute("data-year"); const year = y? +y : undefined;
+      const m = btn.getAttribute("data-month"); const monthIndex = (m===""||m===null)? undefined : +m;
+      renderEvolutions({studentId:sid, year, monthIndex});
+    };
+  });
+}
+
+function exportEvolutionPDF(e, studentName){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"pt", format:"a4"});
+  const left=56, top=56, lh=18; let y=top;
+  doc.setFont("helvetica","bold"); doc.setFontSize(14);
+  doc.text("Evolução Pedagógica — Bailado Carioca", left, y); y+=lh+4;
+  doc.setFont("helvetica","normal"); doc.setFontSize(12);
+  doc.text(`Aluno: ${studentName||"(Aluno)"} • Data: ${(e.date||"").slice(0,10)} • Duração: ${e.duration||60}'`, left, y); y+=lh;
+  const multi = (label, text)=>{ doc.setFont("helvetica","bold"); doc.text(label, left, y); y+=lh; doc.setFont("helvetica","normal"); const split=doc.splitTextToSize(text||"—", 480); doc.text(split, left, y); y+=split.length*lh+6; };
+  multi("Conteúdo", e.content); multi("Progresso", e.progress); multi("Dificuldades", e.difficulties); multi("Próximos passos", e.nextSteps);
+  if(e.notes){ multi("Observações", e.notes); }
+  doc.setFontSize(10); doc.setTextColor(120); doc.text("Gerado automaticamente pelo sistema.", left, 800);
+  doc.save(`Evolucao-${studentName||"Aluno"}-${(e.date||"").slice(0,10)}.pdf`);
+}
+
+/* ======================= KPIs / Relatórios ======================= */
+function renderKPIs(){
+  const today = new Date(); const y=today.getFullYear(); const m=today.getMonth();
+  const dayCount = lessons.filter(l=>{ const d = parseISODateLocal(l.date); return d.getDate()===today.getDate() && d.getMonth()===m && d.getFullYear()===y; }).length;
+  const monthList = lessons.filter(l=>{ const d = parseISODateLocal(l.date); return d.getMonth()===m && d.getFullYear()===y; });
+  const monthCount = monthList.length;
+  const monthRev = monthList.filter(x=>x.status===2).reduce((s,a)=>s+(+a.price||0),0);
+  const yearRev = lessons
+  .filter(l => {
+    const d = parseISODateLocal(l.date);
+    return d.getFullYear() === y && l.status === 2;
+  })
+  .reduce((s, a) => s + (+a.price || 0), 0);
+
+  $("kpiDay").textContent=dayCount;
+  $("kpiMonth").textContent=monthCount;
+  $("kpiMonthRev").textContent=money(monthRev);
+  $("kpiYearRev").textContent=money(yearRev);
+}
+$("repYear").onchange = renderDashboard;
+$("repCompare").onchange = renderDashboard;
+if ($("repYearInvest")) $("repYearInvest").onchange = renderDashboard; // ✅
+function ensureYearSelects(){
+  const years=new Set();
+  for(const l of lessons){ if(!l.date||l.status!==2) continue; years.add(parseISODateLocal(l.date).getFullYear()); }
+  if(years.size===0){ const y=(new Date()).getFullYear(); years.add(y); years.add(y-1); }
+  const arr=[...years].sort((a,b)=>a-b);
+
+  const fill=(id)=>{ 
+    const el=$(id); 
+    if(!el) return;
+    const cur=el.value; 
+    el.innerHTML=arr.map(y=>`<option>${y}</option>`).join(""); 
+    if(arr.includes(+cur)) el.value=cur; 
+  };
+
+  fill("repYear");
+  fill("repCompare");
+  fill("repYearInvest");              // ✅ novo
+
+  if(!$("repYear").value) $("repYear").value=String((new Date()).getFullYear());
+  if(!$("repCompare").value) $("repCompare").value=String((new Date()).getFullYear()-1);
+
+  // por padrão, o seletor de investimento acompanha o principal
+  if ($("repYearInvest") && !$("repYearInvest").value) {
+    $("repYearInvest").value = $("repYear").value;
+  }
+
+  updateMoneyButton();
+}
+
+let _barsY = Array(12).fill(0);
+let _barsC = Array(12).fill(0);
+let _chartCtx=null;
+function renderDashboard(){
+  ensureYearSelects();
+  const y  = +$("repYear").value;
+const cy = +$("repCompare").value;
+const invY = +($("repYearInvest")?.value || y);   // ✅ ano do bloco de investimento
+$("listYear").textContent = String(invY);
+$("cmpYear").textContent = cy;
+$("barsYear").textContent = y;
+
+
+
+  _barsY = Array(12).fill(0);
+  _barsC = Array(12).fill(0);
+
+  for(const l of lessons){
+    if(!l.date || l.status!==2) continue;
+    const d = parseISODateLocal(l.date); const m = d.getMonth();
+    if(d.getFullYear()===y) _barsY[m]+= (+l.price||0);
+    if(d.getFullYear()===cy) _barsC[m]+= (+l.price||0);
+  }
+  const yearTotal = _barsY.reduce((a,b)=>a+b,0);
+  const cmpTotal  = _barsC.reduce((a,b)=>a+b,0);
+  const delta = cmpTotal>0 ? ((yearTotal-cmpTotal)/cmpTotal*100) : (yearTotal>0? 100 : 0);
+  $("kpiYearRev").textContent = money(yearTotal);
+  $("kpiYearDelta").textContent = (delta>=0?"+":"") + delta.toFixed(1) + "%";
+  $("yearTotalFooter").textContent = money(yearTotal);
+
+  drawBars(_barsY, _barsC);
+
+  const mapStu=new Map();
+  for(const l of lessons){
+    if(!l.date || l.status!==2) continue;
+    const d = parseISODateLocal(l.date); if(d.getFullYear()!==invY) continue;
+    const k=l.studentId||"_";
+    const cur=mapStu.get(k)||{sum:0,count:0};
+    cur.sum += (+l.price||0);
+    cur.count += 1;
+    mapStu.set(k,cur);
+  }
+  const studentCount = [...mapStu.keys()].filter(k=>k!=="_").length || 0;
+  $("avgPerStudent").textContent = studentCount? money((yearTotal/studentCount)) : money(0);
+
+  const list=[...mapStu.entries()].map(([id,agg])=>{
+    const s=students.find(x=>x.id===id); return {name:(s?.name||"(Aluno)"), total:agg.sum, aulas:agg.count};
+  }).sort((a,b)=> b.total-a.total).slice(0,50);
+
+  const box=$("byStudentList"); box.innerHTML="";
+  if(list.length===0){ box.innerHTML=`<div class="muted">Sem aulas realizadas no ano.</div>`; }
+  for(const r of list){
+    const row=document.createElement("div"); row.className="listrow";
+    row.innerHTML=`<div>${r.name}</div><div><span class="pill-mini">${r.aulas} aulas</span> &nbsp; <b>${money(r.total)}</b></div>`;
+    box.appendChild(row);
+  }
+}
+function drawBars(arrY, arrC){
+  const canvas=$("chartYear"); if(!canvas) return;
+  const cssW = canvas.clientWidth || 600;
+  const cssH = Number(canvas.getAttribute("height")||140);
+  canvas.width = cssW;
+  if(!_chartCtx){ _chartCtx=canvas.getContext("2d"); }
+  const ctx=_chartCtx;
+  const W=canvas.width, H=cssH;
+  ctx.clearRect(0,0,W,H);
+
+  const pad=24, innerW=W-pad*2, innerH=H-pad*2;
+  const monthsLbl=["J","F","M","A","M","J","J","A","S","O","N","D"];
+  const max=Math.max(1,...arrY,...arrC);
+  const col=12, gap=innerW/(col*2), barW=gap*0.8;
+
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line'); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+
+  ctx.fillStyle="#5ea0ff";
+  for(let i=0;i<12;i++){ const x=pad + i*gap*2 + gap*0.3; const h=Math.round((arrY[i]/max)*innerH); ctx.fillRect(x, H-pad-h, barW, h); }
+  ctx.fillStyle="#7a6cff";
+  for(let i=0;i<12;i++){ const x=pad + i*gap*2 + gap*0.3 + barW + 4; const h=Math.round((arrC[i]/max)*innerH); ctx.fillRect(x, H-pad-h, barW, h); }
+
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted'); ctx.font="12px sans-serif"; ctx.textAlign="center";
+  for(let i=0;i<12;i++){ const x=pad + i*gap*2 + gap*0.3 + barW; ctx.fillText(monthsLbl[i], x, H-pad+14); }
+}
+window.addEventListener("resize", ()=> drawBars(_barsY, _barsC));
+function updateMoneyButton(){
+  const btn=$("btnHideMoney"); if(!btn) return;
+  const hidden = btn.dataset.hide==="1";
+  btn.textContent = hidden? "👁️ Mostrar" : "🙈 Ocultar";
+  const nodes = [ "kpiMonthRev","kpiYearRev","avgPerStudent","yearTotalFooter" ];
+  for(const id of nodes){ const el=$(id); if(el) el.style.filter = hidden? "blur(4px)" : "none"; }
+}
+{
+  const btn = document.getElementById("btnHideMoney");
+  if (btn) {
+    btn.onclick = () => {
+      const b = document.getElementById("btnHideMoney");
+      b.dataset.hide = b.dataset.hide === "1" ? "0" : "1";
+      updateMoneyButton();
+    };
+  }
+}
+
+
+function initReportFilters() {
+  const yearSel = $("repYear");
+  const cmpSel  = $("repCompare");
+  const monthSel = $("repMonth");
+
+  // Limpa antes
+  monthSel.innerHTML = "";
+
+  /// Preenche meses (0 = Todos, 1..12 = Jan..Dez)
+if (monthSel) {
+  monthSel.innerHTML = ""; // limpa
+
+  // 0 = Todos
+  {
+    const opt = document.createElement("option");
+    opt.value = "0";
+    opt.textContent = "Todos";
+    monthSel.appendChild(opt);
+  }
+
+  // 1..12
+  const months = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  months.forEach((m, i) => {
+    const opt = document.createElement("option");
+    opt.value = String(i + 1);   // <-- agora 1..12
+    opt.textContent = m;
+    monthSel.appendChild(opt);
+  });
+}
+function bindReportEvents() {
+  ["repYear", "repCompare", "repMonth"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.dataset._bound !== "1") {
+      el.addEventListener("change", renderReportStats);
+      el.dataset._bound = "1"; // evita listeners duplicados
+    }
+  });
+}
+
+  const now = new Date();
+if (monthSel) monthSel.value = String(now.getMonth() + 1);
+}
+
+  // --- Preenche comparar com ---
+  if (repCompareSel) {
+    const yNow = new Date().getFullYear();
+    repCompareSel.innerHTML = "";
+    const none = document.createElement("option");
+    none.value = "0"; none.textContent = "-";
+    repCompareSel.appendChild(none);
+    for (let y = yNow + 1; y >= yNow - 4; y--) {
+      const opt = document.createElement("option");
+      opt.value = String(y);
+      opt.textContent = y;
+      repCompareSel.appendChild(opt);
+    }
+  }
+
+  // --- Preenche meses ---
+  if (repMonthSel) {
+    repMonthSel.innerHTML = "";
+    const meses = [
+      {v:"0", n:"Todos"},
+      {v:"1", n:"Jan"}, {v:"2", n:"Fev"}, {v:"3", n:"Mar"},
+      {v:"4", n:"Abr"}, {v:"5", n:"Mai"}, {v:"6", n:"Jun"},
+      {v:"7", n:"Jul"}, {v:"8", n:"Ago"}, {v:"9", n:"Set"},
+      {v:"10", n:"Out"}, {v:"11", n:"Nov"}, {v:"12", n:"Dez"}
+    ];
+    for (const {v,n} of meses) {
+      const opt = document.createElement("option");
+      opt.value = v; opt.textContent = n;
+      repMonthSel.appendChild(opt);
+    }
+    repMonthSel.value = String(new Date().getMonth() + 1);
+  }
+
+
+
+// Render dos relatórios (ano + mês + comparação)
+function renderReportStats() {
+  // ========= 1) Seletores obrigatórios =========
+  const repYearSel    = $("#repYear");
+  const repCompareSel = $("#repCompare");
+  const repMonthSel   = $("#repMonth");      // <-- novo (mês)
+  const chartCanvas   = $("#chartYear");
+  const repListBox    = $("#repList");
+  const repKpiTotal   = $("#repTotal");
+  const repKpiMedia   = $("#repMedia");
+
+  // Se algum essencial não existir, sai silencioso
+  if (!repYearSel || !chartCanvas || !repListBox) return;
+
+  // ========= 2) Valores selecionados =========
+  const year    = Number(repYearSel.value || new Date().getFullYear());
+  const compare = Number(repCompareSel?.value || 0); // 0 = sem comparativo
+  const month   = Number(repMonthSel?.value || 0);   // 0 = todos os meses
+
+  // ========= 3) Helpers locais =========
+  const toNumber = (v) => (v == null || v === "") ? 0 : Number(v);
+  const getStudentId = (l) => l.studentId ?? l.studentID ?? l.alunoId ?? l.alunoID ?? l.student ?? l.aluno;
+  const getPrice     = (l) => toNumber(l.price ?? l.valor ?? l.preco);
+  const isDone       = (l) => (l.status === 2); // “Realizada”
+
+  // filtro base por ano + mês (0 = todos)
+  const byYearMonthStatus = (Y, M /* 1..12 ou 0 */, status = 2) => (l) => {
+    const d = parseISODateLocal(l.date); // você já tem essa função no projeto
+    const sameYear  = d.getFullYear() === Y;
+    const sameMonth = (M === 0) || (d.getMonth() + 1 === M);
+    return sameYear && sameMonth && l.status === status;
+  };
+
+  // ========= 4) Aplica recortes (principal e comparativo) =========
+  // “lessons” é seu array global de aulas (já existe no app)
+  const lessonsYear = lessons.filter(byYearMonthStatus(year, month, 2));
+  const lessonsCompare = compare
+    ? lessons.filter(byYearMonthStatus(compare, month, 2))
+    : [];
+
+  // ========= 5) KPIs =========
+  // Total do período
+  const totalYear = lessonsYear.reduce((sum, l) => sum + getPrice(l), 0);
+
+  // Média por aluno no período
+  const alunosDistinct = new Set(lessonsYear.map((l) => getStudentId(l)));
+  const mediaPorAluno  = alunosDistinct.size > 0 ? (totalYear / alunosDistinct.size) : 0;
+
+  if (repKpiTotal) repKpiTotal.textContent = money(totalYear);      // você já usa money()
+  if (repKpiMedia) repKpiMedia.textContent = money(mediaPorAluno); // idem
+
+  // ========= 6) Lista/Resumo (texto curto) =========
+  // Sinta-se à vontade pra personalizar esse trecho
+  const monthLabel = (function() {
+    if (month === 0) return "todos os meses";
+    const N = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    return N[month - 1] ?? String(month).padStart(2, "0");
+  })();
+
+  repListBox.innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center">
+      <span>${year} — <strong>${monthLabel}</strong> • Aulas: <strong>${lessonsYear.length}</strong></span>
+      ${compare ? `<span style="opacity:.7">Comparado com ${compare}: <strong>${lessonsCompare.length}</strong></span>` : ""}
+    </div>
+  `;
+
+  // ========= 7) Gráfico (Chart.js) =========
+  // Monta totais mensais para o ano selecionado; se “mês” != 0, só aquela coluna terá valor.
+  const labelsMes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+  const monthlySum = (arr, Y) => {
+    const acc = Array(12).fill(0);
+    for (const l of arr) {
+      const d = parseISODateLocal(l.date);
+      if (d.getFullYear() !== Y) continue;
+      const mIndex = d.getMonth(); // 0..11
+      if (month === 0 || (mIndex + 1) === month) {
+        acc[mIndex] += getPrice(l);
+      }
+    }
+    return acc;
+  };
+
+  const dataMain   = monthlySum(lessonsYear, year);
+  const dataComp   = compare ? monthlySum(lessonsCompare, compare) : null;
+
+  // (re)cria o gráfico sem vazar instâncias
+  try {
+    if (window._yearChart) { window._yearChart.destroy(); }
+  } catch (e) { /* ignore */ }
+
+  if (typeof Chart !== "undefined" && chartCanvas) {
+    const ctx = chartCanvas.getContext("2d");
+    window._yearChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labelsMes,
+        datasets: [
+          { label: String(year),    data: dataMain },
+          ...(compare ? [{ label: String(compare), data: dataComp }] : [])
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "top" } },
+        scales: {
+          y: { ticks: { callback: (v) => money(v) } }
+        }
+      }
+    });
+  }
+}
+
+
+  // 8) Atualiza gráfico (se você já tem função de gráfico, chamamos com segurança)
+  //    Tente usar a mesma que você já usa. Aqui deixei um contrato genérico.
+  //    Ex.: window.updateYearChart(datasetPrincipal, datasetComparativo, {year, compare, month})
+  if (typeof window.updateYearChart === "function") {
+    window.updateYearChart(lessonsYear, lessonsCompare, { year, compare, month });
+  } else {
+    // Fallback simples: agrupa por mês para o gráfico
+    const bucket = (arr) => {
+      const m = Array.from({ length: 12 }, () => 0);
+      arr.forEach((l) => {
+        const d = parseISODateLocal(l.date);
+        if (d instanceof Date && !isNaN(d)) {
+          m[d.getMonth()] += Number(l.value ?? l.price ?? 0);
+        }
+      });
+      return m;
+    };
+    const dataYear = bucket(lessonsYear);
+    const dataCmp  = compare ? bucket(lessonsCompare) : null;
+
+    // Se você usa Chart.js em chartCanvas, atualize aqui.
+    // Exemplo de pseudo-chamada (adapte ao seu código existente):
+    if (window.renderSimpleChart) {
+      window.renderSimpleChart(chartCanvas, dataYear, dataCmp, { year, compare, month });
+    }
+  }
+
+  // 9) Guarda filtros atuais (se você salva no localStorage)
+  try {
+    localStorage.setItem("report.year", String(year));
+    localStorage.setItem("report.month", String(month));
+    if (compare) localStorage.setItem("report.compare", String(compare));
+  } catch {}
+
+
+
+  // Se tiver ano de comparação, filtra também
+  const lessonsCompare = compare
+    ? lessons.filter(l => {
+        const d = parseISODateLocal(l.date);
+        return d.getFullYear() === compare && l.status === 2;
+      })
+    : [];
+
+  // KPIs
+  const total = lessonsYear.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+  const alunosSet = new Set(lessonsYear.map(l => l.studentId));
+  const mediaPorAluno = alunosSet.size ? total / alunosSet.size : 0;
+
+  if (repKpiTotal) repKpiTotal.textContent = money(total);
+  if (repKpiMedia) repKpiMedia.textContent = money(mediaPorAluno);
+
+  // Lista de investimento por aluno
+  if (repListBox) {
+    repListBox.innerHTML = "";
+    alunosSet.forEach(id => {
+      const aluno = students.find(s => s.id === id);
+      const totalAluno = lessonsYear
+        .filter(l => l.studentId === id)
+        .reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+      const div = document.createElement("div");
+      div.innerHTML = `<b>${aluno?.name || "Sem nome"}</b> — ${money(totalAluno)}`;
+      repListBox.appendChild(div);
+    });
+  }
+
+  // Gráfico mensal
+  if (chartCanvas) {
+    const dataYear = Array(12).fill(0);
+    lessonsYear.forEach(l => {
+      const m = parseISODateLocal(l.date).getMonth();
+      dataYear[m] += Number(l.price) || 0;
+    });
+
+    const dataCompare = compare ? Array(12).fill(0) : null;
+    if (compare) {
+      lessonsCompare.forEach(l => {
+        const m = parseISODateLocal(l.date).getMonth();
+        dataCompare[m] += Number(l.price) || 0;
+      });
+    }
+
+    if (window.repChart) window.repChart.destroy();
+    window.repChart = new Chart(chartCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
+        datasets: [
+          {
+            label: `Ano ${year}`,
+            data: dataYear,
+            backgroundColor: "#4caf50"
+          },
+          compare && {
+            label: `Ano ${compare}`,
+            data: dataCompare,
+            backgroundColor: "#8884d8"
+          }
+        ].filter(Boolean)
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: { y: { beginAtZero: true, ticks: { callback: v => money(v) } } }
+      }
+    });
+  }
+
+
+/* ======================= Backup ======================= */
+$("btnExportJSON").onclick=()=>{
+  const data = { students, lessons, evolutions };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="backup.json"; a.click();
+};
+$("btnImportJSON").onclick=()=>{
+  const inp = document.createElement("input"); inp.type="file"; inp.accept="application/json";
+  inp.onchange=async()=>{ const f=inp.files?.[0]; if(!f) return; const tx=await f.text(); const data=JSON.parse(tx||"{}");
+    if(Array.isArray(data.students)) for(const s of data.students){ const {id,...rest}=s; await addDoc(colStudents,{...rest, createdAt:serverTimestamp(), updatedAt:serverTimestamp()}); }
+    if(Array.isArray(data.lessons))  for(const l of data.lessons){  const {id,...rest}=l; await addDoc(colLessons ,{...rest, createdAt:serverTimestamp(), updatedAt:serverTimestamp()}); }
+    if(Array.isArray(data.evolutions))for(const e of data.evolutions){const {id,...rest}=e; await addDoc(colEvol    ,{...rest, createdAt:serverTimestamp(), updatedAt:serverTimestamp()}); }
+  };
+  inp.click();
+};
+
+/* ======================= Aula: CRUD ======================= */
+$("btnNewLesson").onclick = () => openLessonModal();
+
+$("btnCloseLesson").onclick = () => {
+  $("lessonModal").classList.remove("show");
+  document.body.classList.remove("modal-open");
+};
+
+$("btnSaveLesson").onclick = saveLesson;
+$("btnDelLesson").onclick  = deleteLessonConfirmed;
+
+let editingLessonId = null;
+
+function openLessonModal(data) {
+  fillStudentSelects();
+
+  editingLessonId = data?.id || null;
+  $("lessonTitle").textContent = editingLessonId ? "Editar aula" : "Nova aula";
+
+  const nowLocal = toLocalDateTimeString(new Date());
+  $("lessonDate").value     = data?.date?.slice(0, 16) ?? nowLocal;
+  $("lessonStudent").value  = data?.studentId || "";
+  $("lessonStyle").value    = data?.style || "";
+  $("lessonLevel").value    = data?.level || "Iniciante";
+  $("lessonType").value     = data?.type || "Particular";
+  $("lessonModel").value    = data?.model || "Padrão";
+  $("lessonDuration").value = data?.duration || 60;
+  $("lessonPrice").value    = Number.isFinite(+data?.price) ? fmtBRL(data.price) : fmtBRL(0);
+  $("lessonPlace").value    = data?.place || "";
+  $("lessonStatus").value   = String(data?.status ?? 0);
+  $("lessonNotes").value    = data?.notes || "";
+  $("btnDelLesson").style.display = editingLessonId ? "inline-flex" : "none";
+
+  // Recorrência: defaults ao abrir (apenas aqui dentro!)
+  $("recEnabled").checked = false;
+  $("recEvery").value = "7";
+  $("recCount").value = 0;
+
+  document.body.classList.add("modal-open");
+  $("lessonModal").classList.add("show");
+}
+
+function editLesson(id) {
+  const a = lessons.find(x => x.id === id);
+  if (a) openLessonModal(a);
+}
+ async function saveLesson(){
+  const dateLocal = $("lessonDate").value; // "YYYY-MM-DDTHH:MM" (local)
+  const payload = {
+    date: dateLocal,
+    studentId: $("lessonStudent").value,
+    style: $("lessonStyle").value,
+    level: $("lessonLevel").value,
+    type: $("lessonType").value,
+    model: $("lessonModel").value,
+    duration: +$("lessonDuration").value || 60,
+    price: parseNumberFromBRL($("lessonPrice").value),
+    place: $("lessonPlace").value,
+    status: +$("lessonStatus").value || 0,
+    notes: $("lessonNotes").value,
+    ownerUid: user?.uid || "dev",
+    updatedAt: serverTimestamp()
+  };
+
+  try{
+    if (editingLessonId){
+      await updateDoc(doc(db,"aulas",editingLessonId), payload);
+    } else {
+      await addDoc(colLessons, { ...payload, createdAt: serverTimestamp() });
+    }
+
+    // === Recorrência (cria aulas futuras) ===
+    try{
+      const recOn   = $("recEnabled")?.checked;
+      const recDays = Number($("recEvery")?.value || 7);
+      const recQty  = Number($("recCount")?.value || 0);
+
+      if (recOn && recQty > 0) {
+        const base = new Date(dateLocal);
+
+        for (let i = 1; i <= recQty; i++){
+          const d = new Date(base);
+          d.setDate(d.getDate() + i * recDays);
+          const nextLocal = toLocalDateTimeString(d);
+
+          const futurePayload = {
+            ...payload,
+            date: nextLocal,
+            status: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+
+          const exists = lessons.some(l =>
+            l.studentId === futurePayload.studentId &&
+            typeof l.date === "string" &&
+            l.date.slice(0,16) === nextLocal.slice(0,16)
+          );
+          if (exists) continue;
+
+          await addDoc(colLessons, futurePayload);
+        }
+      }
+    }catch(err){
+      console.error(err);
+      showAlert("Erro ao criar recorrência.", "error");
+    }
+
+    $("lessonModal").classList.remove("show");
+    document.body.classList.remove('modal-open');
+    showAlert("Salvo com sucesso.");
+  }catch(e){
+    console.error(e);
+    showAlert("Erro ao salvar aula","error");
+  }
+}
+
+function deleteLesson(id){ const a=lessons.find(x=>x.id===id); if(a) openLessonModal(a); }
+async function deleteLessonConfirmed(){
+  if(!editingLessonId) return;
+  if(!confirm("Excluir esta aula?")) return;
+  try{ await deleteDoc(doc(db,"aulas",editingLessonId)); $("lessonModal").classList.remove("show"); ocument.body.classList.remove("modal-open"); editingLessonId = null; showAlert("Aula excluída.");
+  }catch(err){ console.error(err); showAlert("Aula excluida com sucesso","error"); }
+}
+
+
+/* ======================= RECIBO (Completo) ======================= */
+const recModal = $("receiptModal");
+$("btnReceiptClose").onclick = ()=> recModal.classList.remove("show");
+const fmt = (n)=> (Number(n||0)).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+/* Alterna blocos */
+function toggleReceiptBoxes(){
+  const t = $("recType").value;
+  $("recBoxAvulsa").style.display = (t==="avulsa") ? "block" : "none";
+  $("recBoxPacote").style.display = (t==="pacote") ? "block" : "none";
+  if (t==="avulsa") $("recObsAvulsa").value = "Aula avulsa";
+  else $("recObsPacote").value = "Pagamento de pacote";
+}
+$("recType").onchange = ()=>{ toggleReceiptBoxes(); tryFillPackageAuto(); };
+
+/* Preenche select de alunos */
+function fillReceiptStudents(){ const c=$("recStudent"); if(!c) return; const opts = `<option value="">Selecione…</option>` + students.map(s=>`<option value="${s.id}">${s.name||"(sem nome)"}</option>`).join(""); c.innerHTML=opts; }
+function setReceiptStudent(id){ const el=$("recStudent"); if(el) el.value = id||""; }
+
+/* Abrir modal Avulsa (a partir da aula) */
+function openReceiptFromLesson(a){
+  fillReceiptStudents();
+  $("recType").value = "avulsa"; toggleReceiptBoxes();
+  $("recEmitDate").value = toInputDate(new Date());
+  $("recTeacher").value  = "Edson Silva";
+  setReceiptStudent(a.studentId||"");
+  $("recAvulsaDate").value  = toInputDate(parseISODateLocal(a.date));
+  $("recAvulsaValue").value = fmtBRL(a.price||0);
+  $("recPayMethod").value = "PIX";
+  $("recCNPJ").value = ""; // opcional
+  $("recObsAvulsa").value = "Aula avulsa";
+  recModal.classList.add("show");
+}
+
+/* Abrir modal Pacote (a partir do aluno) */
+function openReceiptFromStudent(s){
+  fillReceiptStudents();
+  $("recType").value = "pacote"; toggleReceiptBoxes();
+  $("recEmitDate").value = toInputDate(new Date());
+  $("recTeacher").value  = "Edson Silva";
+  setReceiptStudent(s.id||"");
+  const i = s.packageStart ? parseBR(s.packageStart) : null;
+  const f = s.packageEnd   ? parseBR(s.packageEnd)   : null;
+  $("recPkgStart").value = i ? toInputDate(i) : "";
+  $("recPkgEnd").value   = f ? toInputDate(f) : "";
+  $("recPayMethod").value = "PIX";
+  $("recCNPJ").value = "";
+  $("recObsPacote").value = "Pagamento de pacote";
+  tryFillPackageAuto();
+  recModal.classList.add("show");
+}
+
+/* Aulas no período — exclui canceladas */
+function getLessonsInRange(studentId, isoStart, isoEnd){
+  if(!studentId || !isoStart || !isoEnd) return [];
+  const S = new Date(isoStart + "T00:00:00");
+  const E = new Date(isoEnd   + "T23:59:59");
+  return lessons
+    .filter(l => l.studentId === studentId && l.status !== 3)
+    .filter(l => { const d=parseISODateLocal(l.date); return d>=S && d<=E; })
+    .sort((a,b) => parseISODateLocal(a.date) - parseISODateLocal(b.date));
+}
+
+/* Calcula pacote */
+function fillPackageAuto(){
+  const sId = $("recStudent").value;
+  const i   = $("recPkgStart").value;
+  const f   = $("recPkgEnd").value;
+  const qtyEl   = $("recPkgQty");
+  const totalEl = $("recPkgTotal");
+  const datesEl = $("recPkgDates");
+
+  if(!sId || !i || !f){
+    qtyEl.value = 0; totalEl.value = 0; datesEl.value = "—";
+    return { qty:0, total:0, dates:[] };
+  }
+  const arr   = getLessonsInRange(sId, i, f);
+  const qty   = arr.length;
+  const total = arr.reduce((sum,x)=> sum + (+x.price||0), 0);
+  const dates = arr.map(x=>{
+    const d=parseISODateLocal(x.date);
+    const tag = ["Agendada","Confirmada","Realizada","Cancelada"][x.status||0];
+    return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()} (${tag})`;
+  });
+
+  qtyEl.value   = qty;
+  totalEl.value = Number(total).toFixed(2);
+  datesEl.value = dates.length ? dates.join("\n") : "—";
+
+  return { qty, total, dates };
+}
+const tryFillPackageAuto = ()=> { if($("recType").value === "pacote") fillPackageAuto(); };
+["recStudent","recPkgStart","recPkgEnd"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change", tryFillPackageAuto); });
+
+/* PDF */
+$("btnReceiptPDF").onclick = generateReceiptPDF;
+function generateReceiptPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"pt", format:"a4"});
+  const L = 56; let y = 64, lh = 18;
+
+  const type = $("recType").value;
+  const emit = $("recEmitDate").value;
+  const prof = $("recTeacher").value || "Professor";
+  const cnpj = $("recCNPJ").value || "";
+  const stuId = $("recStudent").value;
+  const stu   = students.find(s=>s.id===stuId);
+  const aluno = stu?.name || $("recStudent").selectedOptions?.[0]?.text || "Aluno";
+  const pay = $("recPayMethod").value || "";
+  const obs = ($("recType").value==="avulsa")
+  ? ($("recObsAvulsa")?.value || "")
+  : ($("recObsPacote")?.value || "");
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("RECIBO DE AULAS — Bailado Carioca", L, y); y+=lh+8;
+
+  doc.setFont("helvetica","normal"); doc.setFontSize(12);
+  doc.text(`Emitido em: ${emit||"-"}`, L, y); y+=lh;
+
+  doc.setFont("helvetica","bold"); doc.text("EMITENTE", L, y); y+=lh;
+  doc.setFont("helvetica","normal"); 
+  doc.text(`Professor: ${prof}`, L, y); y+=lh;
+  if(cnpj){ doc.text(`CNPJ: ${cnpj}`, L, y); y+=lh; }
+  y+=6;
+
+  doc.setFont("helvetica","bold"); doc.text("RECEBI DE", L, y); y+=lh;
+  doc.setFont("helvetica","normal"); doc.text(`Aluno: ${aluno}`, L, y); y+=lh+6;
+
+  if (type === "avulsa"){
+    const d = $("recAvulsaDate").value;
+    const v = parseNumberFromBRL($("recAvulsaValue").value);
+
+    doc.setFont("helvetica","bold"); doc.text("AULA AVULSA", L, y); y+=lh;
+    doc.setFont("helvetica","normal");
+    doc.text(`Data da aula: ${d||"-"}`, L, y); y+=lh;
+    doc.text(`Valor pago: ${fmt(v)}`, L, y); y+=lh;
+
+    doc.setFont("helvetica","bold"); doc.text("PAGAMENTO", L, y); y+=lh;
+    doc.setFont("helvetica","normal");
+    doc.text(`Forma: ${pay||"-"}`, L, y); y+=lh;
+    if (obs){
+      const lines = doc.splitTextToSize(`Observações: ${obs}`, 480);
+      doc.text(lines, L, y); y += lines.length*lh;
+    }
+  } else {
+    const i = $("recPkgStart").value, f = $("recPkgEnd").value;
+    const { qty, total, dates } = fillPackageAuto();
+
+    doc.setFont("helvetica","bold"); doc.text("PACOTE", L, y); y+=lh;
+    doc.setFont("helvetica","normal");
+    doc.text(`Período do pacote: ${i||"-"} a ${f||"-"}`, L, y); y+=lh;
+    doc.text(`Aulas no período (agendadas/confirmadas/realizadas): ${qty}`, L, y); y+=lh+6;
+
+    if (dates && dates.length){
+      doc.setFont("helvetica","bold"); doc.text("Datas do período", L, y); y+=lh;
+      doc.setFont("helvetica","normal");
+      const cols = 3, colW = 160;
+      for (let idx=0; idx<dates.length; idx++){
+        const cx = L + (idx%cols)*colW;
+        const cy = y + Math.floor(idx/cols)*lh;
+        doc.text("• "+dates[idx], cx, cy);
+      }
+      y += Math.ceil(dates.length/cols)*lh + 6;
+    }
+
+    doc.setFont("helvetica","bold"); doc.text("RESUMO FINANCEIRO", L, y); y+=lh;
+    doc.setFont("helvetica","normal");
+    doc.text(`TOTAL PAGO: ${fmt(total)}`, L, y); y+=lh;
+
+    y += 6;
+    doc.setFont("helvetica","bold"); doc.text("PAGAMENTO", L, y); y+=lh;
+    doc.setFont("helvetica","normal");
+    doc.text(`Forma: ${pay||"-"}`, L, y); y+=lh;
+    if (obs){
+      const lines = doc.splitTextToSize(`Observações: ${obs}`, 480);
+      doc.text(lines, L, y); y += lines.length*lh;
+    }
+  }
+
+  doc.setFontSize(10); doc.setTextColor(120);
+  doc.text("Documento gerado automaticamente pelo sistema.", L, 800);
+
+  const fname = (type==="avulsa") ? `Recibo-Avulsa-${aluno}.pdf` : `Recibo-Pacote-${aluno}.pdf`;
+  doc.save(fname);
+}
+
+/* ======================= INIT ======================= */
+function renderEvoKPIs(){
+  const today=new Date(); const y=today.getFullYear(); const m=today.getMonth(); const d=today.getDate();
+  const dayE = evolutions.filter(e=>{
+    const t = parseISODateLocal(e.date);
+    return t.getDate()===d && t.getMonth()===m && t.getFullYear()===y;
+});
+const monthE = evolutions.filter(e=>{
+    const t = parseISODateLocal(e.date);
+    return t.getMonth()===m && t.getFullYear()===y;
+});
+
+  const monthMin = monthE.reduce((s,e)=>s+(+e.duration||0),0);
+  const stuSet=new Set(monthE.map(x=>x.studentId));
+  $("evoDay").textContent = dayE.length;
+  $("evoMonth").textContent= monthE.length;
+  $("evoMonthMin").textContent= (monthMin||0) + "'";
+  $("evoMonthStu").textContent= stuSet.size;
+}
+
+(function init(){
+  try{
+    renderCalendar();
+    renderKPIs();
+    renderEvoKPIs();
+    ensureYearSelects();
+    renderDashboard();
+    renderDayDetails( ymdKey(new Date()) );
+    updateMoneyButton();
+    $("recEmitDate").value = toInputDate(new Date());
+    toggleReceiptBoxes();
+  }catch(e){
+    console.error("Init error:", e);
+  }
+})();
+// === Relatório por Aluno ===
+function brl(v){ return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0)); }
+
+function getRepYear(){
+  // Se seu select de ano tiver outro id, ajuste aqui
+  const sel = $("repYear");
+  return sel && sel.value ? Number(sel.value) : (new Date()).getFullYear();
+}
+
+function fillRepStudentSelect() {
+  const sel = $("repStuSelect");
+  if (!sel || !Array.isArray(students)) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">Selecione um aluno...</option>` +
+    students.map(s => {
+      const id = String(s.id ?? "");
+      const name = s.name?.trim() || "(sem nome)";
+      return `<option value="${id}">${name}</option>`;
+    }).join("");
+  if ([...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+function renderRepStudent() {
+  const sel = $("repStuSelect");
+  const box = $("repStuBox");
+  const yearEcho = $("repYearEcho");
+  if (!sel || !box) return;
+
+  const year = getRepYear();
+  if (yearEcho) yearEcho.textContent = year;
+
+  const id = String(sel.value || "");
+  if (!id) {
+    box.innerHTML = `<div class="muted">Selecione um aluno para ver o detalhamento.</div>`;
+    return;
+  }
+
+  const stu = (students || []).find(s => String(s.id) === id);
+
+  const lessonsYear = (lessons || []).filter(l =>
+    String(l.studentId) === id &&
+   parseISODateLocal(l.date).getFullYear() === Number(year) &&
+    Number(l.status) === 2 // ajuste se seu "realizada" for outro código
+  );
+
+  const total = lessonsYear.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
+
+  box.innerHTML = `
+    <h3>${stu?.name?.trim() || "(sem nome)"}</h3>
+    <p>Total de aulas realizadas: <b>${lessonsYear.length}</b></p>
+    <p>Investimento no ano: <b>${brl(total)}</b></p>
+  `;
+}
+
+// Listeners (com proteção)
+if ($("repStuSelect")) $("repStuSelect").onchange = renderRepStudent;
+if ($("repYear"))      $("repYear").onchange      = renderRepStudent;
+
+// Chamar após snapshots carregarem
+function initRepStudentArea(){
+  fillRepStudentSelect();
+  renderRepStudent();
+}
+</script>
+</body>
+</html>

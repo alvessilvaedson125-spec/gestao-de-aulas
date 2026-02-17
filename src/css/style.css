@@ -1,0 +1,65 @@
+:root { --pink: #db2777; }
+body { font-family: 'Roboto', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.logo-text { font-family: 'Dancing Script', cursive; }
+
+/* Fundo carioca */
+.bg-pattern{
+  background: linear-gradient(to bottom, rgba(255,255,255,.94), rgba(255,255,255,.94)),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 100 100"><rect width="100" height="100" fill="white"/><path d="M0,0 Q50,30 100,0 L100,100 Q50,70 0,100 Z" fill="%23fce7f3" opacity="0.7"/></svg>');
+  background-size: cover;
+}
+
+/* Cristo estilizado */
+.cristo-icon { position: relative; display: inline-block; width: 28px; height: 28px; }
+.cristo-icon::before { content: "⛰️"; position: relative; font-size: 22px; top: 2px; }
+.cristo-icon::after { content: "✝️"; position: absolute; left: 8px; top: -6px; font-size: 12px; }
+
+/* Cards & buttons */
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.06); }
+.btn-primary { background: var(--pink); color:#fff; padding:.5rem .9rem; border-radius:.5rem; }
+.btn-primary:hover { background:#be185d; }
+.btn-green { background:#16a34a; color:#fff; padding:.5rem .9rem; border-radius:.5rem; }
+.btn-green:hover { background:#15803d; }
+.btn-outline { border:1px solid #e5e7eb; padding:.4rem .7rem; border-radius:.45rem; }
+.btn-outline:hover { background:#f9fafb; }
+.btn-ghost { color:#374151; }
+.btn-ghost:hover { color:#111827; }
+
+.status-dot { width:10px; height:10px; border-radius:9999px; display:inline-block; }
+
+/* KPI */
+.kpi { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1rem; }
+.kpi-label { font-size:.7rem; color:#6b7280; }
+.kpi-value { font-size:1.6rem; font-weight:700; }
+.kpi-hint { font-size:.6rem; color:#9ca3af; margin-top:.25rem; }
+
+/* Modal */
+.modal { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:50; }
+.modal-card { background:#fff; border-radius:12px; width:100%; max-width:42rem; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+.modal-head { display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; border-bottom:1px solid #e5e7eb; }
+.modal-close { width:2rem; height:2rem; display:inline-flex; align-items:center; justify-content:center; border-radius:.5rem; }
+.modal-close:hover { background:#f3f4f6; }
+.modal-foot { display:flex; align-items:center; justify-content:space-between; padding-top:.5rem; }
+
+/* Inputs */
+.lbl { display:block; font-size:.85rem; font-weight:500; margin-bottom:.25rem; }
+.inp { width:100%; border:1px solid #e5e7eb; border-radius:.5rem; padding:.5rem .6rem; }
+.inp:focus { outline: none; box-shadow: 0 0 0 3px rgba(236, 72, 153, .25); }
+
+/* Calendário mês */
+.day-cell { background:#fff; min-height:110px; position:relative; padding:.25rem; border:1px solid #e5e7eb; }
+.day-num { position:absolute; top:.25rem; right:.4rem; font-size:.8rem; color:#6b7280; }
+.day-today { background:#ffe4e6; }
+.event-pill { font-size:.72rem; padding:.2rem .35rem; border-radius:.35rem; margin-top:.2rem; cursor:pointer; }
+
+/* Cores por status */
+.ev-confirmada { background:#D1FAE5; color:#065F46; }
+.ev-reagendada { background:#FEF3C7; color:#92400E; }
+.ev-dada       { background:#DBEAFE; color:#1E40AF; }
+.ev-marcada    { background:#E5E7EB; color:#374151; }
+.ev-cancelada  { background:#FEE2E2; color:#991B1B; }
+
+/* Calendário semana */
+.week-col { background:#fff; min-height:700px; border:1px solid #e5e7eb; padding:.25rem; }
+.week-hour { height:42px; font-size:.7rem; color:#6b7280; border-bottom:1px dashed #e5e7eb; padding:.25rem .4rem; }
+.week-event { font-size:.72rem; margin:.25rem 0; padding:.25rem .35rem; border-radius:.35rem; }

@@ -1,0 +1,641 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Bailado Carioca • Gestão de Aulas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="50%" x="50%" dominant-baseline="middle" text-anchor="middle" font-size="48">💃</text></svg>'>
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#111827">
+
+<!-- iOS (instalável em tela cheia) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<!-- jsPDF para recibos -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<link rel="stylesheet" href="/css/app.css">
+
+</head>
+<body>
+  <script>
+  // Ajusta --vh para refletir a altura útil (corrige barras do navegador mobile)
+  function setVH(){
+    const vh = window.innerHeight * 0.01; // define 'vh' corretamente
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+</script>
+<script>
+  // Registro do Service Worker (requer HTTPS ou localhost)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        // detectar updates (opcional)
+        reg.onupdatefound = () => {
+          const nw = reg.installing;
+          nw && (nw.onstatechange = () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('Nova versão disponível — recarregue para aplicar.');
+              // aqui você pode mostrar um toast e, se quiser:
+              // location.reload();
+            }
+          });
+        };
+      }).catch(err => console.error('SW register fail:', err));
+    });
+  }
+</script>
+
+<header>
+  <div class="wrap">
+    <div class="row">
+      <div class="pill">GA</div>
+      <div style="font-weight:700">Gestão de Aulas</div>
+      <div class="muted">Agenda, Alunos, Evolução, Relatórios e Backup</div>
+      <div class="spacer"></div>
+      <button id="btnTheme" class="btn">🌙 Tema</button>
+      <button id="btnGoogle" class="btn primary">Entrar com Google</button>
+      <div id="authEmail" class="pill" style="display:none"></div>
+      <button id="btnSignout" class="btn" style="display:none">Sair</button>
+    </div>
+  </div>
+</header>
+
+<!-- CAPA -->
+<section id="hero">
+  <div class="wrap">
+    <div class="hero-card" id="heroCard">
+      <div class="hero-glow"></div>
+      <h1>Gestão de Aulas</h1>
+      <p>Tudo em um único lugar — agenda interativa, alunos, evolução, relatórios e backup.</p>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+        <span class="pill">📅 Agenda</span><span class="pill">👥 Alunos</span><span class="pill">🧭 Evolução</span><span class="pill">📊 Relatórios</span><span class="pill">💾 Backup</span>
+      </div>
+      <div style="margin-top:12px">
+        <button id="btnEnterSystem" class="btn primary">+ Entrar no Sistema</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <!-- Abas -->
+  <div class="row" id="tabs" style="margin:6px 0 10px 0; display:none">
+    <a href="#agenda" class="pill active" data-tab="agenda">📅 Agenda</a>
+    <a href="#alunos" class="pill" data-tab="alunos">👥 Alunos</a>
+    <a href="#evolucao" class="pill" data-tab="evolucao">🧭 Evolução</a>
+    <a href="#relatorios" class="pill" data-tab="relatorios">📊 Relatórios</a>
+    <a href="#backup" class="pill" data-tab="backup">💾 Backup</a>
+  </div>
+
+  <!-- AGENDA -->
+  <section id="agenda" class="section card">
+    <h2>Agenda</h2>
+  <div class="cal-head">
+
+  <!-- 🔵 LINHA 1 — Navegação + Ações -->
+  <div class="cal-head-top">
+
+    <div class="cal-nav">
+      <button id="calPrev" class="btn small">◀</button>
+      <div id="calTitle" class="pill">mês ano</div>
+      <button id="calNext" class="btn small">▶</button>
+    </div>
+
+    <div class="cal-main-actions">
+      <button id="btnNewLesson" class="btn primary">+ Aula</button>
+      <button id="btnCalRefresh" class="btn">Atualizar</button>
+    </div>
+
+  </div>
+
+  <!-- 🟣 LINHA 2 — Filtros -->
+  <div class="cal-head-filters">
+
+    <select id="selMonth" class="btn">
+      <option>Jan</option><option>Fev</option><option>Mar</option><option>Abr</option>
+      <option>Mai</option><option>Jun</option><option>Jul</option><option>Ago</option>
+      <option>Set</option><option>Out</option><option>Nov</option><option>Dez</option>
+    </select>
+
+    <select id="selYear" class="btn"></select>
+
+    <select id="filterStudent" class="btn">
+      <option value="">Todos os alunos</option>
+    </select>
+
+    <select id="filterStatus" class="btn">
+      <option value="" selected>Todos os status</option>
+      <option value="0">Agendada</option>
+      <option value="1">Confirmada</option>
+      <option value="2">Realizada</option>
+      <option value="3">Cancelada</option>
+    </select>
+
+    <button id="btnToday" class="btn ghost">Hoje</button>
+    <button id="btnClearFilters" class="btn ghost">Limpar</button>
+
+  </div>
+
+  <!-- 🟢 LINHA 3 — Informações -->
+  <div class="cal-head-meta">
+
+    <span id="calFiltersEcho" class="pill hint" style="display:none"></span>
+
+    <span class="hint" id="dragHint">
+      Arraste aulas entre dias • segure <span class="kbd">Shift</span> para copiar
+    </span>
+
+  </div>
+
+</div>
+
+
+
+    <div class="cal-wrap">
+      <div>
+        <div class="dow" id="dowRow">
+          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div class="side">
+        <h3 style="margin:8px 0 6px 0">Selecione um dia</h3>
+        <div id="dayDetails" class="muted">Nenhum dia selecionado.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <div style="display:flex; gap:10px; align-items:center">
+        <h3 style="margin:8px 0">Próximas aulas</h3>
+        <select id="upcomingRange" class="btn">
+          <option value="7">Próximos 7 dias</option>
+          <option value="30" selected>Próximos 30 dias</option>
+          <option value="60">Próximos 60 dias</option>
+        </select>
+      </div>
+      <div id="upcomingList" class="footer">—</div>
+    </div>
+  </section>
+
+  <!-- ALUNOS -->
+  <section id="alunos" class="section card">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+  <h2>Alunos</h2>
+
+  <div style="display:flex; gap:10px; align-items:center">
+    <button id="btnToggleStudentForm" class="btn primary small">+ Novo Aluno</button>
+    <span class="badge">Gerencie cadastro e pacotes • Arraste para ordenar</span>
+  </div>
+</div>
+<div id="studentFormWrap" class="form-collapsed" style="margin-top:12px">
+    <div class="row" style="gap:12px; flex-wrap:wrap">
+      <div style="flex:1 1 420px"><label>Nome</label><input id="studentName" placeholder="Nome completo"></div>
+      <div style="flex:1 1 300px"><label>Telefone</label><input id="studentPhone" placeholder="(21) 9xxxx-xxxx"></div>
+      <div style="flex:1 1 420px"><label>E-mail</label><input id="studentEmail" placeholder="email@exemplo.com"></div>
+      <div style="flex:1 1 160px"><label>Ativo</label><select id="studentActive"><option value="true" selected>Ativo</option><option value="false">Inativo</option></select></div>
+      <div style="flex:1 1 200px"><label>Início do Pacote</label><input id="studentPackageStart" placeholder="dd/mm/aaaa"></div>
+      <div style="flex:1 1 200px"><label>Fim do Pacote</label><input id="studentPackageEnd" placeholder="dd/mm/aaaa"></div>
+      <div style="flex:1 1 200px"><label>Total de Aulas no Pacote</label><input id="studentTotalLessons" type="number" value="0" min="0"></div>
+      <div style="flex:1 1 100%"><label>Observações</label><input id="studentNotes" placeholder="Obs gerais"></div>
+    </div>
+    <div class="actions"><button id="btnSaveStudent" class="btn primary">Salvar</button><button id="btnClearStudent" class="btn">Limpar</button></div>
+</div>
+    <div id="studentsList" style="margin-top:14px"></div>
+    <!-- Lista de inativos (colapsável) -->
+<div id="inactiveWrap" style="margin-top:14px; display:none">
+  <div class="row" style="align-items:center; justify-content:space-between">
+    <h3 style="margin:0">Alunos inativos <span class="muted" id="inactiveCount">(0)</span></h3>
+    <button id="toggleInactive" class="btn small">Mostrar</button>
+  </div>
+  <div id="inactiveList" style="margin-top:10px"></div>
+</div>
+  </section>
+
+  <!-- EVOLUÇÃO -->
+<section id="evolucao" class="section card">
+  <div class="row" style="align-items:center; justify-content:space-between;">
+    <h2>Evolução</h2>
+    <button id="btnToggleEvoForm" class="btn primary small">
+      + Nova Anotação
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi" id="kpiEvo" style="margin-top:10px;">
+    <div class="cardx"><div>Anotações (hoje)</div><div class="n" id="evoDay">0</div></div>
+    <div class="cardx"><div>Anotações (mês)</div><div class="n" id="evoMonth">0</div></div>
+    <div class="cardx"><div>Duração (mês)</div><div class="n" id="evoMonthMin">0'</div></div>
+    <div class="cardx"><div>Alunos anotados (mês)</div><div class="n" id="evoMonthStu">0</div></div>
+  </div>
+
+  <!-- PASTAS + CONTEÚDO -->
+  <div class="evo-wrap" style="margin-top:16px">
+
+    <!-- ÁRVORE -->
+    <aside class="tree">
+      <h4>Pastas de Anotações</h4>
+      <div class="muted" style="margin-bottom:6px">Aluno → Ano → Mês</div>
+      <div id="evoTree"></div>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div>
+     
+      <!-- FORMULÁRIO (COLAPSADO POR PADRÃO) -->
+    <div id="evoModal" class="modal-overlay">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h3>Nova Anotação</h3>
+      <button id="btnCloseEvoModal" class="btn small">✕</button>
+    </div>
+      <div id="evoFormWrap">
+        <div class="grid2">
+          <div><label>Data</label><input id="evolutionDate" type="date"></div>
+          <div><label>Aluno</label><select id="evolutionStudent"></select></div>
+        </div>
+
+        <div class="grid2">
+          <div><label>Estilo</label><input id="evolutionStyle" placeholder="Estilo"></div>
+          <div>
+            <label>Nível</label>
+            <select id="evolutionLevel">
+              <option>Iniciante</option>
+              <option>Intermediário</option>
+              <option>Avançado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div><label>Duração (min)</label><input id="evolutionDuration" type="number" min="15" step="5" value="60"></div>
+          <div><label>Progresso</label><textarea id="evolutionProgress" placeholder="Ex.: condução…"></textarea></div>
+        </div>
+
+        <div class="grid2">
+          <div><label>Dificuldades</label><textarea id="evolutionDifficulties" placeholder="Ex.: tempo…"></textarea></div>
+          <div><label>Próximos Passos</label><textarea id="evolutionNextSteps" placeholder="Ex.: revisar dobra…"></textarea></div>
+        </div>
+
+        <label>Conteúdo</label>
+        <textarea id="evolutionContent" placeholder="O que foi trabalhado"></textarea>
+
+        <label>Observações</label>
+        <textarea id="evolutionNotes" placeholder="Outros detalhes"></textarea>
+
+        <div class="actions">
+          <button id="btnSaveEvolution" class="btn primary">Salvar Anotação</button>
+          <button id="btnClearEvolution" class="btn">Limpar</button>
+        </div>
+
+      </div>
+          </div> <!-- fim modal-box -->
+  </div> <!-- fim modal-overlay -->
+
+
+      <!-- LISTA -->
+
+      <div class="history-header">
+  <h3 style="margin:0;">Histórico de Anotações</h3>
+  <button id="btnToggleHistory" class="btn small">Ocultar</button>
+</div>
+
+
+      <div id="historyContent">
+  <div id="evolutionsList" style="margin-top:16px"></div>
+  
+</div>
+  </div>
+</section>
+
+
+  <!-- RELATÓRIOS -->
+  <section id="relatorios" class="section card">
+
+  <!-- HEADER -->
+ 
+  <div class="report-header">
+  <div class="report-top">
+  <h2>Relatórios</h2>
+  <button id="btnHideMoney" class="btn ghost small">
+    👁 Ocultar valores
+  </button>
+</div>
+
+
+  </div>
+
+  <div class="report-filters">
+    <div>
+      <label>Ano</label>
+      <select id="repYear" class="btn"></select>
+    </div>
+
+    <div>
+      <label>Mês</label>
+      <select id="repMonth" class="btn"></select>
+    </div>
+
+    <div>
+      <label>Comparar com</label>
+      <select id="repCompare" class="btn"></select>
+    </div>
+  </div>
+
+</div>
+
+
+  <!-- KPIs -->
+  <div class="kpi" id="kpiBox">
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Alunos ativos</div>
+      <div class="n" id="kpiActiveStudents">0</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Aulas pagas (mês)</div>
+      <div class="n" id="kpiMonthPaid">0</div>
+    </div>
+
+    <div class="cardx kpi-card highlight">
+      <div class="kpi-title">Hoje</div>
+      <div class="n" id="kpiDay">0</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Mês (aulas)</div>
+      <div class="n" id="kpiMonth">0</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita (mês)</div>
+      <div class="n" id="kpiMonthRev">R$ 0,00</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita prevista (mês)</div>
+      <div class="n" id="kpiMonthForecast">R$ 0,00</div>
+      <div class="muted">Aulas agendadas + confirmadas + realizadas</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Ticket médio (mês)</div>
+      <div class="n" id="kpiMonthAvg">R$ 0,00</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita por aluno ativo</div>
+      <div class="n" id="kpiRevPerActive">R$ 0,00</div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Crescimento mensal</div>
+      <div class="n" id="kpiMonthGrowth">0%</div>
+      <div class="muted" id="kpiMonthGrowthRef"></div>
+    </div>
+
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita (ano)</div>
+      <div class="n" id="kpiYearRev">R$ 0,00</div>
+      <div class="footer">
+        Variação vs <span id="cmpYear">—</span>:
+        <span id="kpiYearDelta">—</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Relatório por aluno -->
+<div class="card" style="margin-top:12px; padding:16px">
+  <div class="row" style="gap:8px; align-items:flex-end;">
+    </div>
+
+    <label style="margin-bottom:0">Aluno</label>
+    <select id="repStuSelect" class="btn" style="min-width:260px">
+      <option value="">Selecione um aluno…</option>
+    </select>
+  </div>
+
+  <div class="pill muted">Ano atual de filtro: <span id="repYearEcho">—</span></div>
+</div>
+
+<div class="cardx" id="repStuBox" style="margin-top:10px">
+  <div class="muted">Selecione um aluno para ver o detalhamento.</div>
+</div>
+
+   <div class="cardx" style="grid-column: span 2; margin-top:16px">
+
+  <div class="chart-header">
+    <div class="chart-title">
+      Arrecadação mês a mês —
+      <span id="barsYear">—</span>
+    </div>
+
+    <div class="chart-total">
+      Total: <b id="yearTotalFooter">R$ 0,00</b>
+    </div>
+  </div>
+
+  <canvas id="chartYear" height="140"></canvas>
+
+</div>
+
+
+      <div class="cardx">
+        <div>Média por aluno (ano)</div>
+        <div class="n" id="avgPerStudent">R$ 0,00</div>
+        <div class="footer">Receita anual / alunos com aulas no ano</div>
+      </div>
+<div>
+  <label for="repYearInvest">Ano</label>
+  <select id="repYearInvest" class="btn"></select>
+</div>
+
+
+      <div class="cardx" style="grid-column:span 4">
+        <div style="display:flex; align-items:center; justify-content:space-between">
+          <div>Investido por aluno (ano)</div>
+          <div class="muted">Investido por aluno — <span id="listYear"></span></div>
+        </div>
+        <div class="listbox" id="byStudentList"></div>
+        <div id="rankingToggleContainer"></div>
+      </div>
+    </div>
+
+    <div class="footer" id="kpiExtra">* Receita considera apenas aulas com status “Realizada”.</div>
+  </section>
+
+  <!-- BACKUP -->
+  <section id="backup" class="section card">
+    <h2>Backup</h2>
+    <div class="row" style="gap:8px">
+      <button id="btnExportJSON" class="btn">Exportar JSON</button>
+      <button id="btnImportJSON" class="btn">Importar JSON</button>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL AULA -->
+<div class="modal" id="lessonModal">
+  <div class="box">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3 id="lessonTitle">Aula</h3>
+      <button class="btn small" id="btnCloseLesson">Fechar</button>
+    </div>
+    <div class="grid2">
+      <div><label>Data</label><input id="lessonDate" type="datetime-local"></div>
+      <div><label>Aluno</label><select id="lessonStudent"></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>Estilo (livre)</label><input id="lessonStyle" placeholder="Dança de Salão, Samba, Tango…"></div>
+      <div><label>Nível</label>
+        <select id="lessonLevel"><option>Iniciante</option><option>Intermediário</option><option>Avançado</option></select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div><label>Tipo</label><select id="lessonType"><option>Particular</option><option>Grupo</option></select></div>
+      <div><label>Modelo</label><select id="lessonModel"><option>Padrão</option><option>Pacote</option></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>Duração (min)</label><input id="lessonDuration" type="number" min="15" step="5" value="60"></div>
+    <div><label>Preço (R$)</label><input id="lessonPrice" type="text" inputmode="numeric" placeholder="R$ 0,00" value=""></div>
+    </div>
+    <div class="grid2">
+      <div><label>Local</label><input id="lessonPlace" placeholder="Botafogo / Rua…"></div>
+      <div><label>Status</label>
+        <select id="lessonStatus">
+          <option value="0">Agendada</option>
+          <option value="1">Confirmada</option>
+          <option value="2">Realizada</option>
+          <option value="3">Cancelada</option>
+        </select></div>
+    </div>
+    <label>Observações</label><textarea id="lessonNotes" placeholder="Conteúdos, foco, ajustes…"></textarea><!-- Recorrência -->
+<div class="grid2" id="recurrenceBox" style="margin-top:8px">
+  <div>
+    <label>Repetir</label>
+    <div class="row" style="gap:8px">
+      <label class="pill" style="cursor:pointer">
+        <input id="recEnabled" type="checkbox" style="margin-right:8px"> Ativar recorrência
+      </label>
+    </div>
+  </div>
+  <div>
+    <label>Frequência e quantidade</label>
+    <div class="row" style="gap:8px">
+      <select id="recEvery" class="btn">
+        <option value="7" selected>Semanal (cada 1 semana)</option>
+        <option value="14">Quinzenal (cada 2 semanas)</option>
+        <option value="21">A cada 3 semanas</option>
+        <option value="28">Mensal aproximado (cada 4 semanas)</option>
+      </select>
+      <input id="recCount" type="number" min="0" value="0" class="btn" style="width:120px" />
+    </div>
+    <div class="muted" style="margin-top:6px">
+      * “Quantidade” = <b>aulas futuras adicionais</b> (além da atual). Ex.: 3 ⇒ cria mais 3 datas.
+    </div>
+  </div>
+</div>
+
+    <div class="actions">
+      <button id="btnSaveLesson" class="btn primary">Salvar Aula</button>
+      <button id="btnDelLesson" class="btn" style="display:none">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO PACOTE -->
+<div class="modal" id="pkgModal">
+  <div class="box" style="max-width:560px">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3>Novo Pacote</h3>
+      <button id="btnPkgClose" class="btn small">Fechar</button>
+    </div>
+    <div class="grid2">
+      <div><label>Início do Pacote</label><input id="pkgStart" placeholder="dd/mm/aaaa"></div>
+      <div><label>Fim do Pacote</label><input id="pkgEnd" placeholder="dd/mm/aaaa"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Total de Aulas</label><input id="pkgTotal" type="number" min="0" value="4"></div>
+      <div><label>Observação (opcional)</label><input id="pkgNote" placeholder="ex.: renovação de plano"></div>
+    </div>
+    <div class="actions">
+      <button id="btnPkgSave" class="btn primary">Salvar Pacote</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECIBO -->
+<div class="modal" id="receiptModal">
+  <div class="box" style="max-width:900px">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <h3>Recibo</h3>
+      <button id="btnReceiptClose" class="btn small">Fechar</button>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label>Tipo</label>
+        <select id="recType">
+          <option value="avulsa">Aula Avulsa</option>
+          <option value="pacote">Pacote</option>
+        </select>
+      </div>
+      <div>
+        <label>Data de emissão</label>
+        <input id="recEmitDate" type="date">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div><label>Professor</label><input id="recTeacher" value="Edson Silva"></div>
+      <div><label>Aluno</label><select id="recStudent"></select></div>
+    </div>
+
+    <div class="grid2">
+      <div><label>CNPJ (emitente)</label><input id="recCNPJ" placeholder="00.000.000/0000-00"></div>
+      <div><label>Forma de pagamento</label><input id="recPayMethod" placeholder="PIX / Cartão / Dinheiro" value="PIX"></div>
+    </div>
+
+    <!-- Avulsa -->
+    <div id="recBoxAvulsa">
+      <div class="grid2">
+        <div><label>Data da aula</label><input id="recAvulsaDate" type="date"></div>
+        <div><label>Valor (R$)</label><input id="recAvulsaValue" type="text" inputmode="numeric" placeholder="R$ 0,00" value=""></div>
+      </div>
+      <div><label>Observações</label><input id="recObsAvulsa" placeholder="ex.: pagamento antecipado"></div>
+    </div>
+
+    <!-- Pacote -->
+    <div id="recBoxPacote" style="display:none">
+      <div class="grid2">
+        <div><label>Início do pacote</label><input id="recPkgStart" type="date"></div>
+        <div><label>Fim do pacote</label><input id="recPkgEnd" type="date"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Qtde de aulas (no período)</label><input id="recPkgQty" type="number" min="0" value="0" readonly></div>
+        <div><label>Total pago (R$)</label><input id="recPkgTotal" type="number" min="0" step="1" value="0" readonly></div>
+      </div>
+      <div><label>Datas do período (auto)</label><textarea id="recPkgDates" readonly placeholder="—"></textarea></div>
+      <div><label>Observações</label><input id="recObsPacote" placeholder="ex.: pagamento antecipado"></div>
+    </div>
+
+    <div class="actions">
+      <button id="btnReceiptPDF" class="btn primary">Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="alert" id="appAlert">Alerta</div>
+
+<script type="module" src="/js/app.js"></script>
+
+</body>
+</html>
