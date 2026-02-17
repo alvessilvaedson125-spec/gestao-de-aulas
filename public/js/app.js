@@ -1,3 +1,22 @@
+import { app, auth, db } from "./core/firebase.js";
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  serverTimestamp,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
 let isShiftPressed = false;
 
@@ -8,22 +27,8 @@ window.addEventListener("keydown", (e)=>{
 window.addEventListener("keyup", (e)=>{
   if(e.key === "Shift") isShiftPressed = false;
 });
-/* ======================= Firebase ======================= */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBh6CIne05dCuO0mu7JX6icZv8l7c2bw_8",
-  authDomain: "meu-app-edson.firebaseapp.com",
-  projectId: "meu-app-edson",
-  storageBucket: "meu-app-edson.firebasestorage.app",
-  messagingSenderId: "555388653411",
-  appId: "1:555388653411:web:e9184f7f5e443174934d56"
-};
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+
 /* ======================= Config ======================= */
 // Assinatura usada nas mensagens de WhatsApp
 const BRAND_NAME = "Edson Silva";
