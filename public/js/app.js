@@ -1,6 +1,7 @@
 import { app, auth, db } from "./core/firebase.js";
 import { loginWithGoogle, logout, observeAuthState } from "./services/authService.js";
 import { addLesson, updateLesson, deleteLesson } from "./services/lessonService.js";
+import { addStudent, updateStudent, deleteStudent } from "./services/studentService.js";
 import {
   collection,
   addDoc,
@@ -1003,12 +1004,14 @@ $("inactiveWrap").style.display = inactives.length ? "block" : "none";
 function confirmDeleteStudent(id, name){
   if(!id) return;
   if(!confirm(`Excluir o aluno "${name || "(sem nome)"}"? Esta ação é permanente e NÃO remove aulas já registradas.`)) return;
-  deleteStudent(id);
+  handleDeleteStudent(id);
+
 }
 
-async function deleteStudent(id){
+async function handleDeleteStudent(id){
   try{
-    await deleteDoc(doc(db, "alunos", id));   // usa os mesmos imports já presentes no arquivo
+    await deleteStudent(id);
+  // usa os mesmos imports já presentes no arquivo
     showAlert("Aluno excluído com sucesso.");
   }catch(e){
     console.error(e);
