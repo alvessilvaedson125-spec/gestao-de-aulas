@@ -163,3 +163,24 @@ export function calculateYearlyStudentRanking(
 
   return ranking;
 }
+// ================================
+// Relatório – Comparativo Anual
+// ================================
+export function calculateYearComparison(yearMonthly = [], compareMonthly = []) {
+  const yearTotal = yearMonthly.reduce((acc, v) => acc + v, 0);
+  const compareTotal = compareMonthly.reduce((acc, v) => acc + v, 0);
+
+  let delta = 0;
+
+  if (compareTotal > 0) {
+    delta = ((yearTotal - compareTotal) / compareTotal) * 100;
+  } else {
+    delta = yearTotal > 0 ? 100 : 0;
+  }
+
+  return {
+    yearTotal,
+    compareTotal,
+    delta
+  };
+}
