@@ -94,3 +94,31 @@ export function calculateRealizedRevenueForLessons(lessons = [], priceParserFn) 
 export function calculateLessonCount(lessons = []) {
   return lessons.length;
 }
+// ================================
+// Relatório – Dados Anuais por Aluno
+// ================================
+export function calculateYearlyStudentReport(
+  lessons = [],
+  studentId,
+  year,
+  parseDateFn,
+  priceParserFn
+) {
+  const filtered = lessons.filter(lesson => {
+    return (
+      String(lesson.studentId) === String(studentId) &&
+      parseDateFn(lesson.date).getFullYear() === Number(year) &&
+      Number(lesson.status) === 2
+    );
+  });
+
+  const total = filtered.reduce((acc, lesson) => {
+    return acc + priceParserFn(lesson.price);
+  }, 0);
+
+  return {
+    lessons: filtered,
+    count: filtered.length,
+    total
+  };
+}
