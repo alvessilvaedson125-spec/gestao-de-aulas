@@ -1,5 +1,129 @@
 ARCHITECTURE.md
+# Bailado Carioca – Gestão de Aulas
+## Arquitetura Oficial – v2.0 (Stable)
 
+Tag: v2.0-architecture-stable  
+Status: Estável  
+Data: 2026  
+
+---
+
+# 📐 Visão Geral
+
+A aplicação segue uma arquitetura modular em camadas, com separação clara de responsabilidades.
+
+Objetivos da arquitetura:
+
+- Isolamento de infraestrutura
+- Isolamento de regras de negócio
+- Isolamento de utilitários puros
+- Minimização de acoplamento
+- Facilitar manutenção e evolução futura
+- Garantir segurança incremental (Regra de Ouro)
+
+---
+
+# 🗂 Estrutura de Pastas
+
+public/js
+├── core/
+│ └── firebase.js → Infraestrutura
+│
+├── services/ → Regras de negócio
+│ ├── authService.js
+│ ├── lessonService.js
+│ ├── studentService.js
+│ └── reportService.js
+│
+├── utils/ → Funções puras / Helpers
+│ ├── formatService.js
+│ ├── dateService.js
+│ └── uiHelpers.js
+│
+└── app.js → Orquestração da aplicação
+
+
+---
+
+# 🧠 Camadas e Responsabilidades
+
+## core/
+Responsável por infraestrutura externa (Firebase).
+
+Não contém regras de negócio.
+
+---
+
+## services/
+Responsável por:
+
+- CRUD de entidades
+- Cálculos
+- KPIs
+- Relatórios
+- Ranking
+- Comparativos
+
+Regras:
+- Não acessa DOM
+- Não depende de estado global
+- Não formata valores para exibição
+
+---
+
+## utils/
+Responsável por:
+
+- Formatação monetária
+- Parsing de datas
+- Helpers visuais
+- Manipulação leve de DOM
+
+Regras:
+- Funções puras sempre que possível
+- Sem dependência de Firebase
+- Sem regras de negócio
+
+---
+
+## app.js
+Responsável por:
+
+- Orquestrar camadas
+- Conectar serviços à UI
+- Manipular eventos
+- Atualizar DOM
+
+Não deve conter:
+- Regras de negócio complexas
+- Cálculos financeiros
+- Parsing duplicado
+
+---
+
+# 🔒 Princípios Adotados
+
+1. Regra de Ouro: Refatoração incremental, segura e reversível.
+2. Separação de responsabilidades.
+3. Nenhuma duplicação funcional.
+4. Cada camada possui um papel único.
+5. Mudanças sempre testadas antes de commit.
+
+---
+
+# 🚫 Anti-Patterns Proibidos
+
+- Colocar cálculo financeiro em app.js
+- Colocar acesso DOM dentro de services
+- Duplicar parsing de moeda
+- Criar funções utilitárias soltas no app.js
+- Acessar Firebase fora de core ou services
+
+---
+
+# 📈 Próxima Fase
+
+Fase 3 – Hardening e Robustez
 Bailado Carioca – Gestão de Aulas
 
 1. Visão Geral
