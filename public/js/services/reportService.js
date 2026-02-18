@@ -69,51 +69,117 @@ export function calculateAveragePerStudent(totalRevenue = 0, studentCount = 0) {
 // ================================
 // Relatório – Total por Aluno
 // ================================
-export function calculateTotalRevenueForStudent(lessons = [], studentId) {
-  return lessons
-    .filter(lesson => lesson.studentId === studentId)
-    .reduce((sum, lesson) => {
-      return sum + (Number(lesson.price) || 0);
-    }, 0);
+export function calculateTotalRevenueForStudent(
+  lessons = [],
+  studentId,
+  parseNumberFn
+) {
+  const arr = safeArray(lessons);
+
+  const safeParseNumber =
+    typeof parseNumberFn === "function"
+      ? parseNumberFn
+      : value => safeNumber(value);
+
+  return arr.reduce((sum, lesson) => {
+    if (!lesson) return sum;
+    if (lesson?.studentId !== studentId) return sum;
+
+    const value = safeParseNumber(lesson.price);
+    return sum + (isFinite(value) ? value : 0);
+  }, 0);
 }
+
 // ================================
 // Relatório – Receita Mensal (Ano)
 // ================================
-export function calculateMonthlyRevenueFromLessons(lessons = [], parseDateFn) {
+export function calculateMonthlyRevenueFromLessons(
+  lessons = [],
+  parseDateFn,
+  parseNumberFn
+) {
   const months = Array(12).fill(0);
 
+  if (!Array.isArray(lessons)) return months;
+
+  const safeParseDate =
+    typeof parseDateFn === "function" ? parseDateFn : () => null;
+
+  const safeParseNumber =
+    typeof parseNumberFn === "function" ? parseNumberFn : v => Number(v) || 0;
+
   lessons.forEach(lesson => {
-    const monthIndex = parseDateFn(lesson.date).getMonth();
-    months[monthIndex] += Number(lesson.price) || 0;
+    if (!lesson) return;
+
+    const date = safeParseDate(lesson.date);
+    if (!(date instanceof Date) || isNaN(date)) return;
+
+    const monthIndex = date.getMonth();
+    if (monthIndex < 0 || monthIndex > 11) return;
+
+    const value = safeParseNumber(lesson.price);
+    months[monthIndex] += isFinite(value) ? value : 0;
   });
 
   return months;
 }
+
 // ================================
 // Relatório – Receita Prevista (mês)
 // ================================
-export function calculateForecastRevenueForLessons(lessons = [], priceParserFn) {
-  return lessons
-    .filter(lesson => {
-      const status = String(lesson.status);
-      return status === "0" || status === "1" || status === "2";
-    })
-    .reduce((acc, lesson) => {
-      return acc + priceParserFn(lesson.price);
-    }, 0);
+export function calculateForecastRevenueForLessons(
+  lessons = [],
+  priceParserFn
+) {
+  const arr = safeArray(lessons);
+
+  const safeParse =
+    typeof priceParserFn === "function"
+      ? priceParserFn
+      : value => safeNumber(value);
+
+  return arr.reduce((sum, lesson) => {
+    if (!lesson) return sum;
+
+    const status = String(lesson.status);
+
+    if (status !== "0" && status !== "1" && status !== "2") {
+      return sum;
+    }
+
+    const value = safeParse(lesson.price);
+
+    return sum + (isFinite(value) ? value : 0);
+  }, 0);
 }
+
 
 
 // ================================
 // Relatório – Receita Realizada (mês)
 // ================================
-export function calculateRealizedRevenueForLessons(lessons = [], priceParserFn) {
-  return lessons
-    .filter(lesson => String(lesson.status) === "2")
-    .reduce((acc, lesson) => {
-      return acc + priceParserFn(lesson.price);
-    }, 0);
+export function calculateRealizedRevenueForLessons(
+  lessons = [],
+  priceParserFn
+) {
+  const arr = safeArray(lessons);
+
+  const safeParse =
+    typeof priceParserFn === "function"
+      ? priceParserFn
+      : value => safeNumber(value);
+
+  return arr.reduce((sum, lesson) => {
+    if (!lesson) return sum;
+
+    if (String(lesson.status) !== "2") return sum;
+
+    const value = safeParse(lesson.price);
+
+    return sum + (isFinite(value) ? value : 0);
+  }, 0);
 }
+
 
 
 // ================================
