@@ -6,7 +6,8 @@ import {
   calculateTotalRevenueFromLessons,
   extractUniqueStudentIdsFromLessons,
   calculateAveragePerStudent,
-  calculateTotalRevenueForStudent
+  calculateTotalRevenueForStudent,
+  calculateMonthlyRevenueFromLessons
 } from './services/reportService.js';
 
 
@@ -1795,11 +1796,11 @@ function renderReportStats() {
 
   // Gráfico mensal
   if (chartCanvas) {
-    const dataYear = Array(12).fill(0);
-    lessonsYear.forEach(l => {
-      const m = parseISODateLocal(l.date).getMonth();
-      dataYear[m] += Number(l.price) || 0;
-    });   
+    const dataYear = calculateMonthlyRevenueFromLessons(
+  lessonsYear,
+  parseISODateLocal
+);
+
     
 
     if (window.repChart) window.repChart.destroy();
