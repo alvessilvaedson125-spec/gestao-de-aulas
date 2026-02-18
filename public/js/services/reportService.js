@@ -61,3 +61,36 @@ export function calculateMonthlyRevenueFromLessons(lessons = [], parseDateFn) {
 
   return months;
 }
+// ================================
+// Relatório – Receita Prevista (mês)
+// ================================
+export function calculateForecastRevenueForLessons(lessons = [], priceParserFn) {
+  return lessons
+    .filter(lesson => {
+      const status = String(lesson.status);
+      return status === "0" || status === "1" || status === "2";
+    })
+    .reduce((acc, lesson) => {
+      return acc + priceParserFn(lesson.price);
+    }, 0);
+}
+
+
+// ================================
+// Relatório – Receita Realizada (mês)
+// ================================
+export function calculateRealizedRevenueForLessons(lessons = [], priceParserFn) {
+  return lessons
+    .filter(lesson => String(lesson.status) === "2")
+    .reduce((acc, lesson) => {
+      return acc + priceParserFn(lesson.price);
+    }, 0);
+}
+
+
+// ================================
+// Relatório – Quantidade de Aulas
+// ================================
+export function calculateLessonCount(lessons = []) {
+  return lessons.length;
+}
