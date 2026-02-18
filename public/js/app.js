@@ -5,8 +5,10 @@ import { addStudent, updateStudent, deleteStudent } from "./services/studentServ
 import { 
   calculateTotalRevenueFromLessons,
   extractUniqueStudentIdsFromLessons,
-  calculateAveragePerStudent
+  calculateAveragePerStudent,
+  calculateTotalRevenueForStudent
 } from './services/reportService.js';
+
 
 
 
@@ -1784,9 +1786,7 @@ function renderReportStats() {
     repListBox.innerHTML = "";
     alunosSet.forEach(id => {
       const aluno = students.find(s => s.id === id);
-      const totalAluno = lessonsYear
-        .filter(l => l.studentId === id)
-        .reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+      const totalAluno = calculateTotalRevenueForStudent(lessonsYear, id);
       const div = document.createElement("div");
       div.innerHTML = `<b>${aluno?.name || "Sem nome"}</b> — ${money(totalAluno)}`;
       repListBox.appendChild(div);
