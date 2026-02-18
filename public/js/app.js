@@ -4,8 +4,10 @@ import { addLesson, updateLesson, deleteLesson } from "./services/lessonService.
 import { addStudent, updateStudent, deleteStudent } from "./services/studentService.js";
 import { 
   calculateTotalRevenueFromLessons,
-  extractUniqueStudentIdsFromLessons
+  extractUniqueStudentIdsFromLessons,
+  calculateAveragePerStudent
 } from './services/reportService.js';
+
 
 
 import {
@@ -1772,7 +1774,7 @@ function renderReportStats() {
   // KPIs
   const total = calculateTotalRevenueFromLessons(lessonsYear);
   const alunosSet = extractUniqueStudentIdsFromLessons(lessonsYear);
-  const mediaPorAluno = alunosSet.size ? total / alunosSet.size : 0;
+  const mediaPorAluno = calculateAveragePerStudent(total, alunosSet.size);
 
   if (repKpiTotal) repKpiTotal.textContent = money(total);
   if (repKpiMedia) repKpiMedia.textContent = money(mediaPorAluno);
