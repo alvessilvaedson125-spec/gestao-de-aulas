@@ -48,3 +48,16 @@ export function calculateTotalRevenueForStudent(lessons = [], studentId) {
       return sum + (Number(lesson.price) || 0);
     }, 0);
 }
+// ================================
+// Relatório – Receita Mensal (Ano)
+// ================================
+export function calculateMonthlyRevenueFromLessons(lessons = [], parseDateFn) {
+  const months = Array(12).fill(0);
+
+  lessons.forEach(lesson => {
+    const monthIndex = parseDateFn(lesson.date).getMonth();
+    months[monthIndex] += Number(lesson.price) || 0;
+  });
+
+  return months;
+}
