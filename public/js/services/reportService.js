@@ -38,3 +38,13 @@ export function calculateAveragePerStudent(totalRevenue = 0, studentCount = 0) {
   if (!studentCount) return 0;
   return totalRevenue / studentCount;
 }
+// ================================
+// Relatório – Total por Aluno
+// ================================
+export function calculateTotalRevenueForStudent(lessons = [], studentId) {
+  return lessons
+    .filter(lesson => lesson.studentId === studentId)
+    .reduce((sum, lesson) => {
+      return sum + (Number(lesson.price) || 0);
+    }, 0);
+}
