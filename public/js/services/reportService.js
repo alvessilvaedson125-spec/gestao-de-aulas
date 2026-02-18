@@ -9,35 +9,63 @@
  * - KPIs
  * - Agregações
  *
- * NÃO acessa DOM
+ * NÃO acessa DOMf
  * NÃO usa Firestore diretamente
  * Apenas lógica pura
  */
+
+
+
+// ================================
+// INTERNAL SAFETY HELPERS
+// ================================
+
+function safeArray(arr) {
+  return Array.isArray(arr) ? arr : [];
+}
+
+function safeNumber(value) {
+  const n = Number(value);
+  return isFinite(n) ? n : 0;
+}
 
 
 // ================================
 // KPI – Receita Total por Lista de Aulas
 // ================================
 export function calculateTotalRevenueFromLessons(lessons = []) {
-  return lessons.reduce((sum, lesson) => {
-    return sum + (Number(lesson.price) || 0);
+  const arr = safeArray(lessons);
+
+  return arr.reduce((sum, lesson) => {
+    return sum + safeNumber(lesson?.price);
   }, 0);
 }
+
 // ================================
 // KPI – Conjunto de Alunos Únicos por Lista de Aulas
 // ================================
 export function extractUniqueStudentIdsFromLessons(lessons = []) {
+  const arr = safeArray(lessons);
+
   return new Set(
-    lessons.map(lesson => lesson.studentId)
+    arr
+      .map(lesson => lesson?.studentId)
+      .filter(id => id != null)
   );
 }
+
 // ================================
 // KPI – Média por Aluno
 // ================================
 export function calculateAveragePerStudent(totalRevenue = 0, studentCount = 0) {
-  if (!studentCount) return 0;
-  return totalRevenue / studentCount;
+  const safeTotal = safeNumber(totalRevenue);
+  const safeCount = safeNumber(studentCount);
+
+  if (safeCount <= 0) return 0;
+
+  return safeTotal / safeCount;
 }
+
 // ================================
 // Relatório – Total por Aluno
 // ================================
