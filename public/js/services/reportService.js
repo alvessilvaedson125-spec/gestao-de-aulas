@@ -31,3 +31,10 @@ export function extractUniqueStudentIdsFromLessons(lessons = []) {
     lessons.map(lesson => lesson.studentId)
   );
 }
+// ================================
+// KPI – Média por Aluno
+// ================================
+export function calculateAveragePerStudent(totalRevenue = 0, studentCount = 0) {
+  if (!studentCount) return 0;
+  return totalRevenue / studentCount;
+}
