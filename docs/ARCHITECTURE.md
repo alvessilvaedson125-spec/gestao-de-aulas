@@ -1,413 +1,201 @@
-ARCHITECTURE.md
 # Bailado Carioca – Gestão de Aulas
-## Arquitetura Oficial – v2.0 (Stable)
+# Arquitetura Oficial
 
-Tag: v2.0-architecture-stable  
+Versão: v2.0-architecture-stable  
 Status: Estável  
 Data: 2026  
 
 ---
 
-# 📐 Visão Geral
+# 1. Visão Geral
 
-A aplicação segue uma arquitetura modular em camadas, com separação clara de responsabilidades.
+A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento claro entre:
 
-Objetivos da arquitetura:
+- Infraestrutura
+- Regras de negócio
+- Utilitários
+- Interface
 
-- Isolamento de infraestrutura
-- Isolamento de regras de negócio
-- Isolamento de utilitários puros
-- Minimização de acoplamento
-- Facilitar manutenção e evolução futura
-- Garantir segurança incremental (Regra de Ouro)
+A refatoração foi realizada de forma:
+
+- Incremental
+- Reversível
+- Testada a cada etapa
+- Sem alterar layout
+- Sem alterar regras de negócio
+- Sem quebrar produção
 
 ---
 
-# 🗂 Estrutura de Pastas
+# 2. Estrutura de Pastas
 
 public/js
 ├── core/
-│ └── firebase.js → Infraestrutura
+│ └── firebase.js
 │
-├── services/ → Regras de negócio
+├── services/
 │ ├── authService.js
 │ ├── lessonService.js
 │ ├── studentService.js
 │ └── reportService.js
 │
-├── utils/ → Funções puras / Helpers
+├── utils/
 │ ├── formatService.js
 │ ├── dateService.js
 │ └── uiHelpers.js
 │
-└── app.js → Orquestração da aplicação
+└── app.js
 
 
 ---
 
-# 🧠 Camadas e Responsabilidades
+# 3. Camadas e Responsabilidades
 
-## core/
-Responsável por infraestrutura externa (Firebase).
+## 3.1 Core (Infraestrutura)
+
+Responsável por:
+- Inicialização do Firebase
+- Exportação de `app`, `auth`, `db`
 
 Não contém regras de negócio.
 
 ---
 
-## services/
-Responsável por:
+## 3.2 Services (Domínio)
 
-- CRUD de entidades
+Responsável por:
+- CRUD
 - Cálculos
 - KPIs
 - Relatórios
 - Ranking
 - Comparativos
+- Agregações
 
-Regras:
+Regras obrigatórias:
 - Não acessa DOM
-- Não depende de estado global
-- Não formata valores para exibição
+- Não manipula HTML
+- Não conhece Chart.js
+- Não depende de variáveis globais
+- Recebe dependências por parâmetro
+
+Todas as funções são puras sempre que possível.
 
 ---
 
-## utils/
-Responsável por:
+## 3.3 Utils (Funções Puras)
 
+Responsável por:
 - Formatação monetária
 - Parsing de datas
-- Helpers visuais
+- Helpers de interface
 - Manipulação leve de DOM
 
 Regras:
-- Funções puras sempre que possível
-- Sem dependência de Firebase
+- Sem acesso ao Firebase
 - Sem regras de negócio
+- Sem cálculos financeiros complexos
 
 ---
 
-## app.js
-Responsável por:
+## 3.4 app.js (Orquestração)
 
-- Orquestrar camadas
-- Conectar serviços à UI
-- Manipular eventos
-- Atualizar DOM
+Responsável por:
+- Eventos
+- Listeners
+- Renderização
+- Integração com Chart.js
+- Manipulação de DOM
 
 Não deve conter:
-- Regras de negócio complexas
+- Regras de negócio
 - Cálculos financeiros
 - Parsing duplicado
+- Lógica de domínio
 
 ---
 
-# 🔒 Princípios Adotados
+# 4. Princípios Arquiteturais
 
-1. Regra de Ouro: Refatoração incremental, segura e reversível.
-2. Separação de responsabilidades.
-3. Nenhuma duplicação funcional.
-4. Cada camada possui um papel único.
-5. Mudanças sempre testadas antes de commit.
-
----
-
-# 🚫 Anti-Patterns Proibidos
-
-- Colocar cálculo financeiro em app.js
-- Colocar acesso DOM dentro de services
-- Duplicar parsing de moeda
-- Criar funções utilitárias soltas no app.js
-- Acessar Firebase fora de core ou services
+1. Regra de Ouro: nenhuma alteração pode quebrar produção.
+2. Separação clara de responsabilidades.
+3. Cada módulo tem responsabilidade única.
+4. Nenhuma duplicação funcional.
+5. Mudanças sempre versionadas e testadas.
 
 ---
 
-# 📈 Próxima Fase
+# 5. Anti-Patterns Proibidos
 
-Fase 3 – Hardening e Robustez
-Bailado Carioca – Gestão de Aulas
+- Cálculo financeiro no app.js
+- DOM dentro de services
+- Parsing monetário duplicado
+- Dependência circular entre módulos
+- Acesso direto ao Firebase fora da camada apropriada
 
-1. Visão Geral
+---
 
-O sistema foi refatorado com o objetivo de:
+# 6. Estado Atual da Arquitetura
 
-Modularizar a arquitetura
+Arquitetura modular consolidada.
 
-Separar regras de negócio da interface
+Hardening iniciado no reportService:
 
-Reduzir risco de regressão
+- Safe guards aplicados
+- Validação defensiva
+- Prevenção de NaN
+- Prevenção de arrays inválidos
 
-Permitir evolução segura
+---
 
-Facilitar manutenção futura
+# 7. Fase Atual – Hardening e Robustez
 
-Preparar o terreno para escalabilidade
+Objetivos:
 
-A refatoração foi feita de forma:
+- Blindagem contra dados inválidos
+- Segurança matemática
+- Validação defensiva
+- Prevenção de regressão silenciosa
 
-Incremental
+Essa fase não altera comportamento.
+Apenas fortalece a estabilidade interna.
 
-Reversível
+---
 
-Testada a cada etapa
+# 8. Diretrizes para Evolução Futura
 
-Sem alteração de layout
-
-Sem alteração de regras de negócio
-
-Sem quebra de produção
-
-2. Estrutura Atual de Pastas
-public/js/
- ├── core/
- │    └── firebase.js
- │
- ├── services/
- │    ├── authService.js
- │    ├── lessonService.js
- │    ├── studentService.js
- │    └── reportService.js
- │
- └── app.js
-
-3. Princípio Arquitetural Aplicado
-Separation of Concerns (SoC)
-
-O sistema está dividido em duas camadas principais:
-
-🔹 Camada de Domínio (Services)
-
-Responsável por:
-
-Cálculo
-
-Agregações
-
-Regras de negócio
-
-Filtros
-
-Comparações
-
-Rankings
-
-Processamento de dados
-
-Não pode:
-
-Acessar DOM
-
-Manipular HTML
-
-Usar Chart.js
-
-Acessar variáveis globais
-
-Depender de elementos da interface
-
-🔹 Camada de Apresentação (app.js)
-
-Responsável por:
-
-Manipulação de DOM
-
-Eventos
-
-Listeners
-
-Renderização
-
-Integração com Chart.js
-
-Seletores
-
-Toggle de interface
-
-Não deve conter:
-
-Cálculo financeiro relevante
-
-Regras de negócio
-
-Agregações complexas
-
-4. Responsabilidade de Cada Service
-core/firebase.js
-
-Inicialização do Firebase
-
-Exportação de app, auth, db
-
-authService.js
-
-Login com Google
-
-Logout
-
-Observação de estado de autenticação
-
-lessonService.js
-
-CRUD de aulas
-
-Operações relacionadas a aulas
-
-Isolamento completo do Firestore
-
-studentService.js
-
-CRUD de alunos
-
-Operações relacionadas a alunos
-
-Isolamento completo do Firestore
-
-reportService.js
-
-Responsável por toda lógica de domínio do módulo de relatórios.
-
-Inclui:
-
-Relatório Anual
-
-Receita total
-
-Alunos únicos
-
-Média por aluno
-
-Receita por aluno
-
-Ranking anual
-
-Agregação mensal
-
-Comparativo anual (delta)
-
-Relatório Mensal
-
-Receita prevista
-
-Receita realizada
-
-Quantidade de aulas
-
-Relatório por Aluno
-
-Filtro anual
-
-Total
-
-Contagem
-
-Todas as funções:
-
-São puras
-
-Não acessam DOM
-
-Recebem dependências como parâmetro
-
-Não conhecem variáveis globais
-
-5. Padrão de Refatoração Aplicado
-
-Cada extração seguiu este padrão:
-
-Criar função pura no service
-
-Commit isolado
-
-Substituir trecho no app.js
-
-Testar manualmente
-
-Commit final
-
-Validar produção
-
-Esse padrão deve ser mantido em futuras refatorações.
-
-6. Regra de Ouro do Projeto
-
-Nenhuma alteração pode:
-
-Quebrar produção
-
-Alterar layout
-
-Alterar regra de negócio
-
-Introduzir regressão
-
-Toda mudança deve ser:
-
-Incremental
-
-Testada
-
-Versionada
-
-Reversível
-
-7. Diretrizes para Evolução Futura
 Ao criar novos cálculos:
+→ Criar sempre em `reportService`.
 
-Criar sempre no reportService
-
-Nunca implementar lógica financeira no app.js
-
-Ao criar novos módulos:
-
-Criar novo service
-
-Manter responsabilidade única
-
-Evitar dependência circular
+Ao criar novo módulo:
+→ Criar novo service.
 
 Ao alterar relatórios:
+→ Separar cálculo de renderização.
 
-Não misturar cálculo com renderização
+Nunca misturar domínio com interface.
 
-Não acessar DOM dentro de services
+---
 
-8. Benefícios Obtidos
+# 9. Benefícios Obtidos
 
-Após a refatoração:
+- Código modular
+- Redução de acoplamento
+- Maior previsibilidade
+- Base pronta para backend real
+- Preparação para testes unitários
+- Evolução segura
 
-Código mais legível
+---
 
-Código mais testável
+# 10. Conclusão
 
-Redução de acoplamento
+O sistema evoluiu de:
 
-Facilidade de manutenção
-
-Base pronta para escalabilidade
-
-Arquitetura preparada para backend real no futuro
-
-9. Próximos Passos Possíveis
-
-Isolar formatadores monetários
-
-Criar camada utilitária (utils)
-
-Introduzir testes unitários
-
-Consolidar dashboard builder
-
-Preparar migração para arquitetura multiusuário real
-
-Implementar camada de persistência desacoplada
-
-10. Conclusão
-
-O módulo de relatórios passou de:
-
-"cálculos espalhados dentro da interface"
+"Cálculos espalhados na interface"
 
 para:
 
-"arquitetura modular com domínio isolado"
+"Arquitetura modular com domínio isolado e controle de evolução"
 
-Isso eleva o sistema para um padrão profissional de desenvolvimento.
+Isso estabelece base profissional para crescimento sustentável.
