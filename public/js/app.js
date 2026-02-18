@@ -2,6 +2,8 @@ import { app, auth, db } from "./core/firebase.js";
 import { loginWithGoogle, logout, observeAuthState } from "./services/authService.js";
 import { addLesson, updateLesson, deleteLesson } from "./services/lessonService.js";
 import { addStudent, updateStudent, deleteStudent } from "./services/studentService.js";
+import { calculateTotalRevenueFromLessons } from './services/reportService.js';
+
 import {
   collection,
   addDoc,
@@ -1764,7 +1766,7 @@ function renderReportStats() {
   
 
   // KPIs
-  const total = lessonsYear.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
+  const total = calculateTotalRevenueFromLessons(lessonsYear);
   const alunosSet = new Set(lessonsYear.map(l => l.studentId));
   const mediaPorAluno = alunosSet.size ? total / alunosSet.size : 0;
 
