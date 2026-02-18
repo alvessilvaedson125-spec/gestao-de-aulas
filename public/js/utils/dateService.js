@@ -6,28 +6,29 @@
  * ================================
  * Responsável por:
  * - Parsing de datas ISO
- * - Manipulação segura de datas
+ * - Suporte a YYYY-MM-DD
+ * - Suporte a YYYY-MM-DDTHH:MM
  * 
  * NÃO acessa DOM
  * NÃO depende de estado global
- * Funções puras
+ * Função pura
  */
 
+export function parseISODateLocal(iso) {
+  if (!iso) return new Date(NaN);
 
-// ================================
-// Parse ISO date (YYYY-MM-DD)
-// Mantém comportamento local
-// ================================
-export function parseISODateLocal(dateString) {
-  if (!dateString) return new Date(NaN);
+  const [datePart, timePart = "00:00"] = String(iso).split("T");
 
-  const parts = String(dateString).split("-");
+  const [Y, M, D] = datePart.split("-").map(Number);
+  const [h, m] = timePart.split(":").map(Number);
 
-  if (parts.length !== 3) return new Date(NaN);
-
-  const year = Number(parts[0]);
-  const month = Number(parts[1]) - 1; // mês começa em 0
-  const day = Number(parts[2]);
-
-  return new Date(year, month, day);
+  return new Date(
+    Y,
+    (M || 1) - 1,
+    (D || 1),
+    h || 0,
+    m || 0,
+    0,
+    0
+  );
 }
