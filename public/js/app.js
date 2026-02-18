@@ -2,12 +2,15 @@ import { app, auth, db } from "./core/firebase.js";
 import { loginWithGoogle, logout, observeAuthState } from "./services/authService.js";
 import { addLesson, updateLesson, deleteLesson } from "./services/lessonService.js";
 import { addStudent, updateStudent, deleteStudent } from "./services/studentService.js";
-import { 
+import {
   calculateTotalRevenueFromLessons,
   extractUniqueStudentIdsFromLessons,
   calculateAveragePerStudent,
   calculateTotalRevenueForStudent,
-  calculateMonthlyRevenueFromLessons
+  calculateMonthlyRevenueFromLessons,
+  calculateForecastRevenueForLessons,
+  calculateRealizedRevenueForLessons,
+  calculateLessonCount
 } from './services/reportService.js';
 
 
@@ -318,9 +321,10 @@ function renderReportMonthKPIs(){
   }) : [];
 
   var monthCount   = arr.length;
-  var monthRevenue = arr
-    .filter(function(l){ return String(l.status)==="2"; })
-    .reduce(function(acc,l){ return acc + _brlToNumber(l.price); }, 0);
+ var monthRevenue = calculateRealizedRevenueForLessons(
+  arr,
+  _brlToNumber
+);
     var paidLessonsMonth = arr.filter(function(l){
   return String(l.status) === "2";
 }).length;
@@ -2437,7 +2441,8 @@ function renderReportMonthKPIs(){
   }) : [];
 
   // KPI: "Mês (aulas)" — quantidade total no mês
-  var monthCount = arr.length;
+  var monthCount = calculateLessonCount(arr);
+
 
   // 🔵 Receita Prevista (Realizadas + Confirmadas + Agendadas)
 var forecastRevenue = arr
@@ -2451,8 +2456,11 @@ var forecastRevenue = arr
   }, 0);
 
   // KPI: "Receita (mês)" — apenas status=2 (Realizada)
-  var monthRevenue = arr.filter(function(l){ return String(l.status)==="2"; })
-                        .reduce(function(acc,l){ return acc + _brlToNumber(l.price); }, 0);
+  var forecastRevenue = calculateForecastRevenueForLessons(
+  arr,
+  _brlToNumber
+);
+
 
   var elCount = document.getElementById("kpiMonth");
   var elRev   = document.getElementById("kpiMonthRev");
