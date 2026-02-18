@@ -15,6 +15,7 @@ import {
   calculateYearlyStudentRanking,
   calculateYearComparison
 } from './services/reportService.js';
+import { parseISODateLocal } from "./utils/dateService.js";
 
 
 
@@ -123,13 +124,7 @@ if (evoModal && btnToggleEvoForm) {
 }
 });
 
-function parseISODateLocal(iso){
-  if (!iso) return new Date(NaN);
-  const [datePart, timePart = "00:00"] = String(iso).split("T");
-  const [Y, M, D] = datePart.split("-").map(Number);
-  const [h, m] = timePart.split(":").map(Number);
-  return new Date(Y, (M || 1) - 1, (D || 1), h || 0, m || 0, 0, 0);
-}
+
 function hasActivePackage(s){
   return (Number(s.totalLessons||0) > 0) && !!s.packageStart && !!s.packageEnd;
 }
