@@ -16,7 +16,10 @@ import {
   calculateYearComparison
 } from './services/reportService.js';
 import { parseISODateLocal } from "./utils/dateService.js";
-import { formatBRL } from "./utils/formatService.js";
+import { formatBRL, formatBRLFromCents, parseBRLToNumber } from "./utils/formatService.js";
+import { $, els, pad2, ymdKey } from "./utils/uiHelpers.js";
+
+
 
 
 
@@ -48,13 +51,6 @@ window.addEventListener("keyup", (e)=>{
 // Assinatura usada nas mensagens de WhatsApp
 const BRAND_NAME = "Edson Silva";
 
-/* ======================= Helpers ======================= */
-const $ = (id)=>document.getElementById(id);
-const els = (sel,ctx=document)=>[...ctx.querySelectorAll(sel)];
-const fmtBRL = (n)=> (Number(n||0)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const pad2 = (n)=> String(n).padStart(2,'0');
-const ymdKey = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-const parseBR = (v)=>{ const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v||""); return m? new Date(+m[3],+m[2]-1,+m[1],0,0,0,0): null; };
 // interpreta "YYYY-MM-DD" como data LOCAL (sem deslocamento de fuso)
 // interpreta "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM" como data LOCAL
 document.addEventListener("DOMContentLoaded", () => {
@@ -133,9 +129,7 @@ const toInputDate = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.g
 
 function showAlert(txt, kind="ok"){ const a=$("appAlert"); a.textContent=txt; a.style.display="block"; setTimeout(()=>a.style.display="none", 1800); }
 /* ===== Máscara BRL on-type ===== */
-function formatBRLFromCents(c){ 
-  return (Number(c||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-}
+
 function onlyDigits(s){ return String(s||"").replace(/\D+/g,''); }
 function maskBRLInput(e){
   const cents = Number(onlyDigits(e.target.value) || 0);
@@ -294,11 +288,7 @@ function _repMonth(){
   var el = document.getElementById("repMonth");
   return Number(el && el.value !== "" ? el.value : (new Date()).getMonth());
 }
-function _brlToNumber(v){
-  if (typeof v === "number") return v;
-  var s = String(v||"").replace(/^R\$\s?/, "").replace(/\./g,"").replace(",",".");
-  var n = Number(s); return isFinite(n) ? n : 0;
-}
+
 
 function renderReportMonthKPIs(){
   var y = _repYear();
@@ -312,7 +302,7 @@ function renderReportMonthKPIs(){
   var monthCount   = arr.length;
  var monthRevenue = calculateRealizedRevenueForLessons(
   arr,
-  _brlToNumber
+  parseBRLToNumber
 );
     var paidLessonsMonth = arr.filter(function(l){
   return String(l.status) === "2";
@@ -359,7 +349,7 @@ var todayCount = todayArr.length;
 var todayRevenue = todayArr
   .filter(function(l){ return String(l.status) === "2"; })
   .reduce(function(acc,l){
-    return acc + _brlToNumber(l.price);
+    return acc + parseBRLToNumber(l.price);
   }, 0);
 
 var elDay = document.getElementById("kpiDay");
@@ -379,7 +369,7 @@ var forecastRevenue = arr
     return ["0","1","2"].includes(String(l.status));
   })
   .reduce(function(acc,l){
-    return acc + _brlToNumber(l.price);
+    return acc + parseBRLToNumber(l.price);
   }, 0);
 
 var elForecast = document.getElementById("kpiMonthForecast");
@@ -405,7 +395,7 @@ var prevArr = Array.isArray(lessons) ? lessons.filter(function(l){
 
 var prevRevenue = prevArr
   .filter(function(l){ return String(l.status) === "2"; })
-  .reduce(function(acc,l){ return acc + _brlToNumber(l.price); }, 0);
+  .reduce(function(acc,l){ return acc + parseBRLToNumber(l.price); }, 0);
 
 // 🔵 Crescimento MoM
 var growth = prevRevenue > 0
@@ -453,7 +443,7 @@ var todayArr = Array.isArray(lessons) ? lessons.filter(function(l){
 var todayCount = todayArr.length;
 
 var todayRevenue = todayArr.reduce(function(acc,l){
-  return acc + _brlToNumber(l.price);
+  return acc + parseBRLToNumber(l.price);
 }, 0);
 
 var elToday = document.getElementById("kpiToday");
@@ -2339,7 +2329,7 @@ function renderRepStudent() {
   id,
   year,
   parseISODateLocal,
-  _brlToNumber
+  parseBRLToNumber
 );
 
 const lessonsYear = report.lessons;
@@ -2403,7 +2393,7 @@ function _repMonth(){
   var el = document.getElementById("repMonth");
   return Number(el && el.value !== "" ? el.value : (new Date()).getMonth());
 }
-function _brlToNumber(v){
+function parseBRLToNumber(v){
   if (typeof v === "number") return v;
   var s = String(v||"").replace(/^R\$\s?/, "").replace(/\./g,"").replace(",",".");
   var n = Number(s); return isFinite(n) ? n : 0;
@@ -2431,13 +2421,13 @@ var forecastRevenue = arr
            String(l.status) === "2";   // Realizada
   })
   .reduce(function(acc,l){
-    return acc + _brlToNumber(l.price);
+    return acc + parseBRLToNumber(l.price);
   }, 0);
 
   // KPI: "Receita (mês)" — apenas status=2 (Realizada)
   var forecastRevenue = calculateForecastRevenueForLessons(
   arr,
-  _brlToNumber
+  parseBRLToNumber
 );
 
 
