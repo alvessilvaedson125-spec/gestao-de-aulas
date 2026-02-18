@@ -141,16 +141,7 @@ function maskBRLInput(e){
   const cents = Number(onlyDigits(e.target.value) || 0);
   e.target.value = formatBRLFromCents(cents);
 }
-/* Converte "R$ 1.234,56" -> Number 1234.56 */
-function parseNumberFromBRL(str){
-  const clean = String(str||'')
-    .replace(/\s/g,'')
-    .replace(/^R\$\s?/, '')
-    .replace(/\./g,'')
-    .replace(',', '.');
-  const n = Number(clean);
-  return isNaN(n) ? 0 : n;
-}
+
 
 /* Liga a máscara nos inputs (uma vez) */
 (function bindBRLMasks(){
