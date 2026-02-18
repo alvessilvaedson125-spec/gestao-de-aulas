@@ -16,7 +16,7 @@ import {
   calculateYearComparison
 } from './services/reportService.js';
 import { parseISODateLocal } from "./utils/dateService.js";
-
+import { formatBRL } from "./utils/formatService.js";
 
 
 
@@ -130,7 +130,7 @@ function hasActivePackage(s){
 }
 
 const toInputDate = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
-const money=(n)=>fmtBRL(n);
+
 function showAlert(txt, kind="ok"){ const a=$("appAlert"); a.textContent=txt; a.style.display="block"; setTimeout(()=>a.style.display="none", 1800); }
 /* ===== Máscara BRL on-type ===== */
 function formatBRLFromCents(c){ 
@@ -1581,8 +1581,8 @@ function renderKPIs(){
 
   $("kpiDay").textContent=dayCount;
   $("kpiMonth").textContent=monthCount;
-  $("kpiMonthRev").textContent=money(monthRev);
-  $("kpiYearRev").textContent=money(yearRev);
+  $("kpiMonthRev").textContent=formatBRL(monthRev);
+  $("kpiYearRev").textContent=formatBRL(yearRev);
 }
 $("repYear").onchange = renderDashboard;
 $("repCompare").onchange = renderDashboard;
@@ -1651,9 +1651,9 @@ const yearTotal = comparison.yearTotal;
 const cmpTotal = comparison.compareTotal;
 const delta = comparison.delta;
 
-  $("kpiYearRev").textContent = money(yearTotal);
+  $("kpiYearRev").textContent = formatBRL(yearTotal);
   $("kpiYearDelta").textContent = (delta>=0?"+":"") + delta.toFixed(1) + "%";
-  $("yearTotalFooter").textContent = money(yearTotal);
+  $("yearTotalFooter").textContent = formatBRL(yearTotal);
 
   drawBars(_barsY, _barsC);
 
@@ -1673,7 +1673,7 @@ const list = rankingExpanded ? fullList : fullList.slice(0, 10);
   if(list.length===0){ box.innerHTML=`<div class="muted">Sem aulas realizadas no ano.</div>`; }
   for(const r of list){
     const row=document.createElement("div"); row.className="listrow";
-    row.innerHTML=`<div>${r.name}</div><div><span class="pill-mini">${r.aulas} aulas</span> &nbsp; <b>${money(r.total)}</b></div>`;
+    row.innerHTML=`<div>${r.name}</div><div><span class="pill-mini">${r.aulas} aulas</span> &nbsp; <b>$formatBRL(r.total)}</b></div>`;
     box.appendChild(row);
   }
 
@@ -1768,8 +1768,8 @@ function renderReportStats() {
   const alunosSet = extractUniqueStudentIdsFromLessons(lessonsYear);
   const mediaPorAluno = calculateAveragePerStudent(total, alunosSet.size);
 
-  if (repKpiTotal) repKpiTotal.textContent = money(total);
-  if (repKpiMedia) repKpiMedia.textContent = money(mediaPorAluno);
+  if (repKpiTotal) repKpiTotal.textContent = formatBRL(total);
+  if (repKpiMedia) repKpiMedia.textContent = formatBRL(mediaPorAluno);
 
   // Lista de investimento por aluno
   if (repListBox) {
@@ -1778,7 +1778,7 @@ function renderReportStats() {
       const aluno = students.find(s => s.id === id);
       const totalAluno = calculateTotalRevenueForStudent(lessonsYear, id);
       const div = document.createElement("div");
-      div.innerHTML = `<b>${aluno?.name || "Sem nome"}</b> — ${money(totalAluno)}`;
+      div.innerHTML = `<b>${aluno?.name || "Sem nome"}</b> — ${formatBRL(totalAluno)}`;
       repListBox.appendChild(div);
     });
   }
@@ -1813,7 +1813,7 @@ window.repChart = new Chart(chartCanvas.getContext("2d"), {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { callback: v => money(v) }
+        ticks: { callback: v => formatBR(v) }
       }
     }
   }
