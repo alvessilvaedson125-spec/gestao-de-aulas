@@ -122,3 +122,44 @@ export function calculateYearlyStudentReport(
     total
   };
 }
+// ================================
+// Relatório – Ranking Anual por Aluno
+// ================================
+export function calculateYearlyStudentRanking(
+  lessons = [],
+  students = [],
+  year,
+  parseDateFn,
+  priceParserFn
+) {
+  const map = new Map();
+
+  for (const lesson of lessons) {
+    if (!lesson.date || Number(lesson.status) !== 2) continue;
+
+    const d = parseDateFn(lesson.date);
+    if (d.getFullYear() !== Number(year)) continue;
+
+    const key = lesson.studentId || "_";
+
+    const current = map.get(key) || { sum: 0, count: 0 };
+    current.sum += priceParserFn(lesson.price);
+    current.count += 1;
+
+    map.set(key, current);
+  }
+
+  const ranking = [...map.entries()]
+    .map(([id, agg]) => {
+      const student = students.find(s => s.id === id);
+      return {
+        id,
+        name: student?.name || "(Aluno)",
+        total: agg.sum,
+        aulas: agg.count
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  return ranking;
+}
