@@ -10,7 +10,8 @@ import {
   calculateMonthlyRevenueFromLessons,
   calculateForecastRevenueForLessons,
   calculateRealizedRevenueForLessons,
-  calculateLessonCount
+  calculateLessonCount,
+  calculateYearlyStudentReport
 } from './services/reportService.js';
 
 
@@ -2358,13 +2359,16 @@ function renderRepStudent() {
 
   const stu = (students || []).find(s => String(s.id) === id);
 
-  const lessonsYear = (lessons || []).filter(l =>
-    String(l.studentId) === id &&
-   parseISODateLocal(l.date).getFullYear() === Number(year) &&
-    Number(l.status) === 2 // ajuste se seu "realizada" for outro código
-  );
+  const report = calculateYearlyStudentReport(
+  lessons || [],
+  id,
+  year,
+  parseISODateLocal,
+  _brlToNumber
+);
 
-  const total = lessonsYear.reduce((acc, l) => acc + (Number(l.price) || 0), 0);
+const lessonsYear = report.lessons;
+const total = report.total;
 
   box.innerHTML = `
     <h3>${stu?.name?.trim() || "(sem nome)"}</h3>
