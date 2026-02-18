@@ -1,4 +1,6 @@
 import { app, auth, db } from "./core/firebase.js";
+import { loginWithGoogle, logout, observeAuthState } from "./services/authService.js";
+import { addLesson, updateLesson, deleteLesson } from "./services/lessonService.js";
 import {
   collection,
   addDoc,
@@ -11,12 +13,6 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
 let isShiftPressed = false;
 
@@ -690,28 +686,29 @@ const filterStatus  = ($("filterStatus")?.value ?? "");
     const isCopy = e.shiftKey;
 
     try{
-      if(isCopy){
-        const {id:_, ...rest} = origin;
+  if(isCopy){
+    const {id:_, ...rest} = origin;
 
-        await addDoc(colLessons,{
-          ...rest,
-          date: dropDateStr,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-      }else{
-        await updateDoc(doc(db,"aulas",id),{
-          date: dropDateStr,
-          updatedAt: serverTimestamp()
-        });
-      }
+    await addLesson({
+      ...rest,
+      date: dropDateStr
+    });
 
-      showAlert(isCopy ? "Aula copiada." : "Aula movida.");
+  }else{
 
-    }catch(err){
-      console.error(err);
-      showAlert("Erro ao mover aula","error");
-    }
+    await updateLesson(id,{
+      date: dropDateStr
+    });
+
+  }
+
+  showAlert(isCopy ? "Aula copiada." : "Aula movida.");
+
+}catch(err){
+  console.error(err);
+  showAlert("Erro ao mover aula","error");
+}
+
   });
 
   cell.onclick = ()=>{
@@ -2073,7 +2070,7 @@ async function deleteLessonConfirmed(){
   if (!confirm("Excluir esta aula?")) return;
 
   try{
-    await deleteDoc(doc(db, "aulas", editingLessonId));
+   await deleteLesson(editingLessonId);
     $("lessonModal").classList.remove("show");
     document.body.classList.remove("modal-open"); // fecha o overlay do modal
     editingLessonId = null;
