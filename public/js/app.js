@@ -12,7 +12,8 @@ import {
   calculateRealizedRevenueForLessons,
   calculateLessonCount,
   calculateYearlyStudentReport,
-  calculateYearlyStudentRanking
+  calculateYearlyStudentRanking,
+  calculateYearComparison
 } from './services/reportService.js';
 
 
@@ -1649,9 +1650,12 @@ $("barsYear").textContent = y;
     if(d.getFullYear()===y) _barsY[m]+= (+l.price||0);
     if(d.getFullYear()===cy) _barsC[m]+= (+l.price||0);
   }
-  const yearTotal = _barsY.reduce((a,b)=>a+b,0);
-  const cmpTotal  = _barsC.reduce((a,b)=>a+b,0);
-  const delta = cmpTotal>0 ? ((yearTotal-cmpTotal)/cmpTotal*100) : (yearTotal>0? 100 : 0);
+  const comparison = calculateYearComparison(_barsY, _barsC);
+
+const yearTotal = comparison.yearTotal;
+const cmpTotal = comparison.compareTotal;
+const delta = comparison.delta;
+
   $("kpiYearRev").textContent = money(yearTotal);
   $("kpiYearDelta").textContent = (delta>=0?"+":"") + delta.toFixed(1) + "%";
   $("yearTotalFooter").textContent = money(yearTotal);
