@@ -11,7 +11,8 @@ import {
   calculateForecastRevenueForLessons,
   calculateRealizedRevenueForLessons,
   calculateLessonCount,
-  calculateYearlyStudentReport
+  calculateYearlyStudentReport,
+  calculateYearlyStudentRanking
 } from './services/reportService.js';
 
 
@@ -1657,29 +1658,13 @@ $("barsYear").textContent = y;
 
   drawBars(_barsY, _barsC);
 
-  const mapStu=new Map();
-  for(const l of lessons){
-    if(!l.date || l.status!==2) continue;
-    const d = parseISODateLocal(l.date); if(d.getFullYear()!==invY) continue;
-    const k=l.studentId||"_";
-    const cur=mapStu.get(k)||{sum:0,count:0};
-    cur.sum += (+l.price||0);
-    cur.count += 1;
-    mapStu.set(k,cur);
-  }
-  const studentCount = [...mapStu.keys()].filter(k=>k!=="_").length || 0;
-  $("avgPerStudent").textContent = studentCount? money((yearTotal/studentCount)) : money(0);
-
-  const fullList=[...mapStu.entries()]
-  .map(([id,agg])=>{
-    const s=students.find(x=>x.id===id);
-    return {
-      name:(s?.name||"(Aluno)"),
-      total:agg.sum,
-      aulas:agg.count
-    };
-  })
-  .sort((a,b)=> b.total-a.total);
+  const fullList = calculateYearlyStudentRanking(
+  lessons,
+  students,
+  invY,
+  parseISODateLocal,
+  v => (+v || 0)
+);
 
 const list = rankingExpanded ? fullList : fullList.slice(0, 10);
 
