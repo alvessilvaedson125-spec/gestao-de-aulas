@@ -61,7 +61,7 @@ const BRAND_NAME = "Edson Silva";
 
 // interpreta "YYYY-MM-DD" como data LOCAL (sem deslocamento de fuso)
 // interpreta "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM" como data LOCAL
-document.addEventListener("DOMContentLoaded", () => {
+
 
   // ================= HISTÓRICO =================
   const btnToggleHistory = $("btnToggleHistory");
@@ -74,28 +74,33 @@ document.addEventListener("DOMContentLoaded", () => {
       btnToggleHistory.textContent = isHidden ? "Ocultar" : "Mostrar";
     });
   }
+// ================= NOVO ALUNO =================
+const studentFormWrap = document.getElementById("studentFormWrap");
+const btnToggleStudentForm = document.getElementById("btnToggleStudentForm");
 
-  // ================= NOVO ALUNO =================
-  const studentFormWrap = document.getElementById("studentFormWrap");
-  const btnToggleStudentForm = document.getElementById("btnToggleStudentForm");
+console.log("Inicializando botão Novo Aluno");
 
-  if (btnToggleStudentForm && studentFormWrap) {
-   
+if (btnToggleStudentForm && studentFormWrap) {
 
-      const isOpen = studentFormWrap.classList.contains("form-open");
+  btnToggleStudentForm.addEventListener("click", () => {
 
-      if (isOpen) {
-        studentFormWrap.classList.remove("form-open");
-        studentFormWrap.classList.add("form-collapsed");
-        btnToggleStudentForm.textContent = "+ Novo Aluno";
-      } else {
-        studentFormWrap.classList.remove("form-collapsed");
-        studentFormWrap.classList.add("form-open");
-        btnToggleStudentForm.textContent = "Fechar";
-      }
+    const isOpen = studentFormWrap.classList.contains("form-open");
 
-   
-  }
+    if (isOpen) {
+      studentFormWrap.classList.remove("form-open");
+      studentFormWrap.classList.add("form-collapsed");
+      btnToggleStudentForm.textContent = "+ Novo Aluno";
+    } else {
+      studentFormWrap.classList.remove("form-collapsed");
+      studentFormWrap.classList.add("form-open");
+      btnToggleStudentForm.textContent = "Fechar";
+    }
+
+  });
+
+} else {
+  console.warn("Botão Novo Aluno não encontrado no DOM");
+}
 
   // ================= EVOLUÇÃO - MODAL =================
   const evoModal = document.getElementById("evoModal");
@@ -127,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-});
+
 
 function hasActivePackage(s){
   if (!s) return false;
