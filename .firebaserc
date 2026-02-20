@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "meu-app-edson"
-  }
+    "default": "meu-app-edson",
+    "staging": "meu-app-edson-staging",
+    "production": "meu-app-edson"
+  },
+  "targets": {},
+  "etags": {}
 }

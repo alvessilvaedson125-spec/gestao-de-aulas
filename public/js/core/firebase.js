@@ -1,18 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const hostname = window.location.hostname;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBh6CIne05dCuO0mu7JX6icZv8l7c2bw_8",
-  authDomain: "meu-app-edson.firebaseapp.com",
-  projectId: "meu-app-edson",
-  storageBucket: "meu-app-edson.firebasestorage.app",
-  messagingSenderId: "555388653411",
-  appId: "1:555388653411:web:e9184f7f5e443174934d56"
-};
+let selectedModule;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+if (hostname === "meu-app-edson-staging.web.app") {
+  console.log("🔥 Ambiente: STAGING");
+  selectedModule = await import("./firebase.staging.js");
+} else if (hostname === "meu-app-edson.web.app") {
+  console.log("🔥 Ambiente: PRODUCTION");
+  selectedModule = await import("./firebase.production.js");
+} else {
+  console.log("🔥 Ambiente: LOCAL");
+  selectedModule = await import("./firebase.staging.js");
+}
 
-export { app, auth, db };
+export const app = selectedModule.app;
+export const auth = selectedModule.auth;
+export const db = selectedModule.db;
