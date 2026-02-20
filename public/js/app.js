@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnToggleStudentForm = document.getElementById("btnToggleStudentForm");
 
   if (btnToggleStudentForm && studentFormWrap) {
-    btnToggleStudentForm.addEventListener("click", () => {
+   
 
       const isOpen = studentFormWrap.classList.contains("form-open");
 
@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnToggleStudentForm.textContent = "Fechar";
       }
 
-    });
+   
   }
 
   // ================= EVOLUÇÃO - MODAL =================
