@@ -1698,9 +1698,9 @@ function ensureYearSelects(){
   }
 
   const cur = (new Date()).getFullYear();
-  for(let y = cur - 3; y <= cur + 3; y++){
-    years.add(y);
-  }
+  for(let y = cur - 3; y <= cur; y++){
+  years.add(y);
+}
 
   const arr = [...years].sort((a,b)=>b-a);
 
