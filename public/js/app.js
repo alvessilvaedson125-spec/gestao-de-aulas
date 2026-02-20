@@ -2606,7 +2606,7 @@ function initReportMonthPatch(){
 
 /* ======================= Backup ======================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+
 
   const btnExport = document.getElementById("btnExportJSON");
   const btnImport = document.getElementById("btnImportJSON");
@@ -2688,7 +2688,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-});
+
 
 
 
