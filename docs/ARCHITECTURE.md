@@ -1,36 +1,40 @@
 📘 Bailado Carioca – Gestão de Aulas
 Arquitetura Oficial Atualizada
 
-Versão: v2.2-report-stable-controlled-render
-Status: Estável e Validado
+Versão: v2.3-multi-environment-stable
+Status: Estável, Validado e Blindado
 Data: 2026
 
 1. Visão Geral
 
 A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento rigoroso entre:
 
-Infraestrutura
+Infraestrutura (Core)
 
 Domínio (Services)
 
-Utilitários
+Utilitários (Utils)
 
-Interface (Orquestração)
+Interface / Orquestração (app.js)
 
-A evolução recente focou principalmente na estabilização do módulo de Relatórios, eliminando:
+A evolução recente consolidou:
 
-Renderizações inconsistentes
+Estabilização do módulo de Relatórios
 
-Sobrescrita automática de filtros
+Correção de renderizações inconsistentes
 
-Dependência implícita da ordem de execução do Firestore
+Blindagem de filtros
 
-Inconsistências entre filtro anual e mensal
+Implementação de arquitetura multi-ambiente
+
+Padronização de deploy seguro
 
 2. Estrutura de Pastas
 public/js
 ├── core/
-│   └── firebase.js
+│   ├── firebase.js
+│   ├── firebase.production.js
+│   └── firebase.staging.js
 │
 ├── services/
 │   ├── authService.js
@@ -45,8 +49,7 @@ public/js
 │
 └── app.js
 
-
-Estrutura consolidada e estável.
+Estrutura consolidada e validada.
 
 3. Camadas e Responsabilidades
 3.1 Core (Infraestrutura)
@@ -54,6 +57,8 @@ Estrutura consolidada e estável.
 Responsável por:
 
 Inicialização do Firebase
+
+Seleção dinâmica de ambiente
 
 Exportação de app, auth, db
 
@@ -64,6 +69,8 @@ Nenhuma lógica de negócio
 Nenhuma manipulação de DOM
 
 Apenas configuração
+
+Ambiente selecionado exclusivamente via hostname
 
 3.2 Services (Domínio)
 
@@ -81,6 +88,8 @@ Crescimento percentual
 
 KPIs
 
+Consolidação financeira
+
 Regras rígidas:
 
 Não acessa DOM
@@ -97,7 +106,6 @@ Exemplo consolidado:
 
 export function calculateYearComparison(yearMonthly = [], compareMonthly = [])
 
-
 Retorno padrão:
 
 {
@@ -105,7 +113,6 @@ Retorno padrão:
   compareTotal,
   delta
 }
-
 3.3 Utils
 
 Responsável por:
@@ -123,6 +130,8 @@ Regras:
 Não contém regra financeira complexa
 
 Não contém acesso ao Firebase
+
+Não contém regra de negócio
 
 3.4 app.js (Orquestração)
 
@@ -145,14 +154,7 @@ Regra absoluta:
 Nenhum cálculo financeiro permanece aqui.
 
 4. Estabilização do Módulo de Relatórios
-4.1 Correção Crítica – Sobrescrita do Filtro “Comparar com”
-
-Problema anterior:
-
-ensureYearSelects() redefinia automaticamente o valor de repCompare a cada render.
-
-Sintoma:
-O select sempre voltava para o ano anterior (ex: 2025).
+4.1 Correção – Sobrescrita do Filtro “Comparar com”
 
 Correção aplicada:
 
@@ -160,113 +162,115 @@ if (!$("repCompare").value) {
   $("repCompare").value = String($("repYear").value - 1);
 }
 
-
 Resultado:
 
-O sistema inicializa corretamente
+Sistema inicializa corretamente
 
-O usuário mantém controle manual do filtro
+Filtro permanece sob controle do usuário
 
-Nenhuma sobrescrita silenciosa ocorre
+Nenhuma sobrescrita silenciosa
 
-4.2 Correção – Ordem de Anos
-
-Problema:
-
-O select assumia o menor ano disponível.
-
-Correção:
-
-Ordenação alterada para decrescente:
-
+4.2 Correção – Ordem Decrescente de Anos
 const arr = [...years].sort((a,b)=>b-a);
 
+Ano mais recente aparece primeiro.
 
-Resultado:
+4.3 Sincronização Firestore
 
-Ano mais recente aparece primeiro
+Ciclo natural validado:
 
-Comportamento consistente com UX moderna
-
-4.3 Sincronização com Firestore
-
-Identificado comportamento normal:
-
-1ª execução do renderDashboard → lessons = []
+1ª execução → lessons = []
 2ª execução → lessons carregadas
-
-Console confirmou:
-
-Lessons carregadas: 0
-Lessons carregadas: 335
-
-
-Isso não era erro, apenas ciclo natural do onSnapshot.
 
 Sistema considerado estável.
 
 4.4 Blindagem do Filtro Anual
 
-Padronização do filtro de aulas realizadas:
-
-Substituído:
-
-Number(l.status) !== 2
-
-
-Por:
+Padronização:
 
 String(l.status) !== "2"
 
+Consistência com padrão global.
 
-Motivo:
+5. Arquitetura Multi-Ambiente (Implementada)
+5.1 Estratégia
 
-Consistência com padrão geral do sistema.
+Ambientes isolados:
 
-5. Princípios Arquiteturais Consolidados
+🔵 Production → meu-app-edson
 
-Regra de Ouro: nada pode quebrar produção.
+🟣 Staging → meu-app-edson-staging
 
-Filtros controlados pelo usuário nunca são sobrescritos.
+Seleção automática via:
 
-Inicialização ocorre apenas quando necessário.
+window.location.hostname
 
-Render não altera estado.
+Fluxo:
 
-Estado não altera cálculo.
+Hostname detectado
+→ Import dinâmico
+→ firebase.production.js OU firebase.staging.js
+→ Export consistente de app, auth, db
+5.2 Regras Arquiteturais Multi-Ambiente
 
-Cálculo nunca depende de DOM.
+Bancos nunca são compartilhados
 
-6. Estado Atual da Arquitetura
+Cada ambiente possui API key própria
 
-✔ Receita anual validada
-✔ Comparação anual estável
-✔ Ranking anual consistente
-✔ Concentração correta
-✔ Snapshot sincronizado
-✔ Filtros persistentes
-✔ Hardening aplicado
+Nunca usar modelo NPM (firebase/app)
 
-7. Hardening Consolidado
+Sempre usar CDN oficial
 
-Aplicado no reportService:
+Padrão obrigatório:
 
-safeArray
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+6. Correções Críticas Registradas
 
-safeNumber
+Erros resolvidos:
 
-Guards defensivos
+auth/api-key-not-valid
 
-Prevenção de NaN
+Failed to resolve module specifier "firebase/app"
 
-Fallback seguro de parsing
+Production sem export de auth/db
 
-Nenhuma alteração funcional foi introduzida.
-Apenas robustez matemática.
+Deploy no alias incorreto
 
-8. Fluxo Atual de Renderização (Controlado)
+Correção aplicada:
 
-Sequência oficial:
+Padronização CDN
+
+Export consistente
+
+Controle rigoroso de alias Firebase CLI
+
+Sistema estabilizado.
+
+7. Política Oficial de Deploy Seguro
+
+Antes de qualquer deploy:
+
+firebase use
+
+Confirmar asterisco ativo.
+
+Deploy Production:
+
+firebase use production
+firebase deploy --only hosting
+
+Deploy Staging:
+
+firebase use staging
+firebase deploy --only hosting
+
+Regra de Ouro:
+
+Nunca deployar sem confirmar ambiente.
+
+8. Fluxo Oficial de Renderização
+
+Sequência:
 
 onSnapshot carrega dados
 
@@ -280,32 +284,62 @@ Filtros preservados
 
 Nenhum reset automático de select.
 
-9. Diretrizes para Próxima Evolução
+9. Hardening Consolidado
 
-Próxima camada recomendada:
+Aplicado em reportService:
 
-Separar função de inicialização dos selects da função de atualização
+safeArray
 
-Implementar staging environment
+safeNumber
 
-Implantar deploy automático via GitHub Actions
+Guards defensivos
 
-Implementar backup automático pré-deploy
+Prevenção de NaN
+
+Fallback seguro
+
+Sem alteração funcional.
+Apenas robustez matemática.
+
+10. Estado Atual da Arquitetura
+
+✔ Receita anual validada
+✔ Comparação anual estável
+✔ Ranking anual consistente
+✔ Snapshot sincronizado
+✔ Multi-ambiente funcional
+✔ Login restaurado
+✔ Deploy controlado por alias
+✔ Imports padronizados
+
+11. Diretrizes Futuras
+
+Recomendado:
+
+Backup automático pré-deploy
+
+Script de seed para staging
 
 Versionamento formal por tag
 
-10. Versão Atual Oficial
+CI/CD via GitHub Actions
 
-Arquitetura validada após estabilização do módulo Relatórios.
+Log estruturado por ambiente
 
-Versão oficial:
+Migração futura para Vite (opcional)
 
-v2.2-report-stable-controlled-render
+12. Versão Oficial
+
+Versão atual consolidada:
+
+v2.3-multi-environment-stable
 
 Sistema pronto para:
 
-Deploy automático
+Evolução controlada
 
-Ambiente staging
+Deploy seguro
 
-Controle de versões estruturado
+Escalabilidade futura
+
+Hardening contínuo
