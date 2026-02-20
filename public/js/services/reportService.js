@@ -278,3 +278,54 @@ export function calculateYearComparison(yearMonthly = [], compareMonthly = []) {
     delta
   };
 }
+// ========================================
+// Receita por aluno (concentração)
+// Considera apenas status === "2" (Realizada)
+// Pode ser usada para ANO ou MÊS (já filtrado antes)
+// ========================================
+export function calculateRevenueConcentration(lessons = [], parseDateFn, year, month = null) {
+  if (!Array.isArray(lessons)) return {
+    totalRevenue: 0,
+    byStudent: [],
+    top1Percent: 0,
+    top3Percent: 0
+  };
+
+  const revenueMap = new Map();
+  let totalRevenue = 0;
+
+  lessons.forEach(lesson => {
+    if (String(lesson.status) !== "2") return;
+
+    const date = parseDateFn(lesson.date);
+    if (!date || isNaN(date)) return;
+
+    if (date.getFullYear() !== Number(year)) return;
+    if (month !== null && date.getMonth() !== Number(month)) return;
+
+    const price = Number(lesson.price) || 0;
+    const studentId = String(lesson.studentId || "");
+
+    if (!studentId) return;
+
+    totalRevenue += price;
+    revenueMap.set(studentId, (revenueMap.get(studentId) || 0) + price);
+  });
+
+  const byStudent = Array.from(revenueMap.entries())
+    .map(([studentId, revenue]) => ({ studentId, revenue }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  const top1 = byStudent[0]?.revenue || 0;
+  const top3 = byStudent.slice(0, 3).reduce((acc, s) => acc + s.revenue, 0);
+
+  const safePercent = (value) =>
+    totalRevenue > 0 ? (value / totalRevenue) * 100 : 0;
+
+  return {
+    totalRevenue,
+    byStudent,
+    top1Percent: safePercent(top1),
+    top3Percent: safePercent(top3)
+  };
+}

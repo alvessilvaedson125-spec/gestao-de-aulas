@@ -1,221 +1,311 @@
-# Bailado Carioca – Gestão de Aulas
-# Arquitetura Oficial
+📘 Bailado Carioca – Gestão de Aulas
+Arquitetura Oficial Atualizada
 
-Versão: v2.0-architecture-stable  
-Status: Estável  
-Data: 2026  
+Versão: v2.2-report-stable-controlled-render
+Status: Estável e Validado
+Data: 2026
 
----
+1. Visão Geral
 
-# 1. Visão Geral
+A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento rigoroso entre:
 
-A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento claro entre:
+Infraestrutura
 
-- Infraestrutura
-- Regras de negócio
-- Utilitários
-- Interface
+Domínio (Services)
 
-A refatoração foi realizada de forma:
+Utilitários
 
-- Incremental
-- Reversível
-- Testada a cada etapa
-- Sem alterar layout
-- Sem alterar regras de negócio
-- Sem quebrar produção
+Interface (Orquestração)
 
----
+A evolução recente focou principalmente na estabilização do módulo de Relatórios, eliminando:
 
-# 2. Estrutura de Pastas
+Renderizações inconsistentes
 
+Sobrescrita automática de filtros
+
+Dependência implícita da ordem de execução do Firestore
+
+Inconsistências entre filtro anual e mensal
+
+2. Estrutura de Pastas
 public/js
 ├── core/
-│ └── firebase.js
+│   └── firebase.js
 │
 ├── services/
-│ ├── authService.js
-│ ├── lessonService.js
-│ ├── studentService.js
-│ └── reportService.js
+│   ├── authService.js
+│   ├── lessonService.js
+│   ├── studentService.js
+│   └── reportService.js
 │
 ├── utils/
-│ ├── formatService.js
-│ ├── dateService.js
-│ └── uiHelpers.js
+│   ├── formatService.js
+│   ├── dateService.js
+│   └── uiHelpers.js
 │
 └── app.js
 
 
----
+Estrutura consolidada e estável.
 
-# 3. Camadas e Responsabilidades
-
-## 3.1 Core (Infraestrutura)
-
-Responsável por:
-- Inicialização do Firebase
-- Exportação de `app`, `auth`, `db`
-
-Não contém regras de negócio.
-
----
-
-## 3.2 Services (Domínio)
+3. Camadas e Responsabilidades
+3.1 Core (Infraestrutura)
 
 Responsável por:
-- CRUD
-- Cálculos
-- KPIs
-- Relatórios
-- Ranking
-- Comparativos
-- Agregações
 
-Regras obrigatórias:
-- Não acessa DOM
-- Não manipula HTML
-- Não conhece Chart.js
-- Não depende de variáveis globais
-- Recebe dependências por parâmetro
+Inicialização do Firebase
 
-Todas as funções são puras sempre que possível.
-
----
-
-## 3.3 Utils (Funções Puras)
-
-Responsável por:
-- Formatação monetária
-- Parsing de datas
-- Helpers de interface
-- Manipulação leve de DOM
+Exportação de app, auth, db
 
 Regras:
-- Sem acesso ao Firebase
-- Sem regras de negócio
-- Sem cálculos financeiros complexos
 
----
+Nenhuma lógica de negócio
 
-## 3.4 app.js (Orquestração)
+Nenhuma manipulação de DOM
+
+Apenas configuração
+
+3.2 Services (Domínio)
+
+Contém toda lógica de negócio:
+
+Comparativo anual
+
+Concentração de receita
+
+Ranking anual
+
+Cálculos mensais
+
+Crescimento percentual
+
+KPIs
+
+Regras rígidas:
+
+Não acessa DOM
+
+Não conhece HTML
+
+Não depende de variáveis globais
+
+Recebe dependências por parâmetro
+
+Funções puras sempre que possível
+
+Exemplo consolidado:
+
+export function calculateYearComparison(yearMonthly = [], compareMonthly = [])
+
+
+Retorno padrão:
+
+{
+  yearTotal,
+  compareTotal,
+  delta
+}
+
+3.3 Utils
 
 Responsável por:
-- Eventos
-- Listeners
-- Renderização
-- Integração com Chart.js
-- Manipulação de DOM
 
-Não deve conter:
-- Regras de negócio
-- Cálculos financeiros
-- Parsing duplicado
-- Lógica de domínio
+parseBRLToNumber
 
----
+formatBRL
 
-# 4. Princípios Arquiteturais
+parseISODateLocal
 
-1. Regra de Ouro: nenhuma alteração pode quebrar produção.
-2. Separação clara de responsabilidades.
-3. Cada módulo tem responsabilidade única.
-4. Nenhuma duplicação funcional.
-5. Mudanças sempre versionadas e testadas.
+Helpers de interface
 
----
+Regras:
 
-# 5. Anti-Patterns Proibidos
+Não contém regra financeira complexa
 
-- Cálculo financeiro no app.js
-- DOM dentro de services
-- Parsing monetário duplicado
-- Dependência circular entre módulos
-- Acesso direto ao Firebase fora da camada apropriada
+Não contém acesso ao Firebase
 
----
+3.4 app.js (Orquestração)
 
-# 6. Estado Atual da Arquitetura
+Responsável por:
 
-Arquitetura modular consolidada.
+Eventos
 
-Hardening iniciado no reportService:
+Listeners
 
-- Safe guards aplicados
-- Validação defensiva
-- Prevenção de NaN
-- Prevenção de arrays inválidos
+Renderização
 
----
+Integração com Chart.js
 
-# 7. Fase Atual – Hardening e Robustez
+Controle de estados de filtros
 
-Objetivos:
+Sincronização com onSnapshot
 
-- Blindagem contra dados inválidos
-- Segurança matemática
-- Validação defensiva
-- Prevenção de regressão silenciosa
+Regra absoluta:
 
-Essa fase não altera comportamento.
-Apenas fortalece a estabilidade interna.
+Nenhum cálculo financeiro permanece aqui.
 
----
+4. Estabilização do Módulo de Relatórios
+4.1 Correção Crítica – Sobrescrita do Filtro “Comparar com”
 
-# 8. Diretrizes para Evolução Futura
+Problema anterior:
 
-Ao criar novos cálculos:
-→ Criar sempre em `reportService`.
+ensureYearSelects() redefinia automaticamente o valor de repCompare a cada render.
 
-Ao criar novo módulo:
-→ Criar novo service.
+Sintoma:
+O select sempre voltava para o ano anterior (ex: 2025).
 
-Ao alterar relatórios:
-→ Separar cálculo de renderização.
+Correção aplicada:
 
-Nunca misturar domínio com interface.
+if (!$("repCompare").value) {
+  $("repCompare").value = String($("repYear").value - 1);
+}
 
----
 
-# 9. Benefícios Obtidos
+Resultado:
 
-- Código modular
-- Redução de acoplamento
-- Maior previsibilidade
-- Base pronta para backend real
-- Preparação para testes unitários
-- Evolução segura
+O sistema inicializa corretamente
 
----
+O usuário mantém controle manual do filtro
 
-# 10. Conclusão
+Nenhuma sobrescrita silenciosa ocorre
 
-O sistema evoluiu de:
+4.2 Correção – Ordem de Anos
 
-"Cálculos espalhados na interface"
+Problema:
 
-para:
+O select assumia o menor ano disponível.
 
-"Arquitetura modular com domínio isolado e controle de evolução"
+Correção:
 
-Isso estabelece base profissional para crescimento sustentável.
+Ordenação alterada para decrescente:
 
----
+const arr = [...years].sort((a,b)=>b-a);
 
-# Fase 3 – Hardening Concluída
 
-Versão: v2.1-report-hardened
+Resultado:
 
-O reportService foi totalmente blindado com:
+Ano mais recente aparece primeiro
 
-- safeArray
-- safeNumber
-- Guards defensivos
-- Proteção contra NaN
-- Proteção contra arrays inválidos
-- Fallback seguro de parsers
+Comportamento consistente com UX moderna
+
+4.3 Sincronização com Firestore
+
+Identificado comportamento normal:
+
+1ª execução do renderDashboard → lessons = []
+2ª execução → lessons carregadas
+
+Console confirmou:
+
+Lessons carregadas: 0
+Lessons carregadas: 335
+
+
+Isso não era erro, apenas ciclo natural do onSnapshot.
+
+Sistema considerado estável.
+
+4.4 Blindagem do Filtro Anual
+
+Padronização do filtro de aulas realizadas:
+
+Substituído:
+
+Number(l.status) !== 2
+
+
+Por:
+
+String(l.status) !== "2"
+
+
+Motivo:
+
+Consistência com padrão geral do sistema.
+
+5. Princípios Arquiteturais Consolidados
+
+Regra de Ouro: nada pode quebrar produção.
+
+Filtros controlados pelo usuário nunca são sobrescritos.
+
+Inicialização ocorre apenas quando necessário.
+
+Render não altera estado.
+
+Estado não altera cálculo.
+
+Cálculo nunca depende de DOM.
+
+6. Estado Atual da Arquitetura
+
+✔ Receita anual validada
+✔ Comparação anual estável
+✔ Ranking anual consistente
+✔ Concentração correta
+✔ Snapshot sincronizado
+✔ Filtros persistentes
+✔ Hardening aplicado
+
+7. Hardening Consolidado
+
+Aplicado no reportService:
+
+safeArray
+
+safeNumber
+
+Guards defensivos
+
+Prevenção de NaN
+
+Fallback seguro de parsing
 
 Nenhuma alteração funcional foi introduzida.
-Apenas robustez interna.
+Apenas robustez matemática.
 
-Sistema pronto para evolução estratégica.
+8. Fluxo Atual de Renderização (Controlado)
+
+Sequência oficial:
+
+onSnapshot carrega dados
+
+renderDashboard()
+
+renderReportMonthKPIs()
+
+UI atualizada
+
+Filtros preservados
+
+Nenhum reset automático de select.
+
+9. Diretrizes para Próxima Evolução
+
+Próxima camada recomendada:
+
+Separar função de inicialização dos selects da função de atualização
+
+Implementar staging environment
+
+Implantar deploy automático via GitHub Actions
+
+Implementar backup automático pré-deploy
+
+Versionamento formal por tag
+
+10. Versão Atual Oficial
+
+Arquitetura validada após estabilização do módulo Relatórios.
+
+Versão oficial:
+
+v2.2-report-stable-controlled-render
+
+Sistema pronto para:
+
+Deploy automático
+
+Ambiente staging
+
+Controle de versões estruturado

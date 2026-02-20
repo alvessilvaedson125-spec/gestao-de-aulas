@@ -1241,5 +1241,25 @@ body.modal-open{ overflow: hidden; }
 
 }
 
+/* ============================= */
+/* GRID RELATÓRIOS */
+/* ============================= */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.kpi-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.kpi-card.highlight {
+  border: 1px solid var(--elev);
+}
 
 

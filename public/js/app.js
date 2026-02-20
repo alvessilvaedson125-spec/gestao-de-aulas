@@ -13,11 +13,19 @@ import {
   calculateLessonCount,
   calculateYearlyStudentReport,
   calculateYearlyStudentRanking,
-  calculateYearComparison
+  calculateYearComparison,
+  calculateRevenueConcentration
 } from './services/reportService.js';
 import { parseISODateLocal } from "./utils/dateService.js";
 import { formatBRL, formatBRLFromCents, parseBRLToNumber } from "./utils/formatService.js";
 import { $, els, pad2, ymdKey } from "./utils/uiHelpers.js";
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
 
 
 
@@ -122,8 +130,25 @@ if (evoModal && btnToggleEvoForm) {
 
 
 function hasActivePackage(s){
-  return (Number(s.totalLessons||0) > 0) && !!s.packageStart && !!s.packageEnd;
+  if (!s) return false;
+
+  const total = Number(s.totalLessons || 0);
+  if (total <= 0) return false;
+
+  if (!s.packageStart) return false;
+
+  const start = parseISODateLocal(s.packageStart);
+  const end   = s.packageEnd ? parseISODateLocal(s.packageEnd) : null;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (today < start) return false;
+  if (end && today > end) return false;
+
+  return true;
 }
+
 
 const toInputDate = (d)=> `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 
@@ -290,17 +315,27 @@ function _repMonth(){
 }
 
 
+let monthRevenue = 0;
 function renderReportMonthKPIs(){
   var y = _repYear();
   var m = _repMonth();
 
   var arr = Array.isArray(lessons) ? lessons.filter(function(l){
-    var d = parseISODateLocal(l.date);
-    return d.getFullYear() === y && d.getMonth() === m;
-  }) : [];
+
+  if (!l || !l.date) return false;
+
+  var d = parseISODateLocal(l.date);
+
+  if (!(d instanceof Date) || isNaN(d)) return false;
+
+  return d.getFullYear() === y &&
+         d.getMonth() === m;
+
+}) : [];
+
 
   var monthCount   = arr.length;
- var monthRevenue = calculateRealizedRevenueForLessons(
+  monthRevenue = calculateRealizedRevenueForLessons(
   arr,
   parseBRLToNumber
 );
@@ -323,16 +358,16 @@ var revPerActive = activeStudents > 0
   : 0;
 
 var elRevPerActive = document.getElementById("kpiRevPerActive");
-if (elRevPerActive) elRevPerActive.textContent = fmtBRL(revPerActive);
+if (elRevPerActive) elRevPerActive.textContent = formatBRL(revPerActive);
 
 var elAvg = document.getElementById("kpiMonthAvg");
-if (elAvg) elAvg.textContent = fmtBRL(monthAvg);
+if (elAvg) elAvg.textContent = formatBRL(monthAvg);
 
 
   var elCount = document.getElementById("kpiMonth");
   var elRev   = document.getElementById("kpiMonthRev");
   if (elCount) elCount.textContent = String(monthCount);
-  if (elRev)   elRev.textContent   = fmtBRL(monthRevenue);
+  if (elRev)   elRev.textContent   = formatBRL(monthRevenue);
 
 // 🔵 KPI Hoje (aulas e receita do dia atual)
 var today = new Date();
@@ -354,7 +389,7 @@ var todayRevenue = todayArr
 
 var elDay = document.getElementById("kpiDay");
 if (elDay){
-  elDay.textContent = todayCount + " aula(s) • " + fmtBRL(todayRevenue);
+  elDay.textContent = todayCount + " aula(s) • " + formatBRL(todayRevenue);
 }
 
 
@@ -374,7 +409,7 @@ var forecastRevenue = arr
 
 var elForecast = document.getElementById("kpiMonthForecast");
 if (elForecast){
-  elForecast.textContent = fmtBRL(forecastRevenue);
+  elForecast.textContent = formatBRL(forecastRevenue);
 }
 
 
@@ -387,80 +422,137 @@ if (prevMonth < 0){
   prevYear  = y - 1;
 }
 
+// 🔵 Descobre mês anterior corretamente
+var prevMonth = m - 1;
+var prevYear  = y;
+
+if (prevMonth < 0){
+  prevMonth = 11;
+  prevYear  = y - 1;
+}
+
 // 🔵 Receita do mês anterior
 var prevArr = Array.isArray(lessons) ? lessons.filter(function(l){
+  if (!l || !l.date) return false;
   var d = parseISODateLocal(l.date);
-  return d.getFullYear() === prevYear && d.getMonth() === prevMonth;
+  if (!(d instanceof Date) || isNaN(d)) return false;
+
+  return d.getFullYear() === prevYear &&
+         d.getMonth() === prevMonth &&
+         String(l.status) === "2";
 }) : [];
 
-var prevRevenue = prevArr
-  .filter(function(l){ return String(l.status) === "2"; })
-  .reduce(function(acc,l){ return acc + parseBRLToNumber(l.price); }, 0);
-
-// 🔵 Crescimento MoM
-var growth = prevRevenue > 0
-  ? ((monthRevenue - prevRevenue) / prevRevenue) * 100
-  : 0;
-// 🔵 Variação absoluta em R$
-var absDiff = monthRevenue - prevRevenue;
-
-var elGrowth = document.getElementById("kpiMonthGrowth");
-if (elGrowth){
-  elGrowth.textContent = growth.toFixed(1) + "%";
-
-  elGrowth.classList.remove("kpi-up","kpi-down","kpi-neutral");
-
-  var elRef = document.getElementById("kpiMonthGrowthRef");
-if (elRef){
-  var monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-  var sign = absDiff > 0 ? "+" : "";
-  elRef.textContent = "vs " + monthNames[prevMonth] + " " + prevYear + 
-                      " (" + sign + fmtBRL(absDiff) + ")";
-}
-
-  if (growth > 5){
-    elGrowth.classList.add("kpi-up");
-  } else if (growth < -5){
-    elGrowth.classList.add("kpi-down");
-  } else {
-    elGrowth.classList.add("kpi-neutral");
-  }
-}
-// 🔵 Operação do dia (card Hoje)
-
-var today = new Date();
-today.setHours(0,0,0,0);
-
-var tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-var todayArr = Array.isArray(lessons) ? lessons.filter(function(l){
-  var d = parseISODateLocal(l.date);
-  return d >= today && d < tomorrow &&
-         String(l.status) !== "3"; // exclui canceladas
-}) : [];
-
-var todayCount = todayArr.length;
-
-var todayRevenue = todayArr.reduce(function(acc,l){
+var prevRevenue = prevArr.reduce(function(acc,l){
   return acc + parseBRLToNumber(l.price);
 }, 0);
 
-var elToday = document.getElementById("kpiToday");
-if (elToday){
-  elToday.textContent = todayCount + " aula(s) • " + fmtBRL(todayRevenue);
+// 🔵 Crescimento percentual
+var growth = prevRevenue > 0
+  ? ((monthRevenue - prevRevenue) / prevRevenue) * 100
+  : 0;
+
+var absDiff = monthRevenue - prevRevenue;
+
+// 🔵 Atualiza UI
+var elGrowth = document.getElementById("kpiMonthGrowth");
+var elRef    = document.getElementById("kpiMonthGrowthRef");
+
+if (elGrowth){
+  elGrowth.textContent = growth.toFixed(1) + "%";
+}
+
+
+
+
+
+if (elRef){
+  var monthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  var sign = absDiff > 0 ? "+" : "";
+  elRef.textContent =
+    "vs " + monthNames[prevMonth] + " " + prevYear +
+    " (" + sign + formatBRL(absDiff) + ")";
+}
+// ================= MÉDIA POR ALUNO (ANO) =================
+
+// 🔵 Filtra aulas realizadas no ano selecionado
+var yearArr = Array.isArray(lessons) ? lessons.filter(function(l){
+  if (!l || !l.date) return false;
+
+  var d = parseISODateLocal(l.date);
+  if (!(d instanceof Date) || isNaN(d)) return false;
+
+  return d.getFullYear() === y &&
+         String(l.status) === "2";
+}) : [];
+
+// 🔵 Receita anual realizada
+var yearRevenue = yearArr.reduce(function(acc,l){
+  return acc + parseBRLToNumber(l.price);
+}, 0);
+
+// 🔵 Alunos únicos que tiveram aula realizada no ano
+var uniqueYearStudents = new Set(
+  yearArr.map(function(l){
+    return l.studentId;
+  })
+);
+
+// 🔵 Média por aluno no ano
+var avgYear = uniqueYearStudents.size > 0
+  ? yearRevenue / uniqueYearStudents.size
+  : 0;
+
+// 🔵 Atualiza o card
+var elYearAvg = document.getElementById("avgPerStudent");
+if (elYearAvg){
+  elYearAvg.textContent = formatBRL(avgYear);
+}
+// ================= MÉDIA POR ALUNO (ANO) =================
+
+// 🔵 Filtra aulas realizadas no ano selecionado
+var yearArr = Array.isArray(lessons) ? lessons.filter(function(l){
+  if (!l || !l.date) return false;
+
+  var d = parseISODateLocal(l.date);
+  if (!(d instanceof Date) || isNaN(d)) return false;
+
+  return d.getFullYear() === y &&
+         String(l.status) === "2";
+}) : [];
+
+// 🔵 Receita anual realizada
+var yearRevenue = yearArr.reduce(function(acc,l){
+  return acc + parseBRLToNumber(l.price);
+}, 0);
+
+// 🔵 Alunos únicos no ano
+var uniqueYearStudents = new Set(
+  yearArr.map(function(l){
+    return l.studentId;
+  })
+);
+
+// 🔵 Média por aluno no ano
+var avgYear = uniqueYearStudents.size > 0
+  ? yearRevenue / uniqueYearStudents.size
+  : 0;
+
+// 🔵 Atualiza o card correto
+var elYearAvg = document.getElementById("avgPerStudent");
+if (elYearAvg){
+  elYearAvg.textContent = formatBRL(avgYear);
 }
 
 
 }
+
 
 function initReportMonthPatch(){
   setupReportMonthFilter();
   renderReportMonthKPIs();
 }
 
-// dispara uma vez (caso a aba já esteja montada)
-setTimeout(initReportMonthPatch, 0);
+
 
 
 
@@ -471,21 +563,27 @@ function fillRepYearInvest(){
   if (!sel) return;
 
   // Coleta anos a partir de "lessons" (fallback: ano atual)
-  const years = new Set();
+  const y = new Set();
   if (Array.isArray(lessons) && lessons.length){
     for (const l of lessons){
       const d = parseISODateLocal(l.date);
-      if (!isNaN(d)) years.add(d.getFullYear());
+      if (!isNaN(d)) y.add(d.getFullYear());
     }
   }
   const curY = (new Date()).getFullYear();
-  if (years.size === 0) years.add(curY);
+  if (y.size === 0) y.add(curY);
 
   // Intervalo contínuo: do menor ano encontrado até (ano atual + 3)
-  const minY = Math.min(...years);
-  const maxY = Math.max(curY + 3, ...years);
-  const arr = [];
-  for (let y=minY; y<=maxY; y++) arr.push(y);
+  const yearsArray = [...y];
+
+const minY = Math.min(...yearsArray);
+const maxY = Math.max(curY + 3, ...yearsArray);
+
+const arr = [];
+for (let yr = minY; yr <= maxY; yr++) {
+  arr.push(yr);
+}
+
   arr.sort((a,b)=>b-a); // mostra do maior para o menor
 
   // Repreenche select preservando escolha anterior quando possível
@@ -509,8 +607,31 @@ function attach(){
   unsubS = onSnapshot(qS,(snap)=>{ students = snap.docs.map(withId);$("kpiActiveStudents").textContent = students.filter(s => s.active === true).length;
  fillStudentSelects(); renderStudentFilter(); fillRepStudentSelect(); initRepStudentArea(); 
  renderStudents(); renderDashboard(); buildEvoTree();});
-  unsubL = onSnapshot(qL,(snap)=>{ lessons  = snap.docs.map(withId); renderCalendar(); renderUpcoming(); renderDayDetails( state.selKey ); renderDashboard(); renderKPIs(); renderEvoKPIs(); renderStudents();renderReportMonthKPIs();fillRepYearInvest();
- });
+  
+ unsubL = onSnapshot(qL, (snap) => {
+
+  lessons = snap.docs.map(withId);
+
+  // AGENDA
+  renderCalendar();
+  renderUpcoming();
+  renderDayDetails(state.selKey);
+
+  // EVOLUÇÃO
+  renderEvoKPIs();
+
+  // ALUNOS
+  renderStudents();
+
+  // RELATÓRIOS
+  fillRepYearInvest();
+
+  renderDashboard();        // mantém (parte anual, gráfico, concentração)
+  renderReportMonthKPIs();  // mantém (parte mensal e crescimento)
+});
+
+
+
   unsubE = onSnapshot(qE,(snap)=>{ evolutions = snap.docs.map(withId); renderEvolutions(); renderEvoKPIs(); buildEvoTree(); initRepStudentArea();   // recalcula o relatório quando as aulas mudam
  });
 }
@@ -562,21 +683,13 @@ function renderUpcoming(){
         <div><span class="who">${nm}</span> — ${a.style||""}${a.level?" • "+a.level:""}</div>
         <div class="muted">
           ${d.toLocaleString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
-          • ${a.place||"—"} • ${stat} • ${fmtBRL(a.price||0)}
+          • ${a.place||"—"} • ${stat} • ${formatBRL(a.price||0)}
         </div>
       </div>
       <div>${a.duration||60}'</div>`;
     box.appendChild(row);
   }
 
-// 🔵 Recalcular relatório quando filtros mudarem
-const elYear    = document.getElementById("repYear");
-const elMonth   = document.getElementById("repMonth");
-const elCompare = document.getElementById("repCompare");
-
-if (elYear)    elYear.addEventListener("change", renderReportMonthKPIs);
-if (elMonth)   elMonth.addEventListener("change", renderReportMonthKPIs);
-if (elCompare) elCompare.addEventListener("change", renderReportMonthKPIs);
 
 }
 /* ======================= Calendário ======================= */
@@ -809,7 +922,7 @@ function renderDayDetails(key){
     const row=document.createElement("div"); row.className="day-card";
 
     row.innerHTML=`<div><div><span class="who">${nm}</span> — ${a.style||""}${a.level?" • "+a.level:""}</div>
-      <div class="muted">${hhmm} • ${a.place||"—"} • ${stat} • ${fmtBRL(a.price||0)}</div></div>
+      <div class="muted">${hhmm} • ${a.place||"—"} • ${stat} • ${formatBRL(a.price||0)}</div></div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end">
         <button class="btn small" data-act="wa">WhatsApp</button>
         <button class="btn small" data-act="rec">Recibo</button>
@@ -817,7 +930,11 @@ function renderDayDetails(key){
         <button class="btn small" data-act="del">Excluir</button>
       </div>`;
     row.querySelector('[data-act="edit"]').onclick=(ev)=>{ ev.stopPropagation(); editLesson(a.id); };
-    row.querySelector('[data-act="del"]').onclick=(ev)=>{ ev.stopPropagation(); deleteLesson(a.id); };
+    row.querySelector('[data-act="del"]').onclick=(ev)=>{
+  ev.stopPropagation();
+  requestDeleteLesson(a.id);
+};
+
     row.querySelector('[data-act="rec"]').onclick=(ev)=>{ ev.stopPropagation(); openReceiptFromLesson(a); };
     box.appendChild(row);
     row.querySelector('[data-act="wa"]').onclick = (ev)=>{
@@ -879,22 +996,38 @@ function clearStudentForm(){
   ["studentName","studentPhone","studentEmail","studentPackageStart","studentPackageEnd","studentTotalLessons","studentNotes"].forEach(id=>$(id).value="");
   $("studentActive").value="true"; editingStudentId=null;
 }
-function inPkgRange(a, s){
-  const d = parseISODateLocal(a.date);
+function parsePkgDate(str){
+  if(!str) return null;
 
-  // Preferir o reset com data/hora (zera a contagem imediatamente ao salvar o pacote)
-  const iDT = s.packageResetAt ? parseISODateLocal(s.packageResetAt) : null;
+  // Se vier no padrão ISO (input type="date")
+  if(str.includes("-")){
+    return parseISODateLocal(str);
+  }
 
-  // Se não houver reset, cair para o início do pacote (data cheia)
-  const i = iDT || (s.packageStart ? parseBR(s.packageStart) : null);
+  // Se vier no padrão brasileiro
+  if(str.includes("/")){
+    const [d,m,y] = str.split("/");
+    return new Date(Number(y), Number(m)-1, Number(d));
+  }
 
-  // Fim do pacote (inclui o dia inteiro)
-  const f = s.packageEnd ? parseBR(s.packageEnd) : null;
-
-  if (i && d < i) return false;
-  if (f && d > new Date(f.getFullYear(), f.getMonth(), f.getDate(), 23, 59, 59)) return false;
-  return true;
+  return null;
 }
+
+
+function inPkgRange(a, s){
+  if (!a?.date || !s?.packageStart || !s?.packageEnd) return false;
+
+  const d = parseISODateLocal(a.date);
+  const start = parsePkgDate(s.packageStart);
+  const end   = parsePkgDate(s.packageEnd);
+
+  if (!d || !start || !end) return false;
+
+  end.setHours(23,59,59,999);
+
+  return d >= start && d <= end;
+}
+
 
 function renderStudents(){
   try {
@@ -951,7 +1084,7 @@ $("inactiveWrap").style.display = inactives.length ? "block" : "none";
   const rest  = pkgOn ? Math.max(0, total - done) : 0;
   const pct   = pkgOn && total>0 ? Math.min(100, Math.round((done/total)*100)) : 0;
 
-  const yearNow = (new Date()).getFullYear();
+  const yearNow = +($("repYearInvest")?.value || new Date().getFullYear());
   const investYear = lessons
     .filter(l => l.studentId===s.id && l.status===2 && parseISODateLocal(l.date).getFullYear()===yearNow)
     .reduce((sum,l)=> sum + (+l.price||0), 0);
@@ -1277,14 +1410,14 @@ $("btnSaveEvolution").onclick = async () => {
 };
 
 
-function renderEvolutions(filter={}){  // filter: {studentId, year, monthIndex}
+function renderEvolutions(filter={}){  // filter: {studentId, y, monthIndex}
   const box=$("evolutionsList"); box.innerHTML="";
   let list=[...evolutions];
   if(filter.studentId) list=list.filter(e=>e.studentId===filter.studentId);
-  if (filter.year)
+  if (typeof filter.y === "number")
   list = list.filter(e => {
     const d = parseISODateLocal(e.date);
-    return d.getFullYear() === filter.year;
+    return d.getFullYear() === filter.y;
   });
 
 if (typeof filter.monthIndex === "number")
@@ -1385,6 +1518,7 @@ let evoExpanded = {
   years: new Set()
 };
 
+
 /* Monta árvore Aluno > Ano > Mês */
 function buildEvoTree(){
 
@@ -1429,18 +1563,20 @@ function buildEvoTree(){
 
     if(!isStudentOpen) continue;
 
-    const years=[...ymap.keys()].sort((a,b)=>b-a);
+   const years = [...ymap.keys()].sort((a,b)=>b-a);
 
-    for(const y of years){
+for(const yr of years){
 
-      const yearKey = sid+"-"+y;
+
+      const yearKey = sid+"-"+yr;
       const isYearOpen = evoExpanded.years.has(yearKey);
+
 
       html += `
         <div class="tree-item tree-level-2"
              data-type="year"
              data-sid="${sid}"
-             data-year="${y}">
+             data-year="${yr}">
           ${isYearOpen ? "📂" : "📁"} ${y}
         </div>
       `;
@@ -1458,7 +1594,7 @@ function buildEvoTree(){
           <div class="tree-item tree-level-3"
                data-type="month"
                data-sid="${sid}"
-               data-year="${y}"
+               data-y="${y}"
                data-month="${m}">
             🗂️ ${monthsLbl[m]}
             <span class="muted">(${count})</span>
@@ -1515,10 +1651,11 @@ function buildEvoTree(){
       if(type==="month"){
 
         renderEvolutions({
-          studentId:sid,
-          year:+y,
-          monthIndex:+m
-        });
+  studentId:sid,
+  y:+y,
+  monthIndex:+m
+});
+
 
         root.querySelectorAll(".tree-item").forEach(el=>el.classList.remove("active"));
         item.classList.add("active");
@@ -1547,141 +1684,200 @@ function exportEvolutionPDF(e, studentName){
 }
 
 /* ======================= KPIs / Relatórios ======================= */
-function renderKPIs(){
-  const today = new Date(); const y=today.getFullYear(); const m=today.getMonth();
-  const dayCount = lessons.filter(l=>{ const d = parseISODateLocal(l.date); return d.getDate()===today.getDate() && d.getMonth()===m && d.getFullYear()===y; }).length;
-  const monthList = lessons.filter(l=>{ const d = parseISODateLocal(l.date); return d.getMonth()===m && d.getFullYear()===y; });
-  const monthCount = monthList.length;
-  const monthRev = monthList.filter(x=>x.status===2).reduce((s,a)=>s+(+a.price||0),0);
-  const yearRev = lessons
-  .filter(l => {
-    const d = parseISODateLocal(l.date);
-    return d.getFullYear() === y && l.status === 2;
-  })
-  .reduce((s, a) => s + (+a.price || 0), 0);
 
-  $("kpiDay").textContent=dayCount;
-  $("kpiMonth").textContent=monthCount;
-  $("kpiMonthRev").textContent=formatBRL(monthRev);
-  $("kpiYearRev").textContent=formatBRL(yearRev);
-}
 $("repYear").onchange = renderDashboard;
 $("repCompare").onchange = renderDashboard;
 if ($("repYearInvest")) $("repYearInvest").onchange = renderDashboard; // ✅
 function ensureYearSelects(){
-  const years=new Set();
-  for(const l of lessons){ if(!l.date||l.status!==2) continue; years.add(parseISODateLocal(l.date).getFullYear()); }
-  if(years.size===0){ const y=(new Date()).getFullYear(); years.add(y); years.add(y-1); }
-  const arr=[...years].sort((a,b)=>a-b);
-  // garante anos futuros no seletor (ex.: até +3)
+
+  const years = new Set();
+
+  for(const l of lessons){
+    if(!l.date || l.status!==2) continue;
+    years.add(parseISODateLocal(l.date).getFullYear());
+  }
+
   const cur = (new Date()).getFullYear();
-  for (let y = cur; y <= cur + 3; y++) years.add(y);
- 
-  const fill=(id)=>{ 
-    const el=$(id); 
+  for(let y = cur - 3; y <= cur + 3; y++){
+    years.add(y);
+  }
+
+  const arr = [...years].sort((a,b)=>b-a);
+
+
+  const fill = (id)=>{
+    const el=$(id);
     if(!el) return;
-    const cur=el.value; 
-    el.innerHTML=arr.map(y=>`<option>${y}</option>`).join(""); 
-    if(arr.includes(+cur)) el.value=cur; 
+    const curVal = el.value;
+    el.innerHTML = arr.map(y=>`<option value="${y}">${y}</option>`).join("");
+    if(arr.includes(+curVal)) el.value = curVal;
   };
 
   fill("repYear");
   fill("repCompare");
-  fill("repYearInvest");              // ✅ novo
+  fill("repYearInvest");
 
-  if(!$("repYear").value) $("repYear").value=String((new Date()).getFullYear());
-  if(!$("repCompare").value) $("repCompare").value=String((new Date()).getFullYear()-1);
+  $("repYear").value = String(cur);
+  if (!$("repCompare").value) {
+  $("repCompare").value = String($("repYear").value - 1);
+}
 
-  // por padrão, o seletor de investimento acompanha o principal
-  if ($("repYearInvest") && !$("repYearInvest").value) {
+  if($("repYearInvest") && !$("repYearInvest").value){
     $("repYearInvest").value = $("repYear").value;
   }
 
   updateMoneyButton();
 }
-/* ===== ESTADO RANKING RELATÓRIOS ===== */
+
+
+/* ===== DASHBOARD ANUAL (somente visão anual) ===== */
+
 let rankingExpanded = false;
-
-
 let _barsY = Array(12).fill(0);
 let _barsC = Array(12).fill(0);
-let _chartCtx=null;
+let _chartCtx = null;
+
 function renderDashboard(){
+
   ensureYearSelects();
-  const y  = +$("repYear").value;
-const cy = +$("repCompare").value;
-const invY = +($("repYearInvest")?.value || y);   // ✅ ano do bloco de investimento
-$("listYear").textContent = String(invY);
-$("cmpYear").textContent = cy;
-$("barsYear").textContent = y;
 
+  const y   = +$("repYear").value;        // Ano selecionado
+  const cy  = +$("repCompare").value;     // Ano de comparação
+  const invY = +($("repYearInvest")?.value || y);
 
+  if ($("listYear")) $("listYear").textContent = String(invY);
+  if ($("cmpYear")) $("cmpYear").textContent = String(cy);
+  if ($("barsYear")) $("barsYear").textContent = String(y);
 
   _barsY = Array(12).fill(0);
   _barsC = Array(12).fill(0);
 
-  for(const l of lessons){
-    if(!l.date || l.status!==2) continue;
-    const d = parseISODateLocal(l.date); const m = d.getMonth();
-    if(d.getFullYear()===y) _barsY[m]+= (+l.price||0);
-    if(d.getFullYear()===cy) _barsC[m]+= (+l.price||0);
+  // ===== SOMENTE AULAS REALIZADAS =====
+  for (const l of lessons || []) {
+
+    if (!l || !l.date) continue;
+    if (String(l.status) !== "2") continue;
+
+
+    const d = parseISODateLocal(l.date);
+    if (!(d instanceof Date) || isNaN(d)) continue;
+
+    const m = d.getMonth();
+    const value = parseBRLToNumber(l.price || 0);
+
+
+    if (d.getFullYear() === y)  _barsY[m] += value;
+    if (d.getFullYear() === cy) _barsC[m] += value;
   }
+console.log("Ano selecionado:", y);
+console.log("BarsY:", _barsY);
+console.log("Total calculado:", _barsY.reduce((a,b)=>a+b,0));
+console.log("Lessons carregadas:", lessons?.length);
+
+  // ===== COMPARAÇÃO ANUAL =====
   const comparison = calculateYearComparison(_barsY, _barsC);
 
-const yearTotal = comparison.yearTotal;
-const cmpTotal = comparison.compareTotal;
-const delta = comparison.delta;
+  const yearTotal = comparison.yearTotal || 0;
+  const delta     = comparison.delta || 0;
 
-  $("kpiYearRev").textContent = formatBRL(yearTotal);
-  $("kpiYearDelta").textContent = (delta>=0?"+":"") + delta.toFixed(1) + "%";
-  $("yearTotalFooter").textContent = formatBRL(yearTotal);
+  if ($("kpiYearRev")) {
+    $("kpiYearRev").textContent = formatBRL(yearTotal);
+  }
 
+  if ($("kpiYearDelta")) {
+    $("kpiYearDelta").textContent =
+      (delta >= 0 ? "+" : "") + delta.toFixed(1) + "%";
+  }
+
+  if ($("yearTotalFooter")) {
+    $("yearTotalFooter").textContent = formatBRL(yearTotal);
+  }
+
+  // ===== CONCENTRAÇÃO =====
+  const concentration = calculateRevenueConcentration(
+    lessons || [],
+    parseISODateLocal,
+    y
+  );
+
+  const top1Share = concentration.top1Percent || 0;
+  const top3Share = concentration.top3Percent || 0;
+
+  if ($("kpiTop1Share")) {
+    $("kpiTop1Share").textContent = top1Share.toFixed(1) + "%";
+  }
+
+  if ($("kpiTop3Share")) {
+    $("kpiTop3Share").textContent = top3Share.toFixed(1) + "%";
+  }
+
+  // ===== GRÁFICO ANUAL =====
   drawBars(_barsY, _barsC);
 
+  // ===== RANKING POR ALUNO (ANUAL) =====
   const fullList = calculateYearlyStudentRanking(
-  lessons,
-  students,
-  invY,
-  parseISODateLocal,
-  v => (+v || 0)
-);
+    lessons || [],
+    students || [],
+    invY,
+    parseISODateLocal,
+    v => (+v || 0)
+  );
 
-const list = rankingExpanded ? fullList : fullList.slice(0, 10);
+  const list = rankingExpanded
+    ? fullList
+    : fullList.slice(0, 10);
 
+  const box = $("byStudentList");
+  if (!box) return;
 
+  box.innerHTML = "";
 
-  const box=$("byStudentList"); box.innerHTML="";
-  if(list.length===0){ box.innerHTML=`<div class="muted">Sem aulas realizadas no ano.</div>`; }
-  for(const r of list){
-    const row=document.createElement("div"); row.className="listrow";
-    row.innerHTML=`<div>${r.name}</div><div><span class="pill-mini">${r.aulas} aulas</span> &nbsp; <b>$formatBRL(r.total)}</b></div>`;
+  if (list.length === 0) {
+    box.innerHTML =
+      `<div class="muted">Sem aulas realizadas no ano.</div>`;
+  }
+
+  for (const r of list) {
+    const row = document.createElement("div");
+    row.className = "listrow";
+
+    row.innerHTML = `
+      <div>${r.name}</div>
+      <div>
+        <span class="pill-mini">${r.aulas} aulas</span>
+        &nbsp;
+        <b>${formatBRL(r.total)}</b>
+      </div>
+    `;
+
     box.appendChild(row);
   }
 
-
-  // Botão Toggle Ranking
-if (fullList.length > 10) {
-  const btnToggle = document.createElement("div");
-  btnToggle.className = "ranking-toggle";
-
-
-  btnToggle.textContent = rankingExpanded
-    ? "Ver menos ▴"
-    : "Ver ranking completo ▾";
-
-  btnToggle.onclick = function() {
-    rankingExpanded = !rankingExpanded;
-    renderDashboard();
-  };
-
+  // ===== BOTÃO EXPANDIR RANKING =====
   const toggleContainer = $("rankingToggleContainer");
-toggleContainer.innerHTML = "";
-toggleContainer.appendChild(btnToggle);
 
+  if (toggleContainer) {
+    toggleContainer.innerHTML = "";
+
+    if (fullList.length > 10) {
+
+      const btnToggle = document.createElement("div");
+      btnToggle.className = "ranking-toggle";
+
+      btnToggle.textContent = rankingExpanded
+        ? "Ver menos ▴"
+        : "Ver ranking completo ▾";
+
+      btnToggle.onclick = function(){
+        rankingExpanded = !rankingExpanded;
+        renderDashboard();
+      };
+
+      toggleContainer.appendChild(btnToggle);
+    }
+  }
 }
 
-
-}
 function drawBars(arrY, arrC){
   const canvas=$("chartYear"); if(!canvas) return;
   const cssW = canvas.clientWidth || 600;
@@ -1721,88 +1917,7 @@ function updateMoneyButton(){
 $("btnHideMoney").onclick=()=>{ const btn=$("btnHideMoney"); btn.dataset.hide = btn.dataset.hide==="1"?"0":"1"; updateMoneyButton(); };
 
 
-function renderReportStats() {
-  // Se não houver elementos na página de relatório, sai sem erro
-  const repYearSel = $("#repYear");
-  const repCompareSel = $("#repCompare");
-  const chartCanvas = $("#chartYear");
-  const repListBox = $("#repList");
-  const repKpiTotal = $("#repTotal");
-  const repKpiMedia = $("#repMedia");
 
-  if (!repYearSel || !chartCanvas || !repListBox) return;
-
-  // Ano principal e ano comparativo
-  const year = Number(repYearSel.value || new Date().getFullYear());
-  
-
-  // Filtra somente aulas realizadas no ano selecionado
-  const lessonsYear = lessons.filter(l => {
-    const d = parseISODateLocal(l.date);
-    return d.getFullYear() === year && l.status === 2;
-  });
-
-  
-
-  // KPIs
-  const total = calculateTotalRevenueFromLessons(lessonsYear);
-  const alunosSet = extractUniqueStudentIdsFromLessons(lessonsYear);
-  const mediaPorAluno = calculateAveragePerStudent(total, alunosSet.size);
-
-  if (repKpiTotal) repKpiTotal.textContent = formatBRL(total);
-  if (repKpiMedia) repKpiMedia.textContent = formatBRL(mediaPorAluno);
-
-  // Lista de investimento por aluno
-  if (repListBox) {
-    repListBox.innerHTML = "";
-    alunosSet.forEach(id => {
-      const aluno = students.find(s => s.id === id);
-      const totalAluno = calculateTotalRevenueForStudent(lessonsYear, id);
-      const div = document.createElement("div");
-      div.innerHTML = `<b>${aluno?.name || "Sem nome"}</b> — ${formatBRL(totalAluno)}`;
-      repListBox.appendChild(div);
-    });
-  }
-
-  // Gráfico mensal
-  if (chartCanvas) {
-    const dataYear = calculateMonthlyRevenueFromLessons(
-  lessonsYear,
-  parseISODateLocal
-);
-
-    
-
-    if (window.repChart) window.repChart.destroy();
-
-window.repChart = new Chart(chartCanvas.getContext("2d"), {
-  type: "bar",
-  data: {
-    labels: ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],
-    datasets: [
-      {
-        label: `Ano ${year}`,
-        data: dataYear,
-        backgroundColor: "#4caf50"
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: "bottom" } },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { callback: v => formatBR(v) }
-      }
-    }
-  }
-});
-
-  }
-  
-}
 
 /* ======================= Backup ======================= */
 
@@ -1956,7 +2071,7 @@ function openLessonModal(data) {
   $("lessonType").value     = data?.type || "Particular";
   $("lessonModel").value    = data?.model || "Padrão";
   $("lessonDuration").value = data?.duration || 60;
-  $("lessonPrice").value    = Number.isFinite(+data?.price) ? fmtBRL(data.price) : fmtBRL(0);
+  $("lessonPrice").value    = Number.isFinite(+data?.price) ? formatBRL(data.price) : formatBRL(0);
   $("lessonPlace").value    = data?.place || "";
   $("lessonStatus").value   = String(data?.status ?? 0);
   $("lessonNotes").value    = data?.notes || "";
@@ -1985,7 +2100,7 @@ function editLesson(id) {
     type: $("lessonType").value,
     model: $("lessonModel").value,
     duration: +$("lessonDuration").value || 60,
-    price: parseNumberFromBRL($("lessonPrice").value),
+    price: parseBRLToNumber($("lessonPrice").value),
     place: $("lessonPlace").value,
     status: +$("lessonStatus").value || 0,
     notes: $("lessonNotes").value,
@@ -2046,7 +2161,11 @@ function editLesson(id) {
   }
 }
 
-function deleteLesson(id){ const a=lessons.find(x=>x.id===id); if(a) openLessonModal(a); }
+function requestDeleteLesson(id){
+  const a = lessons.find(x => x.id === id);
+  if(a) openLessonModal(a);
+}
+
 async function deleteLessonConfirmed(){
   if (!editingLessonId) return;
   if (!confirm("Excluir esta aula?")) return;
@@ -2091,7 +2210,7 @@ function openReceiptFromLesson(a){
   $("recTeacher").value  = "Edson Silva";
   setReceiptStudent(a.studentId||"");
   $("recAvulsaDate").value  = toInputDate(parseISODateLocal(a.date));
-  $("recAvulsaValue").value = fmtBRL(a.price||0);
+  $("recAvulsaValue").value = formatBRL(a.price||0);
   $("recPayMethod").value = "PIX";
   $("recCNPJ").value = ""; // opcional
   $("recObsAvulsa").value = "Aula avulsa";
@@ -2105,8 +2224,8 @@ function openReceiptFromStudent(s){
   $("recEmitDate").value = toInputDate(new Date());
   $("recTeacher").value  = "Edson Silva";
   setReceiptStudent(s.id||"");
-  const i = s.packageStart ? parseBR(s.packageStart) : null;
-  const f = s.packageEnd   ? parseBR(s.packageEnd)   : null;
+  const i = s.packageStart ? parseBRLToNumber(s.packageStart) : null;
+  const f = s.packageEnd   ? parseBRLToNumber(s.packageEnd)   : null;
   $("recPkgStart").value = i ? toInputDate(i) : "";
   $("recPkgEnd").value   = f ? toInputDate(f) : "";
   $("recPayMethod").value = "PIX";
@@ -2273,10 +2392,10 @@ const monthE = evolutions.filter(e=>{
 (function init(){
   try{
     renderCalendar();
-    renderKPIs();
+  
     renderEvoKPIs();
     ensureYearSelects();
-    renderDashboard();
+
     renderDayDetails( ymdKey(new Date()) );
     updateMoneyButton();
     $("recEmitDate").value = toInputDate(new Date());
@@ -2401,41 +2520,76 @@ function parseBRLToNumber(v){
 
 // 3) Calcula apenas os KPIs mensais (não altera mais nada do seu Relatório)
 function renderReportMonthKPIs(){
+
   var y = _repYear();
   var m = _repMonth();
 
-  var arr = Array.isArray(lessons) ? lessons.filter(function(l){
-    var d = parseISODateLocal(l.date);
-    return d.getFullYear() === y && d.getMonth() === m;
-  }) : [];
+  console.log("YEAR:", y);
+  console.log("MONTH:", m);
+  console.log("LESSONS:", lessons ? lessons.length : "undefined");
+  
+  if (!Array.isArray(lessons)) return;
 
-  // KPI: "Mês (aulas)" — quantidade total no mês
+  var arr = lessons.filter(function(l){
+    if (!l || !l.date) return false;
+
+    var d = parseISODateLocal(l.date);
+    if (!(d instanceof Date) || isNaN(d)) return false;
+
+    return d.getFullYear() === Number(y) &&
+           d.getMonth() === Number(m);
+
+           
+  });
+console.log("ARR LENGTH:", arr.length);
+
+ 
+ 
+  // ===== Contagem =====
   var monthCount = calculateLessonCount(arr);
 
 
-  // 🔵 Receita Prevista (Realizadas + Confirmadas + Agendadas)
-var forecastRevenue = arr
-  .filter(function(l){
-    return String(l.status) === "0" || // Agendada
-           String(l.status) === "1" || // Confirmada
-           String(l.status) === "2";   // Realizada
-  })
-  .reduce(function(acc,l){
-    return acc + parseBRLToNumber(l.price);
-  }, 0);
 
-  // KPI: "Receita (mês)" — apenas status=2 (Realizada)
+  // ===== Receita prevista =====
   var forecastRevenue = calculateForecastRevenueForLessons(
-  arr,
-  parseBRLToNumber
-);
+    arr,
+    parseBRLToNumber
+  );
 
+  // ===== Receita realizada =====
+  var monthRevenue = calculateRealizedRevenueForLessons(
+    arr,
+    parseBRLToNumber
+  );
 
-  var elCount = document.getElementById("kpiMonth");
-  var elRev   = document.getElementById("kpiMonthRev");
-  if (elCount) elCount.textContent = String(monthCount);
-  if (elRev)   elRev.textContent   = fmtBRL(monthRevenue);
+  // ===== Aulas pagas (status 2) =====
+  var paidCount = arr.filter(function(l){
+    return String(l.status) === "2";
+  }).length;
+
+  // ===== Ticket médio =====
+  var ticketMedio = paidCount > 0 ? monthRevenue / paidCount : 0;
+
+  // ===== Receita por aluno ativo =====
+  var uniqueStudents = new Set(
+    arr
+      .filter(l => String(l.status) === "2")
+      .map(l => l.studentId)
+  );
+
+  var receitaPorAluno = uniqueStudents.size > 0
+    ? monthRevenue / uniqueStudents.size
+    : 0;
+
+  // ===== Atualiza DOM =====
+  if ($("kpiMonth"))        $("kpiMonth").textContent        = String(monthCount);
+  if ($("kpiMonthRev"))     $("kpiMonthRev").textContent     = formatBRL(monthRevenue);
+  if ($("kpiMonthForecast"))$("kpiMonthForecast").textContent= formatBRL(forecastRevenue);
+  if ($("kpiMonthPaid"))    $("kpiMonthPaid").textContent    = String(paidCount);
+  if ($("kpiMonthAvg"))     $("kpiMonthAvg").textContent     = formatBRL(ticketMedio);
+  if ($("kpiRevPerActive")) $("kpiRevPerActive").textContent = formatBRL(receitaPorAluno);
 }
+
 
 // 4) expõe uma inicialização simples
 function initReportMonthPatch(){
@@ -2443,10 +2597,12 @@ function initReportMonthPatch(){
   renderReportMonthKPIs();
 }
 
-// tenta inicializar assim que possível (caso a aba já esteja visível)
-setTimeout(initReportMonthPatch, 0);
 
-/* ================= FIM — Filtro de Mês (Relatórios) — Bloco Isolado ========== */
+
+
+
+
+
 
 /* ======================= Backup ======================= */
 
