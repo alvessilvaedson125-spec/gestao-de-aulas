@@ -62,72 +62,72 @@ const BRAND_NAME = "Edson Silva";
 // interpreta "YYYY-MM-DD" como data LOCAL (sem deslocamento de fuso)
 // interpreta "YYYY-MM-DD" ou "YYYY-MM-DDTHH:MM" como data LOCAL
 document.addEventListener("DOMContentLoaded", () => {
-const btnToggleHistory = $("btnToggleHistory");
-const historyContent  = $("historyContent");
 
-if (btnToggleHistory && historyContent) {
+  // ================= HISTÓRICO =================
+  const btnToggleHistory = $("btnToggleHistory");
+  const historyContent  = $("historyContent");
 
-  btnToggleHistory.addEventListener("click", () => {
+  if (btnToggleHistory && historyContent) {
+    btnToggleHistory.addEventListener("click", () => {
+      const isHidden = historyContent.style.display === "none";
+      historyContent.style.display = isHidden ? "block" : "none";
+      btnToggleHistory.textContent = isHidden ? "Ocultar" : "Mostrar";
+    });
+  }
 
-    const isHidden = historyContent.style.display === "none";
-
-    historyContent.style.display = isHidden ? "block" : "none";
-    btnToggleHistory.textContent = isHidden ? "Ocultar" : "Mostrar";
-
-  });
-
-}
-
+  // ================= NOVO ALUNO =================
   const studentFormWrap = document.getElementById("studentFormWrap");
   const btnToggleStudentForm = document.getElementById("btnToggleStudentForm");
 
   if (btnToggleStudentForm && studentFormWrap) {
     btnToggleStudentForm.addEventListener("click", () => {
 
-  const isOpen = studentFormWrap.classList.contains("form-open");
+      const isOpen = studentFormWrap.classList.contains("form-open");
 
-  studentFormWrap.classList.toggle("form-open");
-  studentFormWrap.classList.toggle("form-collapsed");
+      if (isOpen) {
+        studentFormWrap.classList.remove("form-open");
+        studentFormWrap.classList.add("form-collapsed");
+        btnToggleStudentForm.textContent = "+ Novo Aluno";
+      } else {
+        studentFormWrap.classList.remove("form-collapsed");
+        studentFormWrap.classList.add("form-open");
+        btnToggleStudentForm.textContent = "Fechar";
+      }
 
-  btnToggleStudentForm.textContent = isOpen ? "+ Novo Aluno" : "Fechar";
-});
-  }
-// ===== EVOLUÇÃO - Modal =====
-const evoModal = document.getElementById("evoModal");
-const btnToggleEvoForm = document.getElementById("btnToggleEvoForm");
-const btnCloseEvoModal = document.getElementById("btnCloseEvoModal");
-
-if (evoModal && btnToggleEvoForm) {
-
-  // Abrir modal
-  btnToggleEvoForm.addEventListener("click", () => {
-    evoModal.classList.add("show");
-  });
-
-  // Fechar pelo botão X
-  if (btnCloseEvoModal) {
-    btnCloseEvoModal.addEventListener("click", () => {
-      evoModal.classList.remove("show");
     });
   }
 
-  // Fechar clicando fora
-  evoModal.addEventListener("click", (e) => {
-    if (e.target === evoModal) {
-      evoModal.classList.remove("show");
-    }
-  });
+  // ================= EVOLUÇÃO - MODAL =================
+  const evoModal = document.getElementById("evoModal");
+  const btnToggleEvoForm = document.getElementById("btnToggleEvoForm");
+  const btnCloseEvoModal = document.getElementById("btnCloseEvoModal");
 
-  // Fechar com ESC
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      evoModal.classList.remove("show");
-    }
-  });
+  if (evoModal && btnToggleEvoForm) {
 
-}
+    btnToggleEvoForm.addEventListener("click", () => {
+      evoModal.classList.add("show");
+    });
+
+    if (btnCloseEvoModal) {
+      btnCloseEvoModal.addEventListener("click", () => {
+        evoModal.classList.remove("show");
+      });
+    }
+
+    evoModal.addEventListener("click", (e) => {
+      if (e.target === evoModal) {
+        evoModal.classList.remove("show");
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        evoModal.classList.remove("show");
+      }
+    });
+  }
+
 });
-
 
 function hasActivePackage(s){
   if (!s) return false;
