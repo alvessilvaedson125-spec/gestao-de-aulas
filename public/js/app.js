@@ -704,12 +704,12 @@ function getInitials(name){
 
   const parts = name.trim().split(" ").filter(p => p.length > 0);
 
-  if(parts.length === 1){
-    return parts[0][0].toUpperCase();
-  }
-
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+  // Sempre retorna apenas a primeira letra do primeiro nome
+  return parts[0][0].toUpperCase();
 }
+
+ 
+
 
 const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const state={ y:(new Date()).getFullYear(), m:(new Date()).getMonth(), selKey: ymdKey(new Date()) };
