@@ -2197,9 +2197,9 @@ async function deleteLessonConfirmed(){
 
     showAlert("Aula excluída.");
   }catch(e){
-    console.error(e);
-    showAlert("Erro ao excluir aula", "error");
-  }
+  console.error("ERRO REAL:", e);
+  alert("Erro real: " + e.message);
+}
 }
 
 
