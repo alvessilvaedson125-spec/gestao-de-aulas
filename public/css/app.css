@@ -1262,21 +1262,26 @@ body.modal-open{ overflow: hidden; }
   border: 1px solid var(--elev);
 }
 
-/* ================= MOBILE RESPONSIVE ================= */
+/* ===== MOBILE LAYOUT FIX REAL ===== */
 
-@media (max-width: 768px) {
+@media (max-width: 768px){
 
-  /* Layout principal */
-  .layout {
-    flex-direction: column;
+  .wrap{
+    display: block !important;
   }
 
-  /* Sidebar vira bloco superior */
-  .sidebar {
-    width: 100%;
-    position: relative;
-    margin-bottom: 12px;
+  .side{
+    width: 100% !important;
+    position: relative !important;
+    max-height: none !important;
   }
+
+  main{
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+}
 
   /* Conteúdo principal ocupa 100% */
   .main-content {
@@ -1306,7 +1311,7 @@ body.modal-open{ overflow: hidden; }
     padding: 12px;
   }
 
-}
+
 /* ===== Layout Mobile Real ===== */
 
 @media (max-width: 768px){
