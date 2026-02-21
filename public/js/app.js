@@ -2182,10 +2182,19 @@ async function deleteLessonConfirmed(){
   if (!confirm("Excluir esta aula?")) return;
 
   try{
-   await deleteLesson(editingLessonId);
+    await deleteLesson(editingLessonId);
+
+    // 🔥 Remove do array local
+    lessons = lessons.filter(l => l.id !== editingLessonId);
+
+    // 🔥 Atualiza a interface
+    renderLessons();
+
     $("lessonModal").classList.remove("show");
-    document.body.classList.remove("modal-open"); // fecha o overlay do modal
+    document.body.classList.remove("modal-open");
+
     editingLessonId = null;
+
     showAlert("Aula excluída.");
   }catch(e){
     console.error(e);
