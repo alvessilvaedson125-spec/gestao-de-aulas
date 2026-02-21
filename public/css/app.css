@@ -1034,22 +1034,7 @@ body.modal-open{ overflow: hidden; }
   }
 
 }
-/* ===== Ajuste profissional do chip no mobile ===== */
 
-.cal-cell .chip{
-  max-width:100%;
-  font-size:10px;
-  padding:3px 6px;
-  line-height:1.2;
-  display:block;
-
-  overflow:hidden;
-  text-overflow:ellipsis;
-
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-}
 
 /* ============================= */
 /* GRID RELATÓRIOS */
@@ -1072,26 +1057,78 @@ body.modal-open{ overflow: hidden; }
   border: 1px solid var(--elev);
 }
 
-/* ================= MOBILE CALENDAR CLEAN ================= */
+/* ================= MOBILE VERTICAL ================= */
 
-@media (max-width: 480px){
+@media (max-width: 480px) {
 
-  .chip{
-    font-size: 0;              /* esconde nome */
-    position: relative;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  /* Layout geral */
+  .layout {
+    flex-direction: column;
   }
 
-  .chip::after{
+  .sidebar {
+    width: 100%;
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .content {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Cabeçalho do calendário */
+  .calendar-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+
+  /* Grid do calendário */
+  .calendar-grid {
+    gap: 6px;
+  }
+
+  .calendar-day {
+    min-height: 70px;
+    padding: 6px;
+  }
+
+  .calendar-day-number {
+    font-size: 12px;
+  }
+
+  /* ================= CHIPS ================= */
+
+  .chip {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0; /* esconde texto original */
+  }
+
+  .chip::after {
     content: attr(data-initials);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Remove qualquer elipse */
+  .chip {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: nowrap;
+  }
+
+  /* Seção lateral vira bloco inferior */
+  .day-details {
+    width: 100%;
+    margin-top: 20px;
   }
 
 }
