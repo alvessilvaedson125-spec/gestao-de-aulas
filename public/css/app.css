@@ -1330,3 +1330,19 @@ body.modal-open{ overflow: hidden; }
   }
 
 }
+/* ===== CALENDÁRIO MOBILE REAL ===== */
+
+@media (max-width: 768px){
+
+  .cal-grid{
+    display: flex !important;
+    overflow-x: auto;
+    gap: 8px;
+  }
+
+  .cal-cell{
+    min-width: 120px;
+    flex: 0 0 auto;
+  }
+
+}
