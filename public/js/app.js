@@ -2127,41 +2127,37 @@ function editLesson(id) {
     }
 
     // === Recorrência (cria aulas futuras) ===
-    try{
-      const recOn   = $("recEnabled")?.checked;
-      const recDays = Number($("recEvery")?.value || 7);
-      const recQty  = Number($("recCount")?.value || 0);
+try{
+  const recOn   = $("recEnabled")?.checked;
+  const recDays = Number($("recEvery")?.value || 7);
+  const recQty  = Number($("recCount")?.value || 0);
 
-      if (!editingLessonId && recOn && recQty > 0){
-        const base = new Date(dateLocal);
+  if (!editingLessonId && recOn && recQty > 0){
 
-        for (let i = 1; i <= recQty; i++){
-          const d = new Date(base);
-          d.setDate(d.getDate() + i * recDays);
-          const nextLocal = toLocalDateTimeString(d);
+    const base = new Date(dateLocal);
 
-          const futurePayload = {
-            ...payload,
-            date: nextLocal,
-            status: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          };
+    for (let i = 1; i <= recQty; i++){
 
-          const exists = lessons.some(l =>
-            l.studentId === futurePayload.studentId &&
-            typeof l.date === "string" &&
-            l.date.slice(0,16) === nextLocal.slice(0,16)
-          );
-          if (exists) continue;
+      const d = new Date(base);
+      d.setDate(d.getDate() + i * recDays);
+      const nextLocal = toLocalDateTimeString(d);
 
-          await addDoc(colLessons, futurePayload);
-        }
-      }
-    }catch(err){
-      console.error(err);
-      showAlert("Erro ao criar recorrência.", "error");
+      const futurePayload = {
+        ...payload,
+        date: nextLocal,
+        status: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await addDoc(colLessons, futurePayload);
     }
+  }
+
+}catch(err){
+  console.error(err);
+  showAlert("Erro ao criar recorrência.", "error");
+}
 
     $("lessonModal").classList.remove("show");
     document.body.classList.remove('modal-open');
