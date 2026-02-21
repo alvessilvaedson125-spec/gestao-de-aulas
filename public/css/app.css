@@ -936,308 +936,102 @@ body.modal-open{ overflow: hidden; }
 #evolutionsList, #studentsList, #inactiveList{
   max-height: none; /* deixe expandir na página */
 }
-
-/* ===== Ajustes específicos para Alunos, Evolução e Relatórios ===== */
-@media (max-width: 768px) {
-
-  /* Alunos: a lista e cada item ocupam 100% da largura */
-  #studentsList .listrow,
-  #inactiveList .listrow {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  #studentsList .listrow > div:last-child,
-  #inactiveList .listrow > div:last-child {
-    margin-top: 6px;
-  }
-
-  /* Evolução: árvore e lista empilham em 1 coluna */
-  .evo-wrap {
-    grid-template-columns: 1fr;
-  }
-  #evoTree {
-    margin-bottom: 12px;
-  }
-
-  /* Relatórios: cards um abaixo do outro */
-  .reports-wrap {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  #studentsList .listrow,
-  #inactiveList .listrow {
-    padding: 8px;
-  }
-
-  .evo-wrap {
-    gap: 12px;
-  }
-
-  .reports-wrap {
-    gap: 12px;
-  }
-
-  .btn, .btn.small {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
-  /* ================= HEADER RELATÓRIOS — SaaS Layout ================= */
-
-.report-header{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-  margin-bottom:18px;
-}
-
-.report-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
-.report-top h2{
-  margin:0;
-  font-size:20px;
-  font-weight:600;
-  letter-spacing:.3px;
-}
-
-.report-filters{
-  display:flex;
-  gap:18px;
-  flex-wrap:wrap;
-  align-items:flex-end;
-}
-
-.filter-item{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  min-width:160px;
-}
-
-.filter-item label{
-  font-size:12px;
-  color:rgba(255,255,255,.55);
-  font-weight:500;
-}
-
-/* ================= HEADER RELATÓRIOS PROFISSIONAL ================= */
-
-.report-header{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:20px;
-  flex-wrap:wrap;
-}
-
-.report-controls{
-  display:flex;
-  align-items:flex-end;
-  gap:16px;
-  flex-wrap:wrap;
-}
-
-.control{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:110px;
-}
-
-.control label{
-  font-size:12px;
-  opacity:.7;
-}
-
-.report-controls select{
-  min-width:90px;
-}
-
-.report-controls button{
-  height:38px;
-  padding:0 16px;
-}
-
-/* ===== Botão Ocultar Valores — padrão igual botão primário ===== */
-
-#btnHideMoney{
-  background: linear-gradient(135deg,#6d5dfc,#4a3df0);
-  border: none;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s ease;
-  box-shadow: 0 4px 12px rgba(90,100,255,.25);
-}
-
-#btnHideMoney:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(90,100,255,.35);
-}
-
-#btnHideMoney:active{
-  transform: scale(.98);
-}
-.report-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:16px;
-}
-/* ===== RELATÓRIOS — INVESTIDO POR ALUNO ===== */
-
-#relatorios .cardx:has(#byStudentList){
-  max-height: 460px;
-  display:flex;
-  flex-direction:column;
-}
-
-#byStudentList{
-  flex:1;
-  overflow-y:auto;
-  padding-right:6px;
-}
-#byStudentList .ranking-more{
-  margin-top: 12px;
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #a9b6ff;
-  cursor: pointer !important;
-  opacity: 0.75;
-  transition: all 0.18s ease;
-}
-
-#byStudentList .ranking-more:hover{
-  opacity: 1;
-  color: #c7d2ff;
-  transform: translateX(3px);
-}
-/* ===== Ranking Toggle estilo SaaS ===== */
-
-#byStudentList .ranking-toggle{
-  margin-top: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #cfd8ff;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-#byStudentList .ranking-toggle:hover{
-  background: rgba(122,108,255,0.12);
-  border-color: rgba(122,108,255,0.45);
-  box-shadow: 0 0 0 1px rgba(122,108,255,0.25);
-}
-/* =========================================================
-   MOBILE LAYOUT DEFINITIVO — CLEAN VERSION
-   ========================================================= */
+/* ===================================================== */
+/* ================= MOBILE REAL FIX =================== */
+/* ===================================================== */
 
 @media (max-width: 768px){
 
-  /* ===== HEADER ===== */
-
-  header .row{
-    flex-direction: column;
-    align-items: stretch;
-    gap:8px;
+  /* Layout geral */
+  .wrap{
+    padding:12px;
   }
 
-  #authEmail{
-    width:100%;
-    font-size:12px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  #btnTheme,
-  #btnSignout,
-  #btnGoogle{
-    width:100%;
-  }
-
-  /* ===== TABS ===== */
-
-  #tabs{
-    display:flex;
-    overflow-x:auto;
-    gap:8px;
-    padding-bottom:6px;
-  }
-
-  #tabs .pill{
-    flex:0 0 auto;
-    white-space:nowrap;
-  }
-
-  /* ===== AGENDA HEAD ===== */
-
-  .cal-head-top{
+  .row{
     flex-direction:column;
-    gap:12px;
+    align-items:stretch;
   }
 
-  .cal-main-actions{
-    justify-content:space-between;
+  /* Agenda layout empilhado */
+  .cal-wrap{
+    grid-template-columns:1fr;
   }
 
-  .cal-head-filters{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:8px;
-  }
-
-  .cal-head-filters select,
-  .cal-head-filters button{
-    width:100%;
-  }
-
-  /* ===== CALENDÁRIO COM SCROLL REAL ===== */
-
+  /* Calendário compacto */
   .cal-grid{
-    display:grid;
-    grid-auto-flow:column;
-    grid-auto-columns: 110px;
-    overflow-x:auto;
-    gap:8px;
-    padding-bottom:8px;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:6px;
+    padding:10px;
   }
 
   .cal-cell{
-    min-height:100px;
+    min-height:80px;
     padding:6px;
+    border-radius:14px;
+  }
+
+  .cal-num{
+    font-size:12px;
   }
 
   .chip{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-size:11px;
+    font-size:10px;
+    padding:3px 6px;
   }
 
-  .dow{
-    display:grid;
-    grid-auto-flow:column;
-    grid-auto-columns:110px;
-    overflow-x:auto;
+  /* Header agenda */
+  .cal-head-top{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
   }
 
-}
+  .cal-head-filters{
+    flex-direction:column;
+  }
+
+  /* Botões ocupam largura total */
+  .btn{
+    width:100%;
+    text-align:center;
+  }
+
+  .btn.small{
+    width:auto;
+  }
+
+  /* Cards do dia */
+  .day-card{
+    flex-direction:column;
+    gap:10px;
+  }
+
+  /* Upcoming aulas */
+  #agenda .upcoming-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+
+  #agenda .upcoming-row > div:first-child{
+    justify-content:flex-start;
+  }
+
+  /* Side (coluna lateral) */
+  .side{
+    min-height:auto;
+    max-height:none;
+  }
+
+  /* Evolução */
+  .evo-wrap{
+    grid-template-columns:1fr;
+  }
+
+  /* KPI */
+  .kpi{
+    grid-template-columns:1fr;
+  }
 
 }
 
@@ -1262,103 +1056,3 @@ body.modal-open{ overflow: hidden; }
   border: 1px solid var(--elev);
 }
 
-/* ===== MOBILE LAYOUT FIX REAL ===== */
-
-@media (max-width: 768px){
-
-  .wrap{
-    display: block !important;
-  }
-
-  .side{
-    width: 100% !important;
-    position: relative !important;
-    max-height: none !important;
-  }
-
-  main{
-    width: 100% !important;
-    margin-left: 0 !important;
-  }
-
-}
-
-  /* Conteúdo principal ocupa 100% */
-  .main-content {
-    width: 100%;
-    padding: 12px;
-  }
-
-  /* Filtros empilham */
-  .agenda-filters {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  /* Calendário scrollável horizontal */
-  .calendar-grid {
-    overflow-x: auto;
-    display: flex;
-    gap: 8px;
-  }
-
-  .calendar-day {
-    min-width: 140px;
-  }
-
-  /* Próximas aulas */
-  .upcoming-lessons {
-    padding: 12px;
-  }
-
-
-/* ===== Layout Mobile Real ===== */
-
-@media (max-width: 768px){
-
-  .layout{
-    display: block;
-  }
-
-  .side{
-    width: 100%;
-    max-height: none;
-  }
-
-  main{
-    width: 100%;
-  }
-
-}
-/* ===== CALENDÁRIO MOBILE REAL ===== */
-
-@media (max-width: 768px){
-
-  .cal-grid{
-    display: flex !important;
-    overflow-x: auto;
-    gap: 8px;
-  }
-
-  .cal-cell{
-    min-width: 120px;
-    flex: 0 0 auto;
-  }
-
-}
-/* ===== FIX ZOOM / OVERFLOW MOBILE ===== */
-
-html, body {
-  overflow-x: hidden;
-  max-width: 100%;
-}
-
-.wrap, main {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-.cal-grid {
-  width: 100%;
-  box-sizing: border-box;
-}
