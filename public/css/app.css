@@ -1346,3 +1346,19 @@ body.modal-open{ overflow: hidden; }
   }
 
 }
+/* ===== FIX ZOOM / OVERFLOW MOBILE ===== */
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.wrap, main {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.cal-grid {
+  width: 100%;
+  box-sizing: border-box;
+}
