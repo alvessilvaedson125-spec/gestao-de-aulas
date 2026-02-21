@@ -1,7 +1,7 @@
 📘 Bailado Carioca – Gestão de Aulas
-Arquitetura Oficial Atualizada
+Arquitetura Oficial Consolidada
 
-Versão: v2.3-multi-environment-stable
+Versão: v2.4.1 – Estabilização Reativa
 Status: Estável, Validado e Blindado
 Data: 2026
 
@@ -9,25 +9,27 @@ Data: 2026
 
 A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento rigoroso entre:
 
-Infraestrutura (Core)
+Core (Infraestrutura)
 
-Domínio (Services)
+Services (Domínio)
 
-Utilitários (Utils)
+Utils (Utilitários)
 
-Interface / Orquestração (app.js)
+Orquestração e Interface (app.js)
 
-A evolução recente consolidou:
+A arquitetura atual está consolidada com:
 
-Estabilização do módulo de Relatórios
+✔ Multi-ambiente funcional
 
-Correção de renderizações inconsistentes
+✔ Arquitetura reativa via Firestore
 
-Blindagem de filtros
+✔ CRUD completo validado
 
-Implementação de arquitetura multi-ambiente
+✔ Deploy controlado por alias
 
-Padronização de deploy seguro
+✔ Blindagem contra sobrescritas indevidas
+
+✔ Hardening matemático aplicado
 
 2. Estrutura de Pastas
 public/js
@@ -49,7 +51,7 @@ public/js
 │
 └── app.js
 
-Estrutura consolidada e validada.
+Estrutura validada e estabilizada.
 
 3. Camadas e Responsabilidades
 3.1 Core (Infraestrutura)
@@ -62,47 +64,54 @@ Seleção dinâmica de ambiente
 
 Exportação de app, auth, db
 
-Regras:
+Regras absolutas:
 
-Nenhuma lógica de negócio
+❌ Não contém regra de negócio
 
-Nenhuma manipulação de DOM
+❌ Não manipula DOM
 
-Apenas configuração
+❌ Não contém cálculos
 
-Ambiente selecionado exclusivamente via hostname
+✔ Apenas configuração e bootstrap
 
+Ambiente selecionado exclusivamente via:
+
+window.location.hostname
 3.2 Services (Domínio)
 
 Contém toda lógica de negócio:
 
-Comparativo anual
+CRUD de alunos
 
-Concentração de receita
+CRUD de aulas
 
-Ranking anual
+Relatórios
 
-Cálculos mensais
-
-Crescimento percentual
-
-KPIs
+Cálculos anuais
 
 Consolidação financeira
 
+KPIs
+
+Comparativos
+
+Ranking
+
+Crescimento percentual
+
 Regras rígidas:
 
-Não acessa DOM
+❌ Não acessa DOM
 
-Não conhece HTML
+❌ Não conhece HTML
 
-Não depende de variáveis globais
+❌ Não depende de variáveis globais
 
-Recebe dependências por parâmetro
+✔ Recebe dependências por parâmetro
 
-Funções puras sempre que possível
+✔ Funções puras sempre que possível
 
-Exemplo consolidado:
+Exemplo padronizado:
 
 export function calculateYearComparison(yearMonthly = [], compareMonthly = [])
 
@@ -117,21 +126,23 @@ Retorno padrão:
 
 Responsável por:
 
-parseBRLToNumber
-
 formatBRL
+
+parseBRLToNumber
 
 parseISODateLocal
 
-Helpers de interface
+Helpers de UI
+
+Guardas defensivos
 
 Regras:
 
-Não contém regra financeira complexa
+❌ Não contém regra financeira complexa
 
-Não contém acesso ao Firebase
+❌ Não acessa Firebase
 
-Não contém regra de negócio
+❌ Não contém lógica de domínio
 
 3.4 app.js (Orquestração)
 
@@ -145,106 +156,99 @@ Renderização
 
 Integração com Chart.js
 
-Controle de estados de filtros
+Sincronização com Firestore
 
-Sincronização com onSnapshot
+Controle de estados de filtros
 
 Regra absoluta:
 
 Nenhum cálculo financeiro permanece aqui.
 
-4. Estabilização do Módulo de Relatórios
-4.1 Correção – Sobrescrita do Filtro “Comparar com”
+4. Arquitetura Reativa (Agenda & Alunos)
 
-Correção aplicada:
+Implementação consolidada na v2.4.1.
 
-if (!$("repCompare").value) {
-  $("repCompare").value = String($("repYear").value - 1);
-}
+Os módulos de Agenda e Alunos utilizam:
 
-Resultado:
+onSnapshot()
 
-Sistema inicializa corretamente
+Para atualização automática da interface.
 
-Filtro permanece sob controle do usuário
+Fluxo oficial:
 
-Nenhuma sobrescrita silenciosa
+Firestore sofre alteração (add / update / delete)
 
-4.2 Correção – Ordem Decrescente de Anos
-const arr = [...years].sort((a,b)=>b-a);
+onSnapshot é disparado
 
-Ano mais recente aparece primeiro.
+Estado local é atualizado
 
-4.3 Sincronização Firestore
+Funções de render são chamadas automaticamente
 
-Ciclo natural validado:
+Regra crítica:
 
-1ª execução → lessons = []
-2ª execução → lessons carregadas
+❌ Nunca chamar renderLessons() manualmente
 
-Sistema considerado estável.
+❌ Nunca forçar re-render após delete
 
-4.4 Blindagem do Filtro Anual
+✔ Firestore controla a atualização da UI
 
-Padronização:
+Essa mudança eliminou:
 
-String(l.status) !== "2"
+Erros de estado
 
-Consistência com padrão global.
+Inconsistências visuais
 
-5. Arquitetura Multi-Ambiente (Implementada)
-5.1 Estratégia
+Duplicações de render
+
+Conflitos pós-delete
+
+5. Multi-Ambiente Implementado
 
 Ambientes isolados:
 
 🔵 Production → meu-app-edson
-
 🟣 Staging → meu-app-edson-staging
 
-Seleção automática via:
+Seleção automática via hostname:
 
-window.location.hostname
+if (hostname === "meu-app-edson.web.app") {
+  import firebase.production.js
+}
 
-Fluxo:
-
-Hostname detectado
-→ Import dinâmico
-→ firebase.production.js OU firebase.staging.js
-→ Export consistente de app, auth, db
-5.2 Regras Arquiteturais Multi-Ambiente
+Regras oficiais:
 
 Bancos nunca são compartilhados
 
 Cada ambiente possui API key própria
 
+Sempre usar CDN oficial do Firebase
+
 Nunca usar modelo NPM (firebase/app)
 
-Sempre usar CDN oficial
+Nunca misturar config de ambiente
 
-Padrão obrigatório:
+6. Correções Críticas v2.4.1
+Corrigido
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-6. Correções Críticas Registradas
+Binding do botão "Novo Aluno"
 
-Erros resolvidos:
+Import ausente de deleteDoc
 
-auth/api-key-not-valid
+Chamada indevida de renderLessons()
 
-Failed to resolve module specifier "firebase/app"
+Conflito pós-exclusão
 
-Production sem export de auth/db
+Erros de escopo em DOMContentLoaded
 
-Deploy no alias incorreto
+Resultado
 
-Correção aplicada:
+✔ CRUD de Agenda 100% funcional
+✔ CRUD de Alunos funcional
+✔ Exclusão limpa
+✔ Snapshot sincronizado
+✔ Nenhum erro de console
 
-Padronização CDN
-
-Export consistente
-
-Controle rigoroso de alias Firebase CLI
-
-Sistema estabilizado.
+Sistema validado em produção.
 
 7. Política Oficial de Deploy Seguro
 
@@ -252,7 +256,7 @@ Antes de qualquer deploy:
 
 firebase use
 
-Confirmar asterisco ativo.
+Confirmar alias ativo.
 
 Deploy Production:
 
@@ -266,17 +270,17 @@ firebase deploy --only hosting
 
 Regra de Ouro:
 
-Nunca deployar sem confirmar ambiente.
+Nunca deployar sem confirmar ambiente ativo.
 
 8. Fluxo Oficial de Renderização
 
-Sequência:
+Sequência validada:
 
 onSnapshot carrega dados
 
-renderDashboard()
+Estado local é atualizado
 
-renderReportMonthKPIs()
+Funções de render executam
 
 UI atualizada
 
@@ -284,9 +288,9 @@ Filtros preservados
 
 Nenhum reset automático de select.
 
-9. Hardening Consolidado
+9. Hardening Aplicado
 
-Aplicado em reportService:
+Implementado em reportService:
 
 safeArray
 
@@ -301,7 +305,7 @@ Fallback seguro
 Sem alteração funcional.
 Apenas robustez matemática.
 
-10. Estado Atual da Arquitetura
+10. Estado Atual do Sistema
 
 ✔ Receita anual validada
 ✔ Comparação anual estável
@@ -311,6 +315,7 @@ Apenas robustez matemática.
 ✔ Login restaurado
 ✔ Deploy controlado por alias
 ✔ Imports padronizados
+✔ Arquitetura reativa consolidada
 
 11. Diretrizes Futuras
 
@@ -328,11 +333,9 @@ Log estruturado por ambiente
 
 Migração futura para Vite (opcional)
 
-12. Versão Oficial
+12. Versão Oficial Atual
 
-Versão atual consolidada:
-
-v2.3-multi-environment-stable
+v2.4.1 – Estabilização Reativa
 
 Sistema pronto para:
 
