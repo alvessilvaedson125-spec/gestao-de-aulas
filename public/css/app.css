@@ -1262,4 +1262,66 @@ body.modal-open{ overflow: hidden; }
   border: 1px solid var(--elev);
 }
 
+/* ================= MOBILE RESPONSIVE ================= */
 
+@media (max-width: 768px) {
+
+  /* Layout principal */
+  .layout {
+    flex-direction: column;
+  }
+
+  /* Sidebar vira bloco superior */
+  .sidebar {
+    width: 100%;
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  /* Conteúdo principal ocupa 100% */
+  .main-content {
+    width: 100%;
+    padding: 12px;
+  }
+
+  /* Filtros empilham */
+  .agenda-filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Calendário scrollável horizontal */
+  .calendar-grid {
+    overflow-x: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .calendar-day {
+    min-width: 140px;
+  }
+
+  /* Próximas aulas */
+  .upcoming-lessons {
+    padding: 12px;
+  }
+
+}
+/* ===== Layout Mobile Real ===== */
+
+@media (max-width: 768px){
+
+  .layout{
+    display: block;
+  }
+
+  .side{
+    width: 100%;
+    max-height: none;
+  }
+
+  main{
+    width: 100%;
+  }
+
+}
