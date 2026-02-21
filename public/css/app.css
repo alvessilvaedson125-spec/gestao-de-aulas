@@ -1072,3 +1072,26 @@ body.modal-open{ overflow: hidden; }
   border: 1px solid var(--elev);
 }
 
+/* ================= MOBILE CALENDAR CLEAN ================= */
+
+@media (max-width: 480px){
+
+  .chip{
+    font-size: 0;              /* esconde nome */
+    position: relative;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .chip::after{
+    content: attr(data-initials);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+}

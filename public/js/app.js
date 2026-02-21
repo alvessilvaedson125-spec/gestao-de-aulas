@@ -770,8 +770,8 @@ const filterStatus  = ($("filterStatus")?.value ?? "");
 
       const chip = document.createElement("div");
       chip.className = "chip" + (a.status==2 ? " done" : (a.status==3 ? " cancel" : ""));
-      const isMobile = window.matchMedia("(max-width: 480px)").matches;
-chip.textContent = isMobile ? getInitials(nm) : nm;
+      chip.textContent = nm;
+chip.dataset.initials = getInitials(nm);
 
       chip.title = `${nm} — ${a.style||""}${a.level?" • "+a.level:""} • ${hhmm}`;
 
