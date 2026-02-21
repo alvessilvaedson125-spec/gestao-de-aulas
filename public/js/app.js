@@ -698,6 +698,19 @@ function renderUpcoming(){
 
 }
 /* ======================= Calendário ======================= */
+
+function getInitials(name){
+  if(!name) return "";
+
+  const parts = name.trim().split(" ").filter(p => p.length > 0);
+
+  if(parts.length === 1){
+    return parts[0][0].toUpperCase();
+  }
+
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
 const months=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const state={ y:(new Date()).getFullYear(), m:(new Date()).getMonth(), selKey: ymdKey(new Date()) };
 
@@ -757,7 +770,8 @@ const filterStatus  = ($("filterStatus")?.value ?? "");
 
       const chip = document.createElement("div");
       chip.className = "chip" + (a.status==2 ? " done" : (a.status==3 ? " cancel" : ""));
-      chip.textContent = nm;
+      const isMobile = window.matchMedia("(max-width: 480px)").matches;
+chip.textContent = isMobile ? getInitials(nm) : nm;
 
       chip.title = `${nm} — ${a.style||""}${a.level?" • "+a.level:""} • ${hhmm}`;
 
