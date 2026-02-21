@@ -1143,13 +1143,19 @@ function confirmDeleteStudent(id, name){
 async function handleDeleteStudent(id){
   try{
     await deleteStudent(id);
-  // usa os mesmos imports já presentes no arquivo
+
+    // Remove do array local
+    students = students.filter(s => s.id !== id);
+
+    // Atualiza a interface
+    renderStudents();
+
     showAlert("Aluno excluído com sucesso.");
   }catch(e){
     console.error(e);
     showAlert("Erro ao excluir aluno.", "error");
   }
-} 
+}
     // ações comuns
     it.querySelector('[data-act="edit"]')?.addEventListener("click", ()=>{
       editingStudentId=s.id;
