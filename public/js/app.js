@@ -2184,22 +2184,19 @@ async function deleteLessonConfirmed(){
   try{
     await deleteLesson(editingLessonId);
 
-    // 🔥 Remove do array local
-    lessons = lessons.filter(l => l.id !== editingLessonId);
-
-    // 🔥 Atualiza a interface
-    renderLessons();
-
     $("lessonModal").classList.remove("show");
     document.body.classList.remove("modal-open");
-
     editingLessonId = null;
 
     showAlert("Aula excluída.");
+
+    // ❌ NÃO chamar renderLessons aqui
+    // O onSnapshot já atualiza automaticamente
+
   }catch(e){
-  console.error("ERRO REAL:", e);
-  alert("Erro real: " + e.message);
-}
+    console.error("ERRO REAL:", e);
+    showAlert("Erro ao excluir aula", "error");
+  }
 }
 
 
