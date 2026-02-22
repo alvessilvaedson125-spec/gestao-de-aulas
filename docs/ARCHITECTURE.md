@@ -1,7 +1,7 @@
 📘 Bailado Carioca – Gestão de Aulas
 Arquitetura Oficial Consolidada
 
-Versão: v2.4.1 – Estabilização Reativa
+Versão: v2.5.0 – Consolidação de Recorrência e Estabilidade Estrutural
 Status: Estável, Validado e Blindado
 Data: 2026
 
@@ -316,6 +316,9 @@ Apenas robustez matemática.
 ✔ Deploy controlado por alias
 ✔ Imports padronizados
 ✔ Arquitetura reativa consolidada
+✔ Recorrência estruturada com groupId
+✔ Banco semanticamente consistente
+✔ Aulas avulsas isoladas corretamente
 
 11. Diretrizes Futuras
 
@@ -333,9 +336,13 @@ Log estruturado por ambiente
 
 Migração futura para Vite (opcional)
 
+Implementação opcional de edição/exclusão por recurrenceGroupId
+
+Métrica futura de ciclos recorrentes
+
 12. Versão Oficial Atual
 
-v2.4.1 – Estabilização Reativa
+v2.5.0 – Consolidação de Recorrência e Estrutura de Dados
 
 Sistema pronto para:
 
@@ -346,3 +353,42 @@ Deploy seguro
 Escalabilidade futura
 
 Hardening contínuo
+
+13. Modelo de Dados – Aulas (Recorrência Estruturada)
+
+Implementado na v2.5.0.
+
+Campo adicionado à coleção "aulas":
+
+recurrenceGroupId (string | opcional)
+
+Regras oficiais:
+
+✔ Aulas avulsas NÃO possuem recurrenceGroupId
+
+✔ Aulas criadas via recorrência compartilham o mesmo recurrenceGroupId
+
+✔ A aula matriz também recebe recurrenceGroupId
+
+✔ O campo é gerado via crypto.randomUUID()
+
+Objetivo arquitetural:
+
+Permitir futura:
+
+- Edição por grupo
+- Exclusão por grupo
+- Filtros por recorrência
+- Auditoria de sequência
+
+Sem impacto na renderização atual.
+
+Importante:
+
+A recorrência continua sendo criada apenas na camada de orquestração (app.js).
+
+Services permanecem desacoplados da lógica de recorrência.
+
+14. Change Log
+
+v2.5.
