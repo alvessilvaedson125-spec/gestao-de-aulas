@@ -465,36 +465,42 @@ var prevArr = Array.isArray(lessons) ? lessons.filter(function(l){
          String(l.status) === "2";
 }) : [];
 
-var prevRevenueLessons= prevArr.reduce(function(acc,l){
+// 🔵 Receita do mês anterior (aulas)
+var prevRevenueLessons = prevArr.reduce(function(acc,l){
   return acc + parseBRLToNumber(l.price);
 }, 0);
-  
+
 // 🔵 Caixa do mês anterior
 var prevCashRevenue = (Array.isArray(cashEntries) ? cashEntries : [])
   .filter(function(c){
+
     if(!c || !c.data) return false;
 
     var d;
 
     if (c.data?.toDate) {
-      d = c.data.toDate();
+      d = c.data.toDate();   // Timestamp Firestore
     } else {
-      d = new Date(c.data);
+      d = new Date(c.data);  // fallback
     }
 
     return d.getFullYear() === prevYear &&
            d.getMonth() === prevMonth;
+
   })
   .reduce(function(acc,c){
     return acc + Number(c.valor || 0);
   }, 0);
 
+// 🔵 Receita total mês anterior (aulas + caixa)
+var prevRevenueTotal = prevRevenueLessons + prevCashRevenue;
+
 // 🔵 Crescimento percentual
-var growth = prevRevenue > 0
-  ? ((monthRevenueTotal - prevRevenue) / prevRevenue) * 100
+var growth = prevRevenueTotal > 0
+  ? ((monthRevenueTotal - prevRevenueTotal) / prevRevenueTotal) * 100
   : 0;
 
-var absDiff = monthRevenueTotal- prevRevenue;
+var absDiff = monthRevenueTotal - prevRevenueTotal;
 
 // 🔵 Atualiza UI
 var elGrowth = document.getElementById("kpiMonthGrowth");
