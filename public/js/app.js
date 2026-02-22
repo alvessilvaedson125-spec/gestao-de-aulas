@@ -636,18 +636,21 @@ function attachGlobalCashListener(){
 
   const q = query(colCash, orderBy("data", "desc"));
 
-  unsubCash = onSnapshot(q, (snap)=>{
-    cashEntries = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    
-    }));
-    renderReportMonthKPIs();
-     
-    window._cashEntries = cashEntries; // debug
+ unsubCash = onSnapshot(q, (snap)=>{
 
-  });
+  cashEntries = snap.docs.map(d => ({
+    id: d.id,
+    ...d.data()
+  }));
 
+  // Atualiza KPIs mensais
+  renderReportMonthKPIs();
+
+  // 🔥 Atualiza o dashboard anual (inclui Caixa no gráfico e Receita Ano)
+  renderDashboard();
+
+  window._cashEntries = cashEntries; // debug
+});
 }
 
 function renderUpcoming(){
@@ -1822,7 +1825,7 @@ console.log("Ano selecionado:", y);
 console.log("BarsY:", _barsY);
 console.log("Total calculado:", _barsY.reduce((a,b)=>a+b,0));
 console.log("Lessons carregadas:", lessons?.length);
-
+console.log("Cash entries:", cashEntries?.length);
   // ===== COMPARAÇÃO ANUAL =====
   const comparison = calculateYearComparison(_barsY, _barsC);
 
