@@ -673,7 +673,9 @@ function attachGlobalCashListener(){
     cashEntries = snap.docs.map(d => ({
       id: d.id,
       ...d.data()
+    
     }));
+    renderReportMonthKPIs();
      
     window._cashEntries = cashEntries; // debug
 
