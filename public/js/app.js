@@ -232,6 +232,9 @@ let user=null;
 let students=[], lessons=[], evolutions=[];
 let unsubS=null, unsubL=null, unsubE=null;
 let editingEvolutionId = null;
+let cashEntries = [];
+let unsubCash = null;
+
 
 const colStudents = collection(db,"alunos");
 const colLessons  = collection(db,"aulas");
@@ -657,8 +660,23 @@ onAuthStateChanged(auth,(u)=>{
   $("authEmail").style.display = logged?"inline-flex":"none";
   $("authEmail").textContent = logged?user.email:"";
   if(!logged){ showCover(); detach(); return; }
-  $("hero").style.display="none"; $("tabs").style.display="flex"; attach(); showTab("agenda");
+  $("hero").style.display="none"; $("tabs").style.display="flex"; attach();attachGlobalCashListener(); showTab("agenda");
 });
+function attachGlobalCashListener(){
+
+  if (unsubCash) unsubCash();
+
+  const q = query(colCash, orderBy("data", "desc"));
+
+  unsubCash = onSnapshot(q, (snap)=>{
+    cashEntries = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+  });
+
+}
+
 function renderUpcoming(){
   const days = +$("upcomingRange").value || 30;
   const s = $("filterStudent")?.value || "";
@@ -705,6 +723,9 @@ function renderUpcoming(){
 
 
 }
+
+
+
 /* ======================= Calendário ======================= */
 
 function getInitials(name){
