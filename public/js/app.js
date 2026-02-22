@@ -236,6 +236,7 @@ let editingEvolutionId = null;
 const colStudents = collection(db,"alunos");
 const colLessons  = collection(db,"aulas");
 const colEvol     = collection(db,"evolucoes");
+const colCash = collection(db, "caixa");
 const withId = (d)=>({id:d.id, ...d.data()});
 
 /* ======================= Tema ======================= */
