@@ -379,14 +379,14 @@ var elPaid = document.getElementById("kpiMonthPaid");
 if (elPaid) elPaid.textContent = String(paidLessonsMonth);
 
 var monthAvg = paidLessonsMonth > 0
-  ? (monthRevenue / paidLessonsMonth)
+  ? (monthRevenueTotal / paidLessonsMonth)
   : 0;
 var activeStudents = Number(
   document.getElementById("kpiActiveStudents")?.textContent || 0
 );
 
 var revPerActive = activeStudents > 0
-  ? (monthRevenue / activeStudents)
+  ? (monthRevenueTotal / activeStudents)
   : 0;
 
 var elRevPerActive = document.getElementById("kpiRevPerActive");
@@ -465,9 +465,29 @@ var prevArr = Array.isArray(lessons) ? lessons.filter(function(l){
          String(l.status) === "2";
 }) : [];
 
-var prevRevenue = prevArr.reduce(function(acc,l){
+var prevRevenueLessons= prevArr.reduce(function(acc,l){
   return acc + parseBRLToNumber(l.price);
 }, 0);
+  
+// 🔵 Caixa do mês anterior
+var prevCashRevenue = (Array.isArray(cashEntries) ? cashEntries : [])
+  .filter(function(c){
+    if(!c || !c.data) return false;
+
+    var d;
+
+    if (c.data?.toDate) {
+      d = c.data.toDate();
+    } else {
+      d = new Date(c.data);
+    }
+
+    return d.getFullYear() === prevYear &&
+           d.getMonth() === prevMonth;
+  })
+  .reduce(function(acc,c){
+    return acc + Number(c.valor || 0);
+  }, 0);
 
 // 🔵 Crescimento percentual
 var growth = prevRevenue > 0
