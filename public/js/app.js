@@ -430,15 +430,6 @@ if (elForecast){
 }
 
 
-// 🔵 Descobre mês anterior automaticamente
-var prevMonth = m - 1;
-var prevYear  = y;
-
-if (prevMonth < 0){
-  prevMonth = 11;
-  prevYear  = y - 1;
-}
-
 // 🔵 Descobre mês anterior corretamente
 var prevMonth = m - 1;
 var prevYear  = y;
