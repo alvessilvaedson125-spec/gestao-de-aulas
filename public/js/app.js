@@ -2086,6 +2086,10 @@ function openLessonModal(data) {
   fillStudentSelects();
 
   editingLessonId = data?.id || null;
+  const recBox = document.getElementById("recurrenceBox");
+if (recBox) {
+  recBox.style.display = editingLessonId ? "none" : "grid";
+}
   $("lessonTitle").textContent = editingLessonId ? "Editar aula" : "Nova aula";
 
   const nowLocal = toLocalDateTimeString(new Date());
