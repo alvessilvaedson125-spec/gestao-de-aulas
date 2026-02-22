@@ -515,41 +515,6 @@ var elYearAvg = document.getElementById("avgPerStudent");
 if (elYearAvg){
   elYearAvg.textContent = formatBRL(avgYear);
 }
-// ================= MÉDIA POR ALUNO (ANO) =================
-
-// 🔵 Filtra aulas realizadas no ano selecionado
-var yearArr = Array.isArray(lessons) ? lessons.filter(function(l){
-  if (!l || !l.date) return false;
-
-  var d = parseISODateLocal(l.date);
-  if (!(d instanceof Date) || isNaN(d)) return false;
-
-  return d.getFullYear() === y &&
-         String(l.status) === "2";
-}) : [];
-
-// 🔵 Receita anual realizada
-var yearRevenue = yearArr.reduce(function(acc,l){
-  return acc + parseBRLToNumber(l.price);
-}, 0);
-
-// 🔵 Alunos únicos no ano
-var uniqueYearStudents = new Set(
-  yearArr.map(function(l){
-    return l.studentId;
-  })
-);
-
-// 🔵 Média por aluno no ano
-var avgYear = uniqueYearStudents.size > 0
-  ? yearRevenue / uniqueYearStudents.size
-  : 0;
-
-// 🔵 Atualiza o card correto
-var elYearAvg = document.getElementById("avgPerStudent");
-if (elYearAvg){
-  elYearAvg.textContent = formatBRL(avgYear);
-}
 
 
 }
@@ -559,10 +524,6 @@ function initReportMonthPatch(){
   setupReportMonthFilter();
   renderReportMonthKPIs();
 }
-
-
-
-
 
 
 /* ==== Preenche ANOS da aba Evolução (repYearInvest) ==== */
