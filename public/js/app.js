@@ -1950,6 +1950,60 @@ function updateMoneyButton(){
 $("btnHideMoney").onclick=()=>{ const btn=$("btnHideMoney"); btn.dataset.hide = btn.dataset.hide==="1"?"0":"1"; updateMoneyButton(); };
 
 
+/* ======================= CAIXA ======================= */
+
+// Referência já existe:
+// const colCash = collection(db, "caixa");
+
+function bindCashButton(){
+
+  const btn = document.getElementById("btnSaveCash");
+  if (!btn) return;
+
+  if (btn.dataset.bound === "1") return;
+  btn.dataset.bound = "1";
+
+  btn.addEventListener("click", async () => {
+
+    const data       = document.getElementById("cashDate")?.value;
+    const valorRaw   = document.getElementById("cashAmount")?.value;
+    const categoria  = document.getElementById("cashCategory")?.value;
+    const descricao  = document.getElementById("cashDescription")?.value?.trim();
+
+    if (!data || !valorRaw || !descricao){
+      showAlert("Preencha Data, Valor e Descrição.", "error");
+      return;
+    }
+
+    try {
+
+      await addDoc(colCash, {
+        data: new Date(data),
+      valor: parseBRLToNumber(valorRaw),
+        categoria: categoria || null,
+        descricao,
+        criadoEm: serverTimestamp(),
+        ownerUid: user?.uid || "dev"
+      });
+
+      showAlert("Entrada registrada no Caixa.");
+
+      document.getElementById("cashDate").value = "";
+      document.getElementById("cashAmount").value = "";
+      document.getElementById("cashDescription").value = "";
+
+    } catch (err) {
+      console.error("Erro ao salvar Caixa:", err);
+      showAlert("Erro ao salvar entrada.", "error");
+    }
+
+  });
+
+}
+
+// Inicializa
+bindCashButton();
+
 
 
 /* ======================= Backup ======================= */
