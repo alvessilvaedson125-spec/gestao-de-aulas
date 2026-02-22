@@ -356,6 +356,21 @@ function renderReportMonthKPIs(){
   arr,
   parseBRLToNumber
 );
+// 🔵 RECEITA DO CAIXA (INSERIR AQUI)
+var cashMonthRevenue = (Array.isArray(cashEntries) ? cashEntries : [])
+  .filter(function(c){
+    if(!c || !c.data) return false;
+    var d = new Date(c.data);
+    return d.getFullYear() === y &&
+           d.getMonth() === m;
+  })
+  .reduce(function(acc,c){
+    return acc + Number(c.valor || 0);
+  }, 0);
+
+// 🔵 Receita total mês (aulas + caixa)
+var monthRevenueTotal = monthRevenue + cashMonthRevenue;
+
     var paidLessonsMonth = arr.filter(function(l){
   return String(l.status) === "2";
 }).length;
@@ -384,7 +399,7 @@ if (elAvg) elAvg.textContent = formatBRL(monthAvg);
   var elCount = document.getElementById("kpiMonth");
   var elRev   = document.getElementById("kpiMonthRev");
   if (elCount) elCount.textContent = String(monthCount);
-  if (elRev)   elRev.textContent   = formatBRL(monthRevenue);
+  if (elRev)   elRev.textContent   =formatBRL(monthRevenueTotal);
 
 // 🔵 KPI Hoje (aulas e receita do dia atual)
 var today = new Date();
@@ -456,10 +471,10 @@ var prevRevenue = prevArr.reduce(function(acc,l){
 
 // 🔵 Crescimento percentual
 var growth = prevRevenue > 0
-  ? ((monthRevenue - prevRevenue) / prevRevenue) * 100
+  ? ((monthRevenueTotal - prevRevenue) / prevRevenue) * 100
   : 0;
 
-var absDiff = monthRevenue - prevRevenue;
+var absDiff = monthRevenueTotal- prevRevenue;
 
 // 🔵 Atualiza UI
 var elGrowth = document.getElementById("kpiMonthGrowth");
