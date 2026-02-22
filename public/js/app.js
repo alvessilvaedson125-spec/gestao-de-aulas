@@ -2134,10 +2134,15 @@ function editLesson(id) {
   };
 
   try{
+    const recurrenceGroupId = crypto.randomUUID();
     if (editingLessonId){
       await updateDoc(doc(db,"aulas",editingLessonId), payload);
     } else {
-      await addDoc(colLessons, { ...payload, createdAt: serverTimestamp() });
+      await addDoc(colLessons, { 
+  ...payload, 
+  recurrenceGroupId,
+  createdAt: serverTimestamp() 
+});
     }
 
     // === Recorrência (cria aulas futuras) ===
@@ -2157,12 +2162,13 @@ try{
       const nextLocal = toLocalDateTimeString(d);
 
       const futurePayload = {
-        ...payload,
-        date: nextLocal,
-        status: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
+  ...payload,
+  date: nextLocal,
+  status: 0,
+  recurrenceGroupId,
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+};
 
       await addDoc(colLessons, futurePayload);
     }
