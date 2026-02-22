@@ -1977,6 +1977,9 @@ $("btnExportJSON").onclick = async () => {
 
     URL.revokeObjectURL(a.href);
 
+    localStorage.setItem("lastBackupAt", new Date().toISOString());
+updateBackupIndicator();
+
   } catch (err) {
     console.error("Erro ao exportar:", err);
     alert("Erro ao exportar backup.");
@@ -2737,4 +2740,22 @@ function initReportMonthPatch(){
 
 }
 
+function updateBackupIndicator() {
+  const el = document.getElementById("lastBackupInfo");
+  if (!el) return;
 
+  const raw = localStorage.getItem("lastBackupAt");
+  if (!raw) {
+    el.textContent = "Nenhum backup realizado ainda.";
+    return;
+  }
+
+  const d = new Date(raw);
+
+  const formatted =
+    d.toLocaleDateString("pt-BR") +
+    " às " +
+    d.toLocaleTimeString("pt-BR");
+
+  el.textContent = `Último backup: ${formatted}`;
+}
