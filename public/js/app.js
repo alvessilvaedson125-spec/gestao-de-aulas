@@ -2115,8 +2115,19 @@ function editLesson(id) {
   const a = lessons.find(x => x.id === id);
   if (a) openLessonModal(a);
 }
- async function saveLesson(){
-  const dateLocal = $("lessonDate").value; // "YYYY-MM-DDTHH:MM" (local)
+async function saveLesson(){
+
+  const dateLocal = $("lessonDate").value;
+
+  const recOn   = $("recEnabled")?.checked;
+  const recDays = Number($("recEvery")?.value || 7);
+  const recQty  = Number($("recCount")?.value || 0);
+
+  const recurrenceGroupId =
+    recOn && recQty > 0
+      ? crypto.randomUUID()
+      : undefined;
+
   const payload = {
     date: dateLocal,
     studentId: $("lessonStudent").value,
@@ -2134,72 +2145,50 @@ function editLesson(id) {
   };
 
   try{
-    
+
     if (editingLessonId){
+
       await updateDoc(doc(db,"aulas",editingLessonId), payload);
+
     } else {
-      let mainLessonRef;
 
-if (recOn && recQty > 0) {
+      // 🔵 Aula principal
+      await addDoc(colLessons, {
+        ...payload,
+        ...(recurrenceGroupId && { recurrenceGroupId }),
+        createdAt: serverTimestamp()
+      });
 
-  const recurrenceGroupId = crypto.randomUUID();
+      // 🔵 Aulas futuras (recorrência)
+      if (recurrenceGroupId){
 
-  mainLessonRef = await addDoc(colLessons, { 
-    ...payload, 
-    recurrenceGroupId,
-    createdAt: serverTimestamp() 
-  });
+        const base = new Date(dateLocal);
 
-} else {
+        for (let i = 1; i <= recQty; i++){
 
-  mainLessonRef = await addDoc(colLessons, { 
-    ...payload,
-    createdAt: serverTimestamp() 
-  });
+          const d = new Date(base);
+          d.setDate(d.getDate() + i * recDays);
 
-}
+          const nextLocal = toLocalDateTimeString(d);
+
+          await addDoc(colLessons, {
+            ...payload,
+            date: nextLocal,
+            status: 0,
+            recurrenceGroupId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        }
+      }
     }
-
-    // === Recorrência (cria aulas futuras) ===
-try{
-  const recOn   = $("recEnabled")?.checked;
-  const recDays = Number($("recEvery")?.value || 7);
-  const recQty  = Number($("recCount")?.value || 0);
-
-  if (recOn && recQty > 0){
-
-  const recurrenceGroupId = crypto.randomUUID();
-
-    const base = new Date(dateLocal);
-
-    for (let i = 1; i <= recQty; i++){
-
-      const d = new Date(base);
-      d.setDate(d.getDate() + i * recDays);
-      const nextLocal = toLocalDateTimeString(d);
-
-      const futurePayload = {
-  ...payload,
-  date: nextLocal,
-  status: 0,
-  recurrenceGroupId,
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp()
-};
-
-      await addDoc(colLessons, futurePayload);
-    }
-  }
-
-}catch(err){
-  console.error(err);
-  showAlert("Erro ao criar recorrência.", "error");
-}
 
     $("lessonModal").classList.remove("show");
-    document.body.classList.remove('modal-open');
+    document.body.classList.remove("modal-open");
     showAlert("Salvo com sucesso.");
-  }catch(e){
+
+  } catch(e){
+
     console.error(e);
     showAlert("Erro ao salvar aula","error");
   }
