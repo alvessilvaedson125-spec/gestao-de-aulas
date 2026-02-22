@@ -254,7 +254,14 @@ $("btnTheme").onclick=()=>{
 };
 
 /* ======================= Abas ======================= */
-const sections={agenda:$("agenda"), alunos:$("alunos"), evolucao:$("evolucao"), relatorios:$("relatorios"), backup:$("backup")};
+const sections={
+  agenda:$("agenda"),
+  alunos:$("alunos"),
+  evolucao:$("evolucao"),
+  relatorios:$("relatorios"),
+  caixa:$("caixa"),
+  backup:$("backup")
+};
 function hideAllSections(){ Object.values(sections).forEach(s=>s.classList.remove("show")); els("#tabs a").forEach(a=>a.classList.remove("active")); }
 function showCover(){ hideAllSections(); $("tabs").style.display="none"; $("hero").style.display="block"; try{ window.scrollTo({top:0, behavior:"instant"}); }catch{} }
 function showTab(name){ hideAllSections(); sections[name]?.classList.add("show"); els("#tabs a").forEach(a=>a.classList.toggle("active", a.dataset.tab===name)); if(user) $("hero").style.display="none"; 
