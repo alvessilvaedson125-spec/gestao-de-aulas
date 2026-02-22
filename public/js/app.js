@@ -2718,6 +2718,21 @@ function parseBRLToNumber(v){
 }
 
 // 3) Calcula apenas os KPIs mensais (não altera mais nada do seu Relatório)
+
+function calculateCashRevenueForMonth(year, month){
+
+  if (!cashEntries || !cashEntries.length) return 0;
+
+  return cashEntries
+    .filter(e => {
+      const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
+      return d.getFullYear() === year && (d.getMonth() + 1) === month;
+    })
+    .reduce((acc, e) => acc + Number(e.valor || 0), 0);
+
+}
+
+
 function renderReportMonthKPIs(){
 
   var y = _repYear();
@@ -2756,10 +2771,14 @@ console.log("ARR LENGTH:", arr.length);
   );
 
   // ===== Receita realizada =====
-  var monthRevenue = calculateRealizedRevenueForLessons(
-    arr,
-    parseBRLToNumber
-  );
+ var lessonRevenue = calculateRealizedRevenueForLessons(
+  arr,
+  parseBRLToNumber
+);
+
+var cashRevenue = calculateCashRevenueForMonth(y, m);
+
+var monthRevenue = lessonRevenue + cashRevenue;
 
   // ===== Aulas pagas (status 2) =====
   var paidCount = arr.filter(function(l){
