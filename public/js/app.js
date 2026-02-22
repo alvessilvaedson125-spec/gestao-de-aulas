@@ -2728,7 +2728,7 @@ function calculateCashRevenueForMonth(year, month){
   return cashEntries
     .filter(e => {
       const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
-      return d.getFullYear() === year && (d.getMonth() + 1) === month;
+     return d.getFullYear() === year && d.getMonth() === month;
     })
     .reduce((acc, e) => acc + Number(e.valor || 0), 0);
 
