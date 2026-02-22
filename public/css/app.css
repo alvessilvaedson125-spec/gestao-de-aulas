@@ -13,10 +13,8 @@
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; background:
-  radial-gradient(circle at 20% 10%, rgba(122,108,255,.18), transparent 40%),
-  radial-gradient(circle at 85% 85%, rgba(94,160,255,.12), transparent 45%),
-  linear-gradient(180deg,#0b0f14,#0e1624);
+  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; 
+    background: var(--bg);
  color:var(--text);}
   a{color:inherit; text-decoration:none}
   header{position:sticky; top:0; z-index:50; background:var(--elev); border-bottom:1px solid var(--line)}
@@ -49,12 +47,12 @@
   main .section{display:none}
   main .section.show{display:block}
  section.card{
-  background: rgba(255,255,255,.02);
-  border:1px solid rgba(255,255,255,.05);
+  background: var(--card);
+  border:1px solid var(--line);
   border-radius:16px;
-
   padding:14px 16px;
   margin:16px 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
 /* agora separado corretamente */
