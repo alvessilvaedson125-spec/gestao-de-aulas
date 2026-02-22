@@ -2146,7 +2146,7 @@ try{
   const recDays = Number($("recEvery")?.value || 7);
   const recQty  = Number($("recCount")?.value || 0);
 
-  if (!editingLessonId && recOn && recQty > 0){
+  if (recOn && recQty > 0){
 
     const base = new Date(dateLocal);
 
