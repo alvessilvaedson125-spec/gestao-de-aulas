@@ -1796,6 +1796,28 @@ function renderDashboard(){
     if (d.getFullYear() === y)  _barsY[m] += value;
     if (d.getFullYear() === cy) _barsC[m] += value;
   }
+  // ===== SOMAR CAIXA NO ANO (IMPORTANTE) =====
+
+for (const c of cashEntries || []) {
+
+  if (!c || !c.data) continue;
+
+  let d;
+
+if (c.data?.toDate) {
+  d = c.data.toDate();        // Timestamp do Firestore
+} else {
+  d = new Date(c.data);       // fallback
+}
+
+  if (!(d instanceof Date) || isNaN(d)) continue;
+
+  const m = d.getMonth();
+  const value = Number(c.valor || 0);
+
+  if (d.getFullYear() === y)  _barsY[m] += value;
+  if (d.getFullYear() === cy) _barsC[m] += value;
+}
 console.log("Ano selecionado:", y);
 console.log("BarsY:", _barsY);
 console.log("Total calculado:", _barsY.reduce((a,b)=>a+b,0));
