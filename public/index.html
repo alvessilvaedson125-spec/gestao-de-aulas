@@ -499,6 +499,43 @@
 </section>
 </main>
 
+
+<!-- CAIXA EXTERNO -->
+<section id="caixa" class="section card">
+  <h2>Caixa – Entradas Externas</h2>
+
+  <div class="grid2" style="gap:12px; margin-top:12px;">
+    <div>
+      <label>Data</label>
+      <input type="date" id="cashDate">
+    </div>
+
+    <div>
+      <label>Valor (R$)</label>
+      <input type="text" id="cashAmount" placeholder="0,00">
+    </div>
+
+    <div>
+      <label>Categoria</label>
+      <select id="cashCategory">
+        <option value="grupo">Aulas em grupo</option>
+        <option value="workshop">Workshop</option>
+        <option value="aulao">Aulão</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Descrição</label>
+      <input type="text" id="cashDescription" placeholder="Ex: Grupo Fevereiro">
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <button id="btnSaveCash" class="btn primary">Salvar Entrada</button>
+  </div>
+</section>
+
+
 <!-- MODAL AULA -->
 <div class="modal" id="lessonModal">
   <div class="box">
