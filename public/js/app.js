@@ -2134,15 +2134,30 @@ function editLesson(id) {
   };
 
   try{
-    const recurrenceGroupId = crypto.randomUUID();
+    
     if (editingLessonId){
       await updateDoc(doc(db,"aulas",editingLessonId), payload);
     } else {
-      await addDoc(colLessons, { 
-  ...payload, 
-  recurrenceGroupId,
-  createdAt: serverTimestamp() 
-});
+      let mainLessonRef;
+
+if (recOn && recQty > 0) {
+
+  const recurrenceGroupId = crypto.randomUUID();
+
+  mainLessonRef = await addDoc(colLessons, { 
+    ...payload, 
+    recurrenceGroupId,
+    createdAt: serverTimestamp() 
+  });
+
+} else {
+
+  mainLessonRef = await addDoc(colLessons, { 
+    ...payload,
+    createdAt: serverTimestamp() 
+  });
+
+}
     }
 
     // === Recorrência (cria aulas futuras) ===
@@ -2152,6 +2167,8 @@ try{
   const recQty  = Number($("recCount")?.value || 0);
 
   if (recOn && recQty > 0){
+
+  const recurrenceGroupId = crypto.randomUUID();
 
     const base = new Date(dateLocal);
 
