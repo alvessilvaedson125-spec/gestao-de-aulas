@@ -2775,7 +2775,7 @@ console.log("ARR LENGTH:", arr.length);
   arr,
   parseBRLToNumber
 );
-
+console.log("CASH ENTRIES:", cashEntries);
 var cashRevenue = calculateCashRevenueForMonth(y, m);
 
 var monthRevenue = lessonRevenue + cashRevenue;
