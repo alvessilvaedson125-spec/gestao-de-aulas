@@ -392,3 +392,118 @@ Services permanecem desacoplados da lógica de recorrência.
 14. Change Log
 
 v2.5.
+
+15. Novo Módulo – Caixa (Entradas Externas)
+
+Implementado na v2.6.0 (em staging).
+
+Objetivo
+
+Permitir o registro de receitas externas ao sistema de aulas particulares, como:
+
+Aulas em grupo
+
+Workshops
+
+Aulões
+
+Eventos especiais
+
+Finalidade estratégica:
+
+Permitir visão macro real da receita mensal e anual do Bailado Carioca.
+
+15.1 Modelo de Dados
+
+Nova coleção Firestore:
+
+caixa
+
+Documento padrão:
+
+{
+  date: "2026-02-22",      // ISO string
+  amount: 1200.00,         // Number (sempre numérico)
+  category: "grupo",       // grupo | workshop | aulao
+  description: "Grupo Fevereiro",
+  createdAt: serverTimestamp()
+}
+
+Regras obrigatórias:
+
+✔ amount sempre armazenado como Number
+✔ date sempre em formato ISO (yyyy-mm-dd)
+✔ Nunca armazenar valor formatado (R$)
+✔ Sem lógica de cálculo dentro do documento
+
+15.2 Integração Arquitetural
+
+Camada atual:
+
+Temporariamente orquestrada em app.js.
+
+Evolução recomendada futura:
+
+Criar:
+
+services/cashService.js
+
+Com responsabilidades:
+
+addCashEntry
+
+deleteCashEntry
+
+getCashByMonth
+
+getCashByYear
+
+calculateCashTotals
+
+Regra arquitetural:
+
+❌ Não acessar DOM dentro do service
+❌ Não formatar valores dentro do service
+✔ Retornar sempre dados brutos
+
+15.3 Integração Financeira
+
+Nova regra estratégica:
+
+Receita Total Mês =
+  Receita Aulas Realizadas
++ Receita Caixa (Entradas Externas)
+
+Separação conceitual mantida:
+
+Receita operacional (aulas)
+
+Receita externa (eventos / grupo)
+
+Permite análises futuras:
+
+% participação de aulas vs eventos
+
+Crescimento híbrido
+
+Receita recorrente vs receita pontual
+
+15.4 Estado Atual
+
+✔ Aba isolada funcional
+✔ Controlada por showTab()
+✔ Section dentro de <main>
+✔ Coleção criada
+✔ Salvamento funcional
+
+Integração aos KPIs ainda pendente.
+
+15.5 Versão Atual Atualizada
+
+v2.6.0 – Introdução do Módulo Caixa (Entradas Externas)
+
+Sistema agora contempla:
+
+✔ Receita híbrida
+✔ Estrutura pronta para consolidação macro
+✔ Evolução estratégica do modelo financeiro
