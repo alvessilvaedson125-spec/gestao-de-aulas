@@ -233,6 +233,7 @@ let students=[], lessons=[], evolutions=[];
 let unsubS=null, unsubL=null, unsubE=null;
 let editingEvolutionId = null;
 let cashEntries = [];
+window._cashEntries = cashEntries;
 let unsubCash = null;
 
 
@@ -673,6 +674,9 @@ function attachGlobalCashListener(){
       id: d.id,
       ...d.data()
     }));
+     
+    window._cashEntries = cashEntries; // debug
+
   });
 
 }
