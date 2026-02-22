@@ -2735,9 +2735,6 @@ function initReportMonthPatch(){
   }
 
 
-
-
-
 }
 
 function updateBackupIndicator() {
@@ -2759,3 +2756,6 @@ function updateBackupIndicator() {
 
   el.textContent = `Último backup: ${formatted}`;
 }
+document.addEventListener("DOMContentLoaded", () => {
+  updateBackupIndicator();
+});
