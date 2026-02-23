@@ -1709,13 +1709,13 @@ for(const yr of years){
              data-type="year"
              data-sid="${sid}"
              data-year="${yr}">
-          ${isYearOpen ? "📂" : "📁"} ${y}
+          ${isYearOpen ? "📂" : "📁"} ${yr}
         </div>
       `;
 
       if(!isYearOpen) continue;
 
-      const mmap = ymap.get(y);
+      const mmap = ymap.get(yr);
       const monthsIdx=[...mmap.keys()].sort((a,b)=>a-b);
 
       for(const m of monthsIdx){
@@ -1726,7 +1726,7 @@ for(const yr of years){
           <div class="tree-item tree-level-3"
                data-type="month"
                data-sid="${sid}"
-               data-y="${y}"
+               data-y="${yr}"
                data-month="${m}">
             🗂️ ${monthsLbl[m]}
             <span class="muted">(${count})</span>
