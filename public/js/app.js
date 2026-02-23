@@ -623,49 +623,47 @@ for (let yr = minY; yr <= maxY; yr++) {
 
 /* Attach/Detach listeners */
 function attach(){
+
   const qS = query(colStudents, orderBy("createdAt","desc"));
-  const qL = query(colLessons,  orderBy("date","asc"));     // 'date' é string local "YYYY-MM-DDTHH:MM"
+  const qL = query(colLessons,  orderBy("date","asc"));
   const qE = query(colEvol,     orderBy("date","desc"));
 
-  unsubS = onSnapshot(qS,(snap)=>{ students = snap.docs.map(withId);$("kpiActiveStudents").textContent = students.filter(s => s.active === true).length;
- fillStudentSelects(); renderStudentFilter(); fillRepStudentSelect(); initRepStudentArea(); 
- renderStudents(); renderDashboard(); buildEvoTree();});
-  
- unsubL = onSnapshot(qL, (snap) => {
+  unsubS = onSnapshot(qS,(snap)=>{
+    students = snap.docs.map(withId);
+    $("kpiActiveStudents").textContent =
+      students.filter(s => s.active === true).length;
 
-  lessons = snap.docs.map(withId);
+    fillStudentSelects();
+    renderStudentFilter();
+    fillRepStudentSelect();
+    initRepStudentArea();
+    renderStudents();
+    renderDashboard();
+    buildEvoTree();
+  });
 
-  // AGENDA
-  renderCalendar();
-  renderUpcoming();
-  renderDayDetails(state.selKey);
+  unsubL = onSnapshot(qL,(snap)=>{
+    lessons = snap.docs.map(withId);
 
-  // EVOLUÇÃO
-  renderEvoKPIs();
+    renderCalendar();
+    renderUpcoming();
+    renderDayDetails(state.selKey);
+    renderEvoKPIs();
+    renderStudents();
+    fillRepYearInvest();
+    renderDashboard();
+    renderReportMonthKPIs();
+  });
 
-  // ALUNOS
-  renderStudents();
+  unsubE = onSnapshot(qE,(snap)=>{
+    evolutions = snap.docs.map(withId);
+    renderEvolutions();
+    renderEvoKPIs();
+    buildEvoTree();
+    initRepStudentArea();
+  });
 
-  // RELATÓRIOS
-  fillRepYearInvest();
-
-  renderDashboard();        // mantém (parte anual, gráfico, concentração)
-  renderReportMonthKPIs();  // mantém (parte mensal e crescimento)
-});
-
-
-
-    // Atualiza relatórios automaticamente
-    if (typeof renderDashboard === "function") {
-      renderDashboard();
-    }
-
-  }
-
-
-
-  unsubE = onSnapshot(qE,(snap)=>{ evolutions = snap.docs.map(withId); renderEvolutions(); renderEvoKPIs(); buildEvoTree(); initRepStudentArea();   // recalcula o relatório quando as aulas mudam
- });
+}
 
 function detach(){ unsubS?.(); unsubL?.(); unsubE?.(); }
 onAuthStateChanged(auth,(u)=>{
