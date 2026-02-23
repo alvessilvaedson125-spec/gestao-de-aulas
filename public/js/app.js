@@ -665,16 +665,41 @@ function attach(){
 
 }
 
-function detach(){ unsubS?.(); unsubL?.(); unsubE?.(); }
-onAuthStateChanged(auth,(u)=>{
-  user=u||null;
-  const logged=!!user;
-  $("btnGoogle").style.display = logged?"none":"inline-flex";
-  $("btnSignout").style.display = logged?"inline-flex":"none";
-  $("authEmail").style.display = logged?"inline-flex":"none";
-  $("authEmail").textContent = logged?user.email:"";
-  if(!logged){ showCover(); detach(); return; }
-  $("hero").style.display="none"; $("tabs").style.display="flex"; attach();attachGlobalCashListener(); showTab("agenda");
+function detach(){
+  unsubS?.();
+  unsubL?.();
+  unsubE?.();
+  unsubCash?.();   // 🔥 essencial
+}
+
+onAuthStateChanged(auth, (u) => {
+
+  // 🔥 sempre limpar listeners anteriores
+  detach();
+
+  user = u || null;
+  const logged = !!user;
+
+  $("btnGoogle").style.display  = logged ? "none" : "inline-flex";
+  $("btnSignout").style.display = logged ? "inline-flex" : "none";
+  $("authEmail").style.display  = logged ? "inline-flex" : "none";
+  $("authEmail").textContent    = logged ? user.email : "";
+
+  if (!logged) {
+    showCover();
+    return;
+  }
+
+  console.log("Auth confirmado:", user.uid);
+
+  $("hero").style.display = "none";
+  $("tabs").style.display = "flex";
+
+  // 🔥 só inicia listeners com usuário autenticado
+  attach();                   // students, lessons, evolutions
+  attachGlobalCashListener(); // caixa
+
+  showTab("agenda");
 });
 function attachGlobalCashListener(){
 
