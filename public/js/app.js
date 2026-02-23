@@ -624,9 +624,25 @@ for (let yr = minY; yr <= maxY; yr++) {
 /* Attach/Detach listeners */
 function attach(){
 
-  const qS = query(colStudents, orderBy("createdAt","desc"));
-  const qL = query(colLessons,  orderBy("date","asc"));
-  const qE = query(colEvol,     orderBy("date","desc"));
+  if (!user) return;
+
+  const qS = query(
+    colStudents,
+    where("ownerUid", "==", user.uid),
+    orderBy("createdAt","desc")
+  );
+
+  const qL = query(
+    colLessons,
+    where("ownerUid", "==", user.uid),
+    orderBy("date","asc")
+  );
+
+  const qE = query(
+    colEvol,
+    where("ownerUid", "==", user.uid),
+    orderBy("date","desc")
+  );
 
   unsubS = onSnapshot(qS,(snap)=>{
     students = snap.docs.map(withId);
@@ -657,6 +673,7 @@ function attach(){
 
   unsubE = onSnapshot(qE,(snap)=>{
     evolutions = snap.docs.map(withId);
+
     renderEvolutions();
     renderEvoKPIs();
     buildEvoTree();
@@ -701,32 +718,41 @@ onAuthStateChanged(auth, (u) => {
 
   showTab("agenda");
 });
+
 function attachGlobalCashListener(){
+
+  if (!user) return; // segurança extra
 
   if (unsubCash) unsubCash();
 
-  const q = query(colCash, orderBy("data", "desc"));
+  const q = query(
+    colCash,
+    where("ownerUid", "==", user.uid),
+    orderBy("data", "desc")
+  );
 
-  unsubCash = onSnapshot(q, (snap)=>{
+  unsubCash = onSnapshot(
+    q,
+    (snap)=>{
 
-    cashEntries = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+      cashEntries = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
 
-    window._cashEntries = cashEntries; // debug opcional
+      window._cashEntries = cashEntries;
 
-    // 🔥 ESSENCIAL — atualiza lista da aba Caixa
-    if (typeof renderCashEntries === "function") {
-      renderCashEntries();
+      if (typeof renderCashEntries === "function") {
+        renderCashEntries();
+      }
+
+      renderReportMonthKPIs();
+      renderDashboard();
+    },
+    (error)=>{
+      console.error("Erro no listener do Caixa:", error);
     }
-
-    // Atualiza KPIs
-    renderReportMonthKPIs();
-
-    // Atualiza Dashboard
-    renderDashboard();
-  });
+  );
 }
 function renderUpcoming(){
   const days = +$("upcomingRange").value || 30;
