@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = "aulas-cache-v1";
+const CACHE_NAME = "gestao-v303";
 const FILES_TO_CACHE = [
   "index.html",
   "aluno.html",
