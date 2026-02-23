@@ -1550,12 +1550,11 @@ function clearEvol(){
   editingEvolutionId = null;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const btnClear = document.getElementById("btnClearEvolution");
-  if(btnClear){
-    btnClear.addEventListener("click", clearEvol);
-  }
-});
+const btnClear = document.getElementById("btnClearEvolution");
+if (btnClear) {
+  btnClear.addEventListener("click", clearEvol);
+}
+
 
 
 function renderEvolutions(filter={}){  // filter: {studentId, y, monthIndex}
