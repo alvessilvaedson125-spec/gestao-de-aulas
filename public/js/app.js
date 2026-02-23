@@ -1744,7 +1744,9 @@ for(const yr of years){
 
       const type = item.getAttribute("data-type");
       const sid  = item.getAttribute("data-sid");
-      const y    = item.getAttribute("data-year");
+      const y = type === "month"
+  ? item.getAttribute("data-y")
+  : item.getAttribute("data-year");
       const m    = item.getAttribute("data-month");
 
       if(type==="student"){
