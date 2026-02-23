@@ -1,9 +1,7 @@
 // sw.js
 
-const CACHE_NAME = "gestao-v303";
-const FILES_TO_CACHE = [
-  "index.html",
-  "aluno.html",
+const CACHE_NAME = "gestao-v304";
+  const FILES_TO_CACHE = [
   "manifest.json",
   "icons/icon-192.png",
   "icons/icon-512.png",
