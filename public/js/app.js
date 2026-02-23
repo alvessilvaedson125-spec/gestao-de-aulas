@@ -653,23 +653,7 @@ function attach(){
   renderReportMonthKPIs();  // mantém (parte mensal e crescimento)
 });
 
-unsubCash = onSnapshot(
-  collection(db, "cashEntries"),
-  (snap) => {
 
-    cashEntries = snap.docs.map(doc => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    ...data,
-    data: data.data?.toDate ? data.data.toDate() : new Date(data.data)
-  };
-});
-    window._cashEntries = cashEntries;
-
-    if (typeof renderCashEntries === "function") {
-      renderCashEntries();
-    }
 
     // Atualiza relatórios automaticamente
     if (typeof renderDashboard === "function") {
@@ -677,12 +661,12 @@ unsubCash = onSnapshot(
     }
 
   }
-);
+
 
 
   unsubE = onSnapshot(qE,(snap)=>{ evolutions = snap.docs.map(withId); renderEvolutions(); renderEvoKPIs(); buildEvoTree(); initRepStudentArea();   // recalcula o relatório quando as aulas mudam
  });
-}
+
 function detach(){ unsubS?.(); unsubL?.(); unsubE?.(); }
 onAuthStateChanged(auth,(u)=>{
   user=u||null;
