@@ -360,10 +360,22 @@ function renderReportMonthKPIs(){
 // 🔵 RECEITA DO CAIXA (INSERIR AQUI)
 var cashMonthRevenue = (Array.isArray(cashEntries) ? cashEntries : [])
   .filter(function(c){
+
     if(!c || !c.data) return false;
-    var d = new Date(c.data);
+
+    var d;
+
+    if (c.data?.toDate) {
+      d = c.data.toDate();   // Timestamp Firestore
+    } else {
+      d = new Date(c.data);  // fallback
+    }
+
+    if (!(d instanceof Date) || isNaN(d)) return false;
+
     return d.getFullYear() === y &&
            d.getMonth() === m;
+
   })
   .reduce(function(acc,c){
     return acc + Number(c.valor || 0);
