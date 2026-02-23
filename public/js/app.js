@@ -653,6 +653,31 @@ function attach(){
   renderReportMonthKPIs();  // mantém (parte mensal e crescimento)
 });
 
+unsubCash = onSnapshot(
+  collection(db, "cashEntries"),
+  (snap) => {
+
+    cashEntries = snap.docs.map(doc => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    data: data.data?.toDate ? data.data.toDate() : new Date(data.data)
+  };
+});
+    window._cashEntries = cashEntries;
+
+    if (typeof renderCashEntries === "function") {
+      renderCashEntries();
+    }
+
+    // Atualiza relatórios automaticamente
+    if (typeof renderDashboard === "function") {
+      renderDashboard();
+    }
+
+  }
+);
 
 
   unsubE = onSnapshot(qE,(snap)=>{ evolutions = snap.docs.map(withId); renderEvolutions(); renderEvoKPIs(); buildEvoTree(); initRepStudentArea();   // recalcula o relatório quando as aulas mudam
@@ -2016,6 +2041,7 @@ $("btnHideMoney").onclick=()=>{ const btn=$("btnHideMoney"); btn.dataset.hide = 
 function bindCashButton(){
 
   const btn = document.getElementById("btnSaveCash");
+  
   if (!btn) return;
 
   if (btn.dataset.bound === "1") return;
@@ -2043,6 +2069,8 @@ function bindCashButton(){
         criadoEm: serverTimestamp(),
         ownerUid: user?.uid || "dev"
       });
+
+      
 
       showAlert("Entrada registrada no Caixa.");
 
