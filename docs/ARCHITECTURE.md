@@ -507,3 +507,102 @@ Sistema agora contempla:
 ✔ Receita híbrida
 ✔ Estrutura pronta para consolidação macro
 ✔ Evolução estratégica do modelo financeiro
+
+16. Correção Estrutural – Attach() e Restauração de Login (v2.6.1)
+Contexto
+
+Durante a evolução do módulo Caixa, ocorreu um erro estrutural na função attach().
+
+Erro detectado em produção:
+
+Uncaught ReferenceError: qE is not defined
+
+Impacto:
+
+Interrupção da execução do script
+
+onAuthStateChanged não concluía corretamente
+
+Login bloqueado
+
+UI não montava completamente
+
+Causa Raiz
+
+Declaração incorreta de:
+
+const qE = query(colEvol, orderBy("date","desc"))
+
+fora do escopo correto da função attach().
+
+Além disso, houve:
+
+Sobrescrita parcial do bloco
+
+Listener duplicado
+
+Fechamento incorreto de chaves
+
+Solução Oficial Implementada
+
+Reestruturação completa da função attach() com:
+
+Declaração interna de qS
+
+Declaração interna de qL
+
+Declaração interna de qE
+
+Três onSnapshot independentes
+
+Escopo fechado corretamente antes de detach()
+
+Estado validado:
+
+✔ Login restaurado
+✔ Erro qE is not defined eliminado
+✔ Fluxo reativo preservado
+
+17. Inconsistência Atual – Renderização da Mensagem do Caixa
+Sintoma
+
+Após registrar entrada no Caixa:
+
+Receita mensal atualiza imediatamente
+
+Documento é salvo corretamente
+
+Porém a descrição recém adicionada:
+
+NÃO aparece imediatamente
+
+Só aparece após Ctrl + F5
+
+Diagnóstico Preliminar
+
+Indica possível:
+
+Conflito de cache (Service Worker)
+
+Estado local desatualizado
+
+Snapshot executando antes do DOM estar pronto
+
+Ordem incorreta entre:
+
+renderCashEntries()
+
+renderDashboard()
+
+bindCashButton()
+
+Status Atual
+
+Sistema funcional
+Login restaurado
+Arquitetura estabilizada
+Inconsistência de renderização pendente
+
+Versão Atual Atualizada:
+
+v2.6.1 – Restauração Estrutural do Attach e Estabilização de Autenticação

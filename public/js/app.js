@@ -682,23 +682,27 @@ function attachGlobalCashListener(){
 
   const q = query(colCash, orderBy("data", "desc"));
 
- unsubCash = onSnapshot(q, (snap)=>{
+  unsubCash = onSnapshot(q, (snap)=>{
 
-  cashEntries = snap.docs.map(d => ({
-    id: d.id,
-    ...d.data()
-  }));
+    cashEntries = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
 
-  // Atualiza KPIs mensais
-  renderReportMonthKPIs();
+    window._cashEntries = cashEntries; // debug opcional
 
-  // 🔥 Atualiza o dashboard anual (inclui Caixa no gráfico e Receita Ano)
-  renderDashboard();
+    // 🔥 ESSENCIAL — atualiza lista da aba Caixa
+    if (typeof renderCashEntries === "function") {
+      renderCashEntries();
+    }
 
-  window._cashEntries = cashEntries; // debug
-});
+    // Atualiza KPIs
+    renderReportMonthKPIs();
+
+    // Atualiza Dashboard
+    renderDashboard();
+  });
 }
-
 function renderUpcoming(){
   const days = +$("upcomingRange").value || 30;
   const s = $("filterStudent")?.value || "";
