@@ -235,6 +235,7 @@ let editingEvolutionId = null;
 let cashEntries = [];
 window._cashEntries = cashEntries;
 let unsubCash = null;
+let monthRevenueTotal = 0;
 
 
 const colStudents = collection(db,"alunos");
@@ -369,7 +370,7 @@ var cashMonthRevenue = (Array.isArray(cashEntries) ? cashEntries : [])
   }, 0);
 
 // 🔵 Receita total mês (aulas + caixa)
-var monthRevenueTotal = monthRevenue + cashMonthRevenue;
+monthRevenueTotal = monthRevenue + cashMonthRevenue;
 
     var paidLessonsMonth = arr.filter(function(l){
   return String(l.status) === "2";
