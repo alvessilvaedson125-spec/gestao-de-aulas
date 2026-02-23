@@ -2130,22 +2130,27 @@ bindCashButton();
 
 // ================= LISTAGEM CAIXA =================
 
-function renderCashList(docs){
+function renderCashEntries(){
 
   const container = document.getElementById("cashList");
   if (!container) return;
 
   container.innerHTML = "";
 
-  if (!docs.length){
+  if (!cashEntries.length){
     container.innerHTML = `<div class="muted">Nenhuma entrada registrada.</div>`;
     return;
   }
 
-  for (const d of docs){
+  for (const item of cashEntries){
 
-    const dataObj = d.data();
-    const data = dataObj.data?.toDate ? dataObj.data.toDate() : new Date(dataObj.data);
+    let data;
+
+    if (item.data?.toDate){
+      data = item.data.toDate();
+    } else {
+      data = new Date(item.data);
+    }
 
     const card = document.createElement("div");
     card.className = "cardx";
@@ -2154,17 +2159,17 @@ function renderCashList(docs){
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <div><b>${dataObj.descricao}</b></div>
+          <div><b>${item.descricao}</b></div>
           <div class="muted">
             ${data.toLocaleDateString("pt-BR")} • 
-            ${dataObj.categoria || "—"}
+            ${item.categoria || "—"}
           </div>
         </div>
         <div style="text-align:right;">
           <div style="font-weight:600;">
-            ${formatBRL(dataObj.valor)}
+            ${formatBRL(item.valor)}
           </div>
-          <button class="btn small danger" data-id="${d.id}">Excluir</button>
+          <button class="btn small danger" data-id="${item.id}">Excluir</button>
         </div>
       </div>
     `;
@@ -2172,29 +2177,16 @@ function renderCashList(docs){
     container.appendChild(card);
   }
 
-  // Bind excluir
   container.querySelectorAll("button[data-id]").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const id = btn.dataset.id;
       if (!confirm("Excluir esta entrada?")) return;
-
       await deleteDoc(doc(db, "caixa", id));
     });
   });
-
 }
 
-function attachCashListener(){
 
-  const q = query(colCash, orderBy("data", "desc"));
-
-  onSnapshot(q, (snap)=>{
-    renderCashList(snap.docs);
-  });
-
-}
-
-attachCashListener();
 
 /* ======================= Backup ======================= */
 
