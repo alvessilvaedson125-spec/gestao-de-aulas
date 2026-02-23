@@ -1541,6 +1541,17 @@ $("btnSaveEvolution").onclick = async () => {
 
 };
 
+function clearEvol(){
+  const form = document.getElementById("evoForm");
+  if(form){
+    form.reset();
+  }
+
+  editingEvolutionId = null;
+}
+
+$("btnClearEvolution").onclick = clearEvol;
+
 
 function renderEvolutions(filter={}){  // filter: {studentId, y, monthIndex}
   const box=$("evolutionsList"); box.innerHTML="";

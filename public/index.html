@@ -252,6 +252,7 @@
       <!-- FORMULÁRIO (COLAPSADO POR PADRÃO) -->
     <div id="evoModal" class="modal-overlay">
   <div class="modal-box">
+    <form id="evoForm"></form>
 
     <div class="modal-header">
       <h3>Nova Anotação</h3>
@@ -292,10 +293,15 @@
         <textarea id="evolutionNotes" placeholder="Outros detalhes"></textarea>
 
         <div class="actions">
-          <button id="btnSaveEvolution" class="btn primary">Salvar Anotação</button>
-          <button id="btnClearEvolution" class="btn">Limpar</button>
-        </div>
+          <button type="button" id="btnSaveEvolution" class="btn primary">
+  Salvar Anotação
+</button>
 
+<button type="button" id="btnClearEvolution" class="btn">
+  Limpar
+</button>
+        </div>
+            </form>
       </div>
           </div> <!-- fim modal-box -->
   </div> <!-- fim modal-overlay -->
