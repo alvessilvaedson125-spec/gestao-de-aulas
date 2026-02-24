@@ -1,7 +1,7 @@
 {
   "name": "Bailado Carioca • Gestão de Aulas",
   "short_name": "Gestão de Aulas",
-  "id": "/?v=2",
+  "id": "/app-v2",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
