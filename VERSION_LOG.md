@@ -1,133 +1,143 @@
-📘 LOG DE VERSÕES
+
+
+## VERSION_LOG.md
+
 Bailado Carioca – Gestão de Aulas
-v2.4.1-agenda-stable
+Atualizado até v2.7.0
+Status: Oficial
+
+---
+
+# 📘 VERSION LOG
+
+Bailado Carioca – Gestão de Aulas
+
+---
+
+## v2.7.0 — Consolidação PWA e Promoção Controlada para Produção
 
 Data: 2026
-Status: Estável – Produção Validada
-Tipo: Estabilização Estrutural (Bugfix Controlado)
 
-Contexto
+### 🔵 Infraestrutura
 
-Correções estruturais realizadas após validação em produção do módulo Agenda.
-Ajustes focados em binding de eventos, sincronização reativa e importações ausentes.
+* Manifest atualizado com campo `id` explícito
+* Inclusão de ícone 512x512 maskable
+* Substituição completa dos ícones oficiais
+* Nova identidade PWA forçada
+* Correção definitiva de cache de instalação Edge
+* Revalidação do Service Worker
+* Validação de hard reload pós deploy
 
-Correções Aplicadas
+### 🔵 Processo
 
-Corrigido binding do botão "Novo Aluno"
+* Fluxo formal staging → production consolidado
+* Merge realizado via `--no-edit`
+* Deploy production validado
+* Checklist atualizado
+* Documentação arquitetural revisada
 
-Corrigido binding do botão "Nova Anotação"
+### 🔵 Resultado
 
-Corrigido import ausente de deleteDoc no lessonService
+✔ Ícone oficial amarelo ativo em produção
+✔ Identidade PWA estável
+✔ Sem regressão funcional
+✔ Snapshot preservado
+✔ Multi-ambiente intacto
 
-Removida chamada manual de renderLessons()
+---
 
-Eliminado conflito causado por múltiplos DOMContentLoaded
+## v2.6.2 — Estabilização Estrutural Reativa
 
-Normalização da execução em type="module"
+### 🔵 Correções
 
-Ajustado fluxo reativo com onSnapshot
+* Reestruturação da função `attach()`
+* Correção de fechamento incorreto que quebrava `onSnapshot`
+* Normalização de datas no snapshot de `cashEntries`
+* Remoção de listener duplicado
+* Alinhamento estrutural do Caixa
 
-Resultado Técnico
+### 🔵 Segurança
 
-✔ CRUD da Agenda totalmente funcional
+* Hardening matemático implementado
+* Guards contra NaN
+* safeArray aplicado
+* safeNumber aplicado
 
-✔ CRUD de Alunos funcional
+### 🔵 Estabilidade
 
-✔ Exclusão de aula corrigida
+✔ Reatividade restaurada
+✔ Evolução estabilizada
+✔ Caixa funcional
+✔ Ranking anual consistente
+✔ Receita anual validada
 
-✔ Exclusão de aluno validada
+---
 
-✔ Snapshot sincronizado
+## v2.5.x — Consolidação Financeira
 
-✔ Sem erros no console
+* Implementação de cálculo híbrido (Aulas + Caixa)
+* Integração de KPIs consolidados
+* Comparativo anual
+* Ranking por aluno
+* Crescimento percentual
 
-✔ Sistema validado em produção
+---
 
-Impacto Arquitetural
+## v2.4.x — Implementação de Recorrência
 
-Nenhuma alteração no modelo de dados.
+* Campo `recurrenceGroupId` introduzido
+* Geração via `crypto.randomUUID()`
+* Sem impacto na renderização
+* Estrutura de exclusão segura
 
-A arquitetura reativa baseada em onSnapshot() foi consolidada como padrão oficial para:
+---
 
-add
+## v2.3.x — Consolidação Multi-Ambiente
 
-update
+* Separação production / staging
+* Configuração dinâmica por hostname
+* Isolamento completo de banco
+* Deploy por alias Firebase
 
-delete
+---
 
-Regra estabelecida:
+## v2.2.x — Modularização Inicial
 
-Nunca chamar renderLessons() manualmente quando houver listener ativo.
+* Separação core / services / utils
+* Extração de reportService
+* Padronização de retorno de funções
+* Redução de acoplamento
 
-Risco
+---
 
-Baixo.
-Apenas correções estruturais internas, sem mudança de schema ou regras de negócio.
+## v2.1.x — Estrutura Base Estável
 
-v2.3-multi-environment-stable
+* CRUD Alunos
+* CRUD Aulas
+* Módulo Evolução
+* Caixa inicial
+* Snapshot reativo implementado
 
-Data: 2026
-Status: Estável
-Tipo: Marco Estrutural
+---
 
-Descrição
+# 🔒 Política de Versionamento
 
-Arquitetura modular consolidada (SoC)
+* Versões Major: mudanças estruturais profundas
+* Versões Minor: melhorias arquiteturais
+* Patch: correções e estabilizações
 
-Multi-ambiente implementado (production / staging)
+Deploy em produção sempre vinculado a versão documentada.
 
-Relatórios estabilizados
+---
 
-Correções críticas aplicadas
+# 🎯 Versão Atual Oficial
 
-Deploy controlado por alias Firebase CLI
+v2.7.0
+Produção estável
+Identidade PWA consolidada
+Arquitetura preservada
 
-Seleção dinâmica via hostname
+---
 
-Importação via CDN oficial Firebase
 
-Backup confirmado antes do deploy.
 
-v1.2-governanca-inicial
-
-Data: 2026
-Status: Documentação
-Tipo: Governança Operacional
-
-Descrição
-
-DEPLOY_CHECKLIST.md criado
-
-ROLLBACK_POLICY.md criado
-
-VERSION_LOG.md criado
-
-Processo disciplinado de versionamento iniciado
-
-Política formal de deploy seguro estabelecida
-
-🔒 Política de Versionamento
-
-Regras oficiais do projeto:
-
-Toda correção estrutural deve gerar entrada no log.
-
-Todo deploy relevante deve possuir commit identificável.
-
-Marcos estruturais devem receber tag Git.
-
-Nenhuma versão é considerada estável sem validação em produção.
-
-📌 Versão Atual Consolidada
-
-v2.4.1-agenda-stable
-
-Sistema pronto para:
-
-Evolução controlada
-
-Deploy seguro
-
-Escalabilidade futura
-
-Hardening contínuo

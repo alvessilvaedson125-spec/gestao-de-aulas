@@ -1,16 +1,26 @@
 
+📘 DOCUMENTO 1
+ARQUITETURA OFICIAL CONSOLIDADA
+Atualizado para refletir:
+•	Deploy do novo ícone em production
+•	Manifest com maskable ativo
+•	Identidade PWA consolidada
+•	Processo formal de promoção staging → production
+•	Hardening já aplicado
+•	Estado atual pós promoção
+________________________________________
 📘 Bailado Carioca – Gestão de Aulas
 Arquitetura Oficial Consolidada
-Versão: v2.6.2 – Consolidação Estrutural e Estabilidade Reativa
-Status: Estável, Validado e Blindado
+Versão: v2.7.0 – Consolidação PWA e Promoção Controlada para Produção
+Status: Produção Validada
 Ano: 2026
 ________________________________________
 1. Visão Geral
 A aplicação segue arquitetura modular baseada em Separation of Concerns (SoC), com isolamento rigoroso entre:
-•	Core (Infraestrutura)
-•	Services (Domínio)
-•	Utils (Utilitários)
-•	Orquestração e Interface (app.js)
+• Core (Infraestrutura)
+• Services (Domínio)
+• Utils (Utilitários)
+• Orquestração e Interface (app.js)
 A arquitetura atual está consolidada com:
 ✔ Multi-ambiente funcional
 ✔ Arquitetura reativa via Firestore
@@ -18,38 +28,35 @@ A arquitetura atual está consolidada com:
 ✔ Deploy controlado por alias
 ✔ Hardening matemático aplicado
 ✔ Estrutura de recorrência implementada
-✔ Formulários estruturados corretamente
-✔ Função attach() estabilizada
+✔ Formulários estabilizados
+✔ Função attach() blindada
+✔ PWA com identidade explícita e ícone oficial aplicado em produção
 ________________________________________
 2. Estrutura de Pastas
 public/js
-├── core/
-│   ├── firebase.js
-│   ├── firebase.production.js
-│   └── firebase.staging.js
-│
-├── services/
-│   ├── authService.js
-│   ├── lessonService.js
-│   ├── studentService.js
-│   ├── reportService.js
-│   └── (cashService.js – recomendado futuro)
-│
-├── utils/
-│   ├── formatService.js
-│   ├── dateService.js
-│   └── uiHelpers.js
-│
-└── app.js
+core/
+├── firebase.js
+├── firebase.production.js
+└── firebase.staging.js
+services/
+├── authService.js
+├── lessonService.js
+├── studentService.js
+├── reportService.js
+└── (cashService.js – previsto)
+utils/
+├── formatService.js
+├── dateService.js
+└── uiHelpers.js
+app.js
 Estrutura validada e estabilizada.
 ________________________________________
 3. Camadas e Responsabilidades
-________________________________________
 3.1 Core (Infraestrutura)
 Responsável por:
-•	Inicialização do Firebase
-•	Seleção dinâmica de ambiente
-•	Exportação de app, auth, db
+• Inicialização do Firebase
+• Seleção dinâmica de ambiente
+• Exportação de app, auth, db
 Regras absolutas:
 ❌ Não contém regra de negócio
 ❌ Não manipula DOM
@@ -61,13 +68,13 @@ Ambientes isolados e blindados.
 ________________________________________
 3.2 Services (Domínio)
 Contém lógica de negócio pura:
-•	CRUD de alunos
-•	CRUD de aulas
-•	Consolidação financeira
-•	KPIs
-•	Comparativos anuais
-•	Ranking
-•	Crescimento percentual
+• CRUD de alunos
+• CRUD de aulas
+• Consolidação financeira
+• KPIs
+• Comparativos anuais
+• Ranking
+• Crescimento percentual
 Regras rígidas:
 ❌ Não acessa DOM
 ❌ Não conhece HTML
@@ -78,18 +85,18 @@ Exemplo padronizado:
 export function calculateYearComparison(yearMonthly = [], compareMonthly = [])
 Retorno padrão:
 {
-  yearTotal,
-  compareTotal,
-  delta
+yearTotal,
+compareTotal,
+delta
 }
 ________________________________________
 3.3 Utils
 Responsável por:
-•	formatBRL
-•	parseBRLToNumber
-•	parseISODateLocal
-•	Guardas defensivos
-•	Helpers de UI
+• formatBRL
+• parseBRLToNumber
+• parseISODateLocal
+• Guardas defensivos
+• Helpers de UI
 Regras:
 ❌ Não contém regra financeira complexa
 ❌ Não acessa Firebase
@@ -97,13 +104,13 @@ Regras:
 ________________________________________
 3.4 app.js (Orquestração)
 Responsável por:
-•	Eventos
-•	Listeners
-•	Renderização
-•	Integração com Chart.js
-•	Integração com Firestore
-•	Controle de filtros
-•	Sincronização reativa
+• Eventos
+• Listeners
+• Renderização
+• Integração com Chart.js
+• Integração com Firestore
+• Controle de filtros
+• Sincronização reativa
 Regra absoluta:
 Nenhum cálculo financeiro estrutural permanece aqui.
 app.js apenas orquestra.
@@ -122,10 +129,10 @@ Regra crítica:
 ❌ Nunca forçar re-render pós snapshot
 ✔ Firestore controla a atualização da UI
 Aplicado em:
-•	Alunos
-•	Aulas
-•	Evoluções
-•	Caixa
+• Alunos
+• Aulas
+• Evoluções
+• Caixa
 ________________________________________
 5. Multi-Ambiente
 Ambientes:
@@ -138,7 +145,27 @@ Regras:
 ✔ Deploy controlado por alias
 ✔ Nunca misturar configs
 ________________________________________
-6. Política Oficial de Deploy Seguro
+6. Consolidação PWA (v2.7.0)
+Implementado:
+✔ Manifest estruturado corretamente
+✔ Campo id explícito
+✔ Ícone 192x192 oficial
+✔ Ícone 512x512 oficial
+✔ Ícone 512x512 maskable
+✔ Background padronizado
+✔ Identidade nova forçada após troca de ícone
+✔ Deploy staging validado antes de produção
+Fluxo de promoção aplicado:
+staging → merge → production → deploy controlado
+Regra estabelecida:
+Qualquer alteração de identidade PWA deve:
+1.	Validar em staging
+2.	Confirmar troca de alias Firebase
+3.	Deploy controlado
+4.	Hard reload
+5.	Reinstalação manual do app
+________________________________________
+7. Política Oficial de Deploy Seguro
 Antes de qualquer deploy:
 firebase use
 Deploy Production:
@@ -150,16 +177,16 @@ firebase deploy --only hosting
 Regra de Ouro:
 Nunca deployar sem confirmar ambiente ativo.
 ________________________________________
-7. Hardening Aplicado
+8. Hardening Aplicado
 Implementado em reportService:
-•	safeArray
-•	safeNumber
-•	Guards contra NaN
-•	Fallback seguro
+• safeArray
+• safeNumber
+• Guards contra NaN
+• Fallback seguro
 Sem alterar comportamento funcional.
 Apenas robustez matemática.
 ________________________________________
-8. Modelo de Dados – Aulas (Recorrência)
+9. Modelo de Dados – Aulas (Recorrência)
 Campo:
 recurrenceGroupId (string | opcional)
 Regras:
@@ -167,23 +194,17 @@ Regras:
 ✔ Aulas recorrentes compartilham o mesmo ID
 ✔ Gerado via crypto.randomUUID()
 ✔ Sem impacto na renderização atual
-Objetivo:
-Preparar base para:
-•	Edição por grupo
-•	Exclusão por grupo
-•	Auditoria futura
 ________________________________________
-9. Módulo Caixa (Entradas Externas)
-Implementado na v2.6.0.
+10. Módulo Caixa
 Coleção:
 caixa
 Documento padrão:
 {
-  date: "2026-02-22",
-  amount: 1200.00,
-  category: "grupo",
-  description: "Grupo Fevereiro",
-  createdAt: serverTimestamp()
+date: "2026-02-22",
+amount: 1200.00,
+category: "grupo",
+description: "Grupo Fevereiro",
+createdAt: serverTimestamp()
 }
 Regras:
 ✔ amount sempre Number
@@ -193,72 +214,38 @@ Regras:
 Integração:
 Receita Total =
 Receita Aulas + Receita Caixa
-KPIs híbridos preparados.
 ________________________________________
-10. Correção Estrutural – attach() (v2.6.1)
-Erro corrigido:
-Uncaught ReferenceError: qE is not defined
-Causa:
-Declaração fora do escopo correto.
-Solução:
-Reestruturação completa da função attach() com:
-•	Declaração interna de qS
-•	Declaração interna de qL
-•	Declaração interna de qE
-•	3 onSnapshot independentes
-Resultado:
-✔ Login restaurado
-✔ Fluxo reativo preservado
-✔ Nenhum erro de console
-________________________________________
-11. Correção Estrutural – Módulo Evolução (v2.6.2)
-Problema:
-•	Formulário estruturado incorretamente
-•	Botão Limpar inoperante
-•	elements.length retornando 0
-Causa:
-<form> fechado prematuramente.
-Correção:
-✔ Estrutura HTML corrigida
-✔ Form envolvendo todos os campos
-✔ Implementação formal de clearEvol()
-✔ Binding correto via addEventListener
-✔ Reset funcionando
-✔ Salvamento continua íntegro
-Nenhuma regra de negócio alterada.
+11. Correções Estruturais Consolidadas
+attach() estabilizado
+Evolução estruturada corretamente
+Formulários íntegros
+Listeners isolados
+Sem erros críticos de console
 ________________________________________
 12. Estado Atual do Sistema
-✔ Receita anual validada
-✔ Comparação anual estável
-✔ Ranking anual consistente
-✔ Snapshot sincronizado
+✔ Produção atualizada com novo ícone
+✔ Identidade PWA consolidada
 ✔ Multi-ambiente funcional
-✔ Login restaurado
-✔ Recorrência estruturada
+✔ Snapshot sincronizado
+✔ Receita anual validada
+✔ Ranking anual consistente
 ✔ Caixa operacional
 ✔ Evolução estabilizada
 ✔ Arquitetura modular consolidada
-✔ Nenhum erro crítico de console
 Sistema pronto para evolução controlada.
 ________________________________________
 13. Diretrizes Futuras
-Recomendado:
-•	Backup automático pré-deploy
-•	Script seed para staging
-•	Versionamento por tag
-•	CI/CD via GitHub Actions
-•	cashService.js dedicado
-•	Migração futura para Vite (opcional)
-•	Métrica de ciclos recorrentes
-•	Consolidação completa dos KPIs híbridos
+• Extração formal de cashService.js
+• Backup automatizado (quando viável)
+• Versionamento por tag formal
+• CI/CD opcional
+• Consolidação final de KPIs híbridos
 ________________________________________
 14. Change Log
-v2.5.0 – Consolidação de Recorrência
-v2.6.0 – Introdução do Módulo Caixa
-v2.6.1 – Correção Estrutural Attach() e Login
-v2.6.2 – Correção Estrutural do Módulo Evolução
+v2.6.2 – Consolidação Estrutural e Estabilidade Reativa
+v2.7.0 – Consolidação PWA e Promoção Controlada para Produção
 ________________________________________
 🔷 Versão Oficial Atual
-v2.6.2 – Consolidação Estrutural e Estabilidade Reativa
-Sistema arquiteturalmente estável, modular e preparado para escalabilidade controlada.
+v2.7.0 – Produção com identidade PWA oficial aplicada
+________________________________________
 
