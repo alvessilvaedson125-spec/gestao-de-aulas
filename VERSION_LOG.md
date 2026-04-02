@@ -137,6 +137,12 @@ Deploy em produção sempre vinculado a versão documentada.
 - Redução de ~3000 para 1641 linhas sem perda de funcionalidade
 - Árvore do projeto organizada e documentada
 ---
+## v2.9.0 — Extração de helpers para módulo separado
 
+- Criada pasta public/js/ui/
+- Extraído ui/helpers.js: BRAND_NAME, toInputDate, toLocalDateTimeString,
+  hhmmLocal, showAlert, maskBRLInput, bindBRLMasks,
+  firstName, normalizePhoneBR, buildWhatsAppMessage
+- app.js reduzido sem perda de funcionalidade
 
 
