@@ -130,13 +130,12 @@ Deploy em produção sempre vinculado a versão documentada.
 
 ---
 
-# 🎯 Versão Atual Oficial
+## v2.8.0 — Limpeza e organização do projeto
 
-v2.7.0
-Produção estável
-Identidade PWA consolidada
-Arquitetura preservada
-
+- Removidos 10 arquivos desnecessários e duplicatas
+- app.js limpo: duplicatas de setupReportMonthFilter, renderReportMonthKPIs e Backup removidas
+- Redução de ~3000 para 1641 linhas sem perda de funcionalidade
+- Árvore do projeto organizada e documentada
 ---
 
 
