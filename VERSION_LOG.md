@@ -160,3 +160,11 @@ Deploy em produção sempre vinculado a versão documentada.
   openPkgModal, bindPkgModal, hasActivePackage, parsePkgDate, inPkgRange
 - Padrão _ctx com getters para acesso reativo
 - app.js reduzido sem perda de funcionalidade
+
+## v2.12.0 — Extração do módulo de caixa
+
+- Criado public/js/ui/cashUI.js
+- Extraídos: bindCashButton, renderCashEntries, initCash
+- renderCashEntries agora recebe cashEntries como parâmetro
+- Padrão _ctx com getters para db, user e colCash
+- app.js reduzido sem perda de funcionalidade
