@@ -145,4 +145,10 @@ Deploy em produção sempre vinculado a versão documentada.
   firstName, normalizePhoneBR, buildWhatsAppMessage
 - app.js reduzido sem perda de funcionalidade
 
+## v2.10.0 — Extração do módulo de calendário
 
+- Criado public/js/ui/calendarUI.js
+- Extraídos: renderCalendar, renderDayDetails, renderUpcoming,
+  renderFilterEcho, bindCalendarEvents, initCalendar
+- Padrão _ctx com getters para acesso reativo a lessons e students
+- app.js reduzido sem perda de funcionalidade
