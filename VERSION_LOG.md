@@ -152,3 +152,11 @@ Deploy em produção sempre vinculado a versão documentada.
   renderFilterEcho, bindCalendarEvents, initCalendar
 - Padrão _ctx com getters para acesso reativo a lessons e students
 - app.js reduzido sem perda de funcionalidade
+
+## v2.11.0 — Extração do módulo de alunos
+
+- Criado public/js/ui/studentsUI.js
+- Extraídos: renderStudents, enableStudentDrag, getDragAfterElement,
+  openPkgModal, bindPkgModal, hasActivePackage, parsePkgDate, inPkgRange
+- Padrão _ctx com getters para acesso reativo
+- app.js reduzido sem perda de funcionalidade
