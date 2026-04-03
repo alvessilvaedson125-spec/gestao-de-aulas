@@ -198,3 +198,12 @@ public/js/
 ├── receiptUI.js
 ├── evolutionUI.js
 └── reportsUI.js
+
+## v2.17.0 — Relatório Mensal em PDF
+
+- Criado public/js/ui/reportPDF.js
+- Botão "📄 Exportar PDF do Mês" adicionado na aba Relatórios
+- Relatório inclui: cabeçalho, KPIs do mês, lista de aulas realizadas,
+  entradas do caixa e total geral
+- Respeita o mês/ano selecionado nos filtros de relatório
+- Gerado via jsPDF, sem dependências extras
