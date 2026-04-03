@@ -185,3 +185,10 @@ Deploy em produção sempre vinculado a versão documentada.
   bindReceiptButtons, fillReceiptStudents, getLessonsInRange
 - Padrão _ctx com getters para lessons e students
 - app.js reduzido sem perda de funcionalidade
+
+## v2.15.0 — Extração do módulo de evolução
+
+- Criado public/js/ui/evolutionUI.js
+- Extraídos: renderEvolutions, buildEvoTree, exportEvolutionPDF
+- Padrão _ctx com getters para evolutions, students e db
+- app.js reduzido sem perda de funcionalidade
