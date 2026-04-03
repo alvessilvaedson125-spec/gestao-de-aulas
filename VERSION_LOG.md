@@ -207,3 +207,15 @@ public/js/
   entradas do caixa e total geral
 - Respeita o mês/ano selecionado nos filtros de relatório
 - Gerado via jsPDF, sem dependências extras
+
+## v2.18.0 — Histórico de pacotes por aluno
+
+- Criado public/js/ui/packageHistoryUI.js
+- Botão "Histórico" adicionado em cada card de aluno
+- Pacote anterior salvo automaticamente antes de cada renovação
+- Modal de histórico mostra pacote atual e todos os anteriores
+- Inclui: período, aulas realizadas, valor investido e barra de progresso
+- firestore.rules atualizado com subcoleção /alunos/{id}/pacotes
+- firebase.json atualizado com configuração do Firestore
+- Índices compostos criados em staging e produção
+- Correção do drawBars no reportsUI.js
