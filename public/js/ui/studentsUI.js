@@ -2,6 +2,10 @@ import { parseISODateLocal } from "../utils/dateService.js";
 import { $, pad2, ymdKey } from "../utils/uiHelpers.js";
 import { showAlert } from "./helpers.js";
 import { updateDoc, deleteDoc, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { savePackageToHistory, openPackageHistory } from "./packageHistoryUI.js";
+
+
+
 
 /* ======================= Contexto injetado ======================= */
 let _ctx = {
@@ -116,6 +120,7 @@ export function renderStudents() {
         <div style="display:flex; gap:6px; margin-top:12px">
           <button class="btn small" data-act="edit">Editar</button>
           <button class="btn small" data-act="newpkg">Novo Pacote</button>
+          <button class="btn small" data-act="history">Histórico</button>
           ${inactive
             ? `<button class="btn small" data-act="activate">Ativar</button>`
             : `<button class="btn small" data-act="deactivate">Inativar</button>`}
@@ -124,6 +129,7 @@ export function renderStudents() {
 
       it.querySelector('[data-act="edit"]')?.addEventListener("click", () => _ctx.onEdit(s));
       it.querySelector('[data-act="newpkg"]')?.addEventListener("click", () => _ctx.openPkgModal(s.id));
+      it.querySelector('[data-act="history"]')?.addEventListener("click", () => openPackageHistory(s.id));
       it.querySelector('[data-act="deactivate"]')?.addEventListener("click", async () => {
         try {
           await updateDoc(doc(_ctx.db, "alunos", s.id), { active: false, updatedAt: serverTimestamp() });
@@ -193,6 +199,10 @@ export function bindPkgModal(db) {
     if (!pkgTargetId) return;
     try {
       const student = _ctx.students.find(x => x.id === pkgTargetId);
+      // Salva pacote atual no histórico antes de sobrescrever
+      if (student?.packageStart) {
+        await savePackageToHistory(pkgTargetId, student);
+      }
       await updateDoc(doc(db, "alunos", pkgTargetId), {
         packageStart:   $("pkgStart").value,
         packageEnd:     $("pkgEnd").value,

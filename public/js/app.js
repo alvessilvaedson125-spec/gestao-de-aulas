@@ -39,6 +39,7 @@ import {
 } from "./ui/reportsUI.js";
 
 import { initReportPDF, bindReportPDFButton } from "./ui/reportPDF.js";
+import { initPackageHistory } from "./ui/packageHistoryUI.js";
 
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
@@ -254,6 +255,12 @@ initReportPDF({
   get cashEntries() { return cashEntries; }
 });
 bindReportPDFButton();
+
+initPackageHistory({
+  get db()       { return db; },
+  get lessons()  { return lessons; },
+  get students() { return students; }
+});
 
 /* ======================= Firestore listeners ======================= */
 function attach() {

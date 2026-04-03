@@ -253,6 +253,8 @@ export function renderDashboard(updateMoneyButton) {
 }
 
 export function drawBars(arrY, arrC) {
+  arrY = arrY || Array(12).fill(0);
+  arrC = arrC || Array(12).fill(0);
   const canvas = $("chartYear"); if (!canvas) return;
   const cssW   = canvas.clientWidth || 600;
   const cssH   = Number(canvas.getAttribute("height") || 140);
