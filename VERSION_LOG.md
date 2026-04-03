@@ -176,3 +176,12 @@ Deploy em produção sempre vinculado a versão documentada.
   saveLesson, deleteLessonConfirmed, bindLessonButtons
 - Padrão _ctx com getters para acesso reativo
 - app.js reduzido sem perda de funcionalidade
+
+## v2.14.0 — Extração do módulo de recibo
+
+- Criado public/js/ui/receiptUI.js
+- Extraídos: openReceiptFromLesson, openReceiptFromStudent,
+  generateReceiptPDF, fillPackageAuto, toggleReceiptBoxes,
+  bindReceiptButtons, fillReceiptStudents, getLessonsInRange
+- Padrão _ctx com getters para lessons e students
+- app.js reduzido sem perda de funcionalidade
