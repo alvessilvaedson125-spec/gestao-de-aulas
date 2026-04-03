@@ -38,6 +38,8 @@ import {
   renderRepStudent, initRepStudentArea, initReportMonthPatch
 } from "./ui/reportsUI.js";
 
+import { initReportPDF, bindReportPDFButton } from "./ui/reportPDF.js";
+
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
 window.addEventListener("keydown", (e) => { if (e.key === "Shift") isShiftPressed = true; });
@@ -245,6 +247,13 @@ $("repCompare").onchange = () => renderDashboard(updateMoneyButton);
 if ($("repYearInvest")) $("repYearInvest").onchange = () => renderDashboard(updateMoneyButton);
 if ($("repStuSelect"))  $("repStuSelect").onchange  = renderRepStudent;
 window.addEventListener("resize", () => drawBars());
+
+initReportPDF({
+  get lessons()     { return lessons; },
+  get students()    { return students; },
+  get cashEntries() { return cashEntries; }
+});
+bindReportPDFButton();
 
 /* ======================= Firestore listeners ======================= */
 function attach() {
