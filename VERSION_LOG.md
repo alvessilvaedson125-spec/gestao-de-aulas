@@ -168,3 +168,11 @@ Deploy em produção sempre vinculado a versão documentada.
 - renderCashEntries agora recebe cashEntries como parâmetro
 - Padrão _ctx com getters para db, user e colCash
 - app.js reduzido sem perda de funcionalidade
+
+## v2.13.0 — Extração do módulo de aulas
+
+- Criado public/js/ui/lessonsUI.js
+- Extraídos: openLessonModal, editLesson, requestDeleteLesson,
+  saveLesson, deleteLessonConfirmed, bindLessonButtons
+- Padrão _ctx com getters para acesso reativo
+- app.js reduzido sem perda de funcionalidade
