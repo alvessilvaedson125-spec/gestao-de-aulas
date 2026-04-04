@@ -96,9 +96,10 @@ function renderTurmas() {
   }
 
   for (const t of turmas) {
-    const mats       = matriculas.filter(m => m.turmaId === t.id);
-    const condutores = mats.filter(m => ["Condutor","Condutora"].includes(m.papel)).length;
-    const conduzidas = mats.filter(m => ["Conduzido","Conduzida"].includes(m.papel)).length;
+const mats       = matriculas.filter(m => m.turmaId === t.id);
+const ativas     = mats.filter(m => m.status !== "trancado");
+const condutores = ativas.filter(m => ["Condutor","Condutora"].includes(m.papel)).length;
+const conduzidas = ativas.filter(m => ["Conduzido","Conduzida"].includes(m.papel)).length;
 
     const card = document.createElement("div");
     card.className = "turma-card";
@@ -115,7 +116,7 @@ function renderTurmas() {
       <div class="turma-vagas">
         <div class="vaga-item">🕺 Condutores <span class="pill-mini">${condutores} / ${t.capCond || 12}</span></div>
         <div class="vaga-item">💃 Conduzidas <span class="pill-mini">${conduzidas} / ${t.capCond2 || 12}</span></div>
-        <div class="vaga-item">👥 Total <span class="pill-mini">${mats.length} / ${(t.capCond||12)+(t.capCond2||12)}</span></div>
+        <div class="vaga-item">👥 Total <span class="pill-mini">${ativas.length} / ${(t.capCond||12)+(t.capCond2||12)}</span></div>
       </div>
       ${t.notes ? `<div class="muted turma-notes">${t.notes}</div>` : ""}
       <div class="turma-actions">
