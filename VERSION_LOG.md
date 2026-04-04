@@ -219,3 +219,17 @@ public/js/
 - firebase.json atualizado com configuração do Firestore
 - Índices compostos criados em staging e produção
 - Correção do drawBars no reportsUI.js
+
+## v2.19.0 — Validação visual de formulários
+
+- Criado public/js/ui/formValidation.js
+- Validação com borda vermelha e mensagem de erro por campo
+- Erro limpo automaticamente ao digitar/mudar o campo
+- Formulários validados:
+  - Nova Aula: aluno, data e estilo obrigatórios
+  - Novo Pacote: início, fim e total obrigatórios
+  - Caixa: data, valor e descrição obrigatórios
+  - Aluno: nome obrigatório
+  - Evolução: aluno e data obrigatórios
+- CSS adicionado: .field-error e .field-error-msg
+- sw.js atualizado para gestao-v305
