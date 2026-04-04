@@ -274,3 +274,17 @@ public/js/
 - Criado tests/dateService.test.js — 5 testes cobrindo:
   parseISODateLocal
 - Total: 21 suites, 66 testes passando
+
+## v2.24.0 — Módulo Aulas em Grupo
+
+- Nova aba "Grupo" no app
+- Cadastro de turmas: nome, dia, horário, capacidade por papel, mensalidade padrão
+- Cadastro de alunos do grupo: nome, telefone, e-mail (base separada dos particulares)
+- Matrículas por turma: papel (Condutor/Condutora/Conduzido/Conduzida), tipo (Pagante/Bolsista), mensalidade individual
+- Controle de mensalidades por mês: Pendente / Pago
+- Edição de aluno e matrícula
+- Painel de alunos por turma com agrupamento por papel
+- Contador de vagas: condutores, conduzidas e total
+- firestore.rules atualizado: turmas, alunosGrupo, matriculas, mensalidadesGrupo
+- Índices Firestore criados em staging e produção
+- CSS: turma-card, painel de alunos, ok-btn, warn-btn
