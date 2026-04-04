@@ -251,3 +251,12 @@ public/js/
 - Novas classes utilitárias adicionadas ao app.css:
   .header-row, .section-header, .form-grid, .form-field,
   .field-lg/md/sm/full, .modal-title-row, entre outras
+
+  ## v2.22.0 — Refatoração completa do CSS
+
+- app.css reorganizado: Variáveis → Base → Layout → Componentes → Seções → Modais → Responsivo
+- Duplicatas removidas: cal-head-top, cal-head-filters, upcoming-row, evo-card-body, btn
+- Inline styles do index.html substituídos por classes CSS
+- Filtros da agenda corrigidos (layout em linha, sem empilhamento)
+- Sticky removido do cal-head (não travava mais durante scroll)
+- Responsivo consolidado em 3 breakpoints: 900px, 768px e 600px
