@@ -91,6 +91,7 @@
     <a href="#evolucao"   class="pill"        data-tab="evolucao">🧭 Evolução</a>
     <a href="#relatorios" class="pill"        data-tab="relatorios">📊 Relatórios</a>
     <a href="#caixa"      class="pill"        data-tab="caixa">💰 Caixa</a>
+    <a href="#grupo" class="pill" data-tab="grupo">🎭 Grupo</a>
     <a href="#backup"     class="pill"        data-tab="backup">💾 Backup</a>
   </div>
 
@@ -440,6 +441,70 @@
     </div>
     <div id="cashList" class="cash-list"></div>
   </section>
+
+  <!-- ==================== GRUPO ==================== -->
+<section id="grupo" class="section card">
+  <div class="section-header">
+    <h2>Aulas em Grupo</h2>
+    <button id="btnToggleTurmaForm" class="btn primary small">+ Nova Turma</button>
+  </div>
+
+  <!-- Formulário Nova Turma -->
+  <div id="turmaFormWrap" class="form-collapsed">
+    <div class="form-grid">
+      <div class="form-field field-lg">
+        <label>Nome da Turma</label>
+        <input id="turmaName" placeholder="Ex: Turma Sexta — Samba de Gafieira">
+      </div>
+      <div class="form-field field-sm">
+        <label>Dia da Semana</label>
+        <select id="turmaDia">
+          <option value="0">Domingo</option>
+          <option value="1">Segunda-feira</option>
+          <option value="2">Terça-feira</option>
+          <option value="3">Quarta-feira</option>
+          <option value="4">Quinta-feira</option>
+          <option value="5" selected>Sexta-feira</option>
+          <option value="6">Sábado</option>
+        </select>
+      </div>
+      <div class="form-field field-sm">
+        <label>Horário</label>
+        <input id="turmaHorario" type="time" value="20:00">
+      </div>
+      <div class="form-field field-sm">
+        <label>Capacidade (condutores)</label>
+        <input id="turmaCapCond" type="number" min="1" value="12">
+      </div>
+      <div class="form-field field-sm">
+        <label>Capacidade (conduzidas)</label>
+        <input id="turmaCapCond2" type="number" min="1" value="12">
+      </div>
+      <div class="form-field field-sm">
+        <label>Valor Mensalidade (R$)</label>
+        <input id="turmaMensalidade" type="text" placeholder="0,00">
+      </div>
+      <div class="form-field field-sm">
+        <label>Status</label>
+        <select id="turmaStatus">
+          <option value="true" selected>Ativa</option>
+          <option value="false">Inativa</option>
+        </select>
+      </div>
+      <div class="form-field field-full">
+        <label>Observações</label>
+        <input id="turmaNotes" placeholder="Obs gerais sobre a turma">
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btnSaveTurma" class="btn primary">Salvar Turma</button>
+      <button id="btnClearTurma" class="btn">Limpar</button>
+    </div>
+  </div>
+
+  <!-- Lista de Turmas -->
+  <div id="turmasList" class="turmas-list"></div>
+</section>
 
   <!-- ==================== BACKUP ==================== -->
   <section id="backup" class="section card">

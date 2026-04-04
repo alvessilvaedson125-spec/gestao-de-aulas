@@ -609,3 +609,102 @@ body.modal-open { overflow: hidden; }
   select.btn    { min-width: auto; max-width: 46vw; }
   #filterStudent.btn { max-width: 100%; }
 }
+
+/* ==================== GRUPO — TURMAS ==================== */
+.turmas-list     { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+.turma-card {
+  border-radius: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.015));
+  border: 1px solid rgba(122,108,255,.18);
+  box-shadow: 0 8px 22px rgba(0,0,0,.25);
+  transition: all .22s ease;
+}
+.turma-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(122,108,255,.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+}
+
+.turma-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.turma-nome { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+
+.turma-status-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+.turma-status-badge.ok   { color: var(--ok);   border-color: var(--ok);   background: rgba(37,192,138,.1); }
+.turma-status-badge.warn { color: var(--warn);  border-color: var(--warn); background: rgba(255,194,74,.1); }
+
+.turma-vagas {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.vaga-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.turma-notes   { font-size: 13px; margin-bottom: 10px; }
+.turma-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+/* ==================== GRUPO — PAINEL DE ALUNOS ==================== */
+.turma-alunos-panel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.painel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.painel-header h4 { margin: 0; font-size: 15px; }
+
+.grupo-papel-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .5px;
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+}
+
+.aluno-mat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.05);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.aluno-mat-info { flex: 1; min-width: 0; }
+.aluno-mat-nome { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.aluno-mat-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.ok-btn   { color: var(--ok);   border-color: var(--ok);   background: rgba(37,192,138,.1); }
+.warn-btn { color: var(--warn); border-color: var(--warn); background: rgba(255,194,74,.1); }
