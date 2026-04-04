@@ -24,6 +24,8 @@ let unsubPresencas = null;
 let editingTurmaId   = null;
 let editingAlunoId   = null;
 let currentTurmaId   = null;
+let currentMes = new Date().getMonth();
+let currentAno = new Date().getFullYear();
 let unsubTurmas      = null;
 let unsubAlunos      = null;
 let unsubMatriculas  = null;
@@ -163,15 +165,17 @@ function renderAlunosTurma(turmaId) {
   const panel = document.getElementById(`panel-${turmaId}`); if (!panel) return;
   const turma = turmas.find(t => t.id === turmaId);
   const mats  = matriculas.filter(m => m.turmaId === turmaId);
-  const { mes, ano } = getMesAno();
-
+  const mes = currentMes;
+const ano = currentAno;
   let html = `
     <div class="painel-header">
       <h4>Alunos — ${turma?.name || ""}</h4>
-      <div style="display:flex; gap:8px; align-items:center">
-        <span class="muted">${MESES[mes]} ${ano}</span>
-        <button class="btn small primary" id="btnMatricular-${turmaId}">+ Matricular Aluno</button>
-      </div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+  <button class="btn small" id="btnMesAnterior-${turmaId}">◀</button>
+  <span class="muted" style="min-width:120px; text-align:center">${MESES[mes]} ${ano}</span>
+  <button class="btn small" id="btnMesProximo-${turmaId}">▶</button>
+  <button class="btn small primary" id="btnMatricular-${turmaId}">+ Matricular Aluno</button>
+</div>
     </div>`;
 
   if (mats.length === 0) {
@@ -213,6 +217,19 @@ function renderAlunosTurma(turmaId) {
   panel.innerHTML = html;
 
   document.getElementById(`btnMatricular-${turmaId}`)?.addEventListener("click", () => openMatricularModal(turmaId));
+
+
+document.getElementById(`btnMesAnterior-${turmaId}`)?.addEventListener("click", () => {
+  if (currentMes === 0) { currentMes = 11; currentAno--; }
+  else { currentMes--; }
+  renderAlunosTurma(turmaId);
+});
+
+document.getElementById(`btnMesProximo-${turmaId}`)?.addEventListener("click", () => {
+  if (currentMes === 11) { currentMes = 0; currentAno++; }
+  else { currentMes++; }
+  renderAlunosTurma(turmaId);
+});
 
   panel.querySelectorAll("[data-mens]").forEach(btn => {
     btn.addEventListener("click", () => toggleMensalidade(btn.dataset.mens, btn.dataset.pago === "true", mes, ano));
