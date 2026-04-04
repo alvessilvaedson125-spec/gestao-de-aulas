@@ -240,3 +240,14 @@ public/js/
 - Dados persistem localmente via IndexedDB
 - App funciona offline após primeiro carregamento
 - Fallback com warnings para múltiplas abas e browsers sem suporte
+
+## v2.21.0 — Limpeza e organização do index.html
+
+- Inline styles removidos e substituídos por classes CSS
+- Bug corrigido na seção Relatórios (div mal fechada)
+- Scripts inline consolidados em um único bloco
+- Ordem das seções corrigida (Caixa antes do Backup)
+- Indentação e estrutura HTML reorganizada
+- Novas classes utilitárias adicionadas ao app.css:
+  .header-row, .section-header, .form-grid, .form-field,
+  .field-lg/md/sm/full, .modal-title-row, entre outras
