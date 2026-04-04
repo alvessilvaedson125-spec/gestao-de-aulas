@@ -260,3 +260,17 @@ public/js/
 - Filtros da agenda corrigidos (layout em linha, sem empilhamento)
 - Sticky removido do cal-head (não travava mais durante scroll)
 - Responsivo consolidado em 3 breakpoints: 900px, 768px e 600px
+
+## v2.23.0 — Expansão da cobertura de testes
+
+- Criado tests/reportService.test.js — 40 testes cobrindo:
+  calculateTotalRevenueFromLessons, extractUniqueStudentIdsFromLessons,
+  calculateAveragePerStudent, calculateTotalRevenueForStudent,
+  calculateRealizedRevenueForLessons, calculateForecastRevenueForLessons,
+  calculateYearlyStudentReport, calculateYearlyStudentRanking,
+  calculateYearComparison, calculateRevenueConcentration
+- Criado tests/formatService.test.js — 12 testes cobrindo:
+  parseBRLToNumber, formatBRL, formatBRLFromCents
+- Criado tests/dateService.test.js — 5 testes cobrindo:
+  parseISODateLocal
+- Total: 21 suites, 66 testes passando
