@@ -233,3 +233,10 @@ public/js/
   - Evolução: aluno e data obrigatórios
 - CSS adicionado: .field-error e .field-error-msg
 - sw.js atualizado para gestao-v305
+
+## v2.20.0 — Modo offline robusto
+
+- Ativado enableIndexedDbPersistence em firebase.production.js e firebase.staging.js
+- Dados persistem localmente via IndexedDB
+- App funciona offline após primeiro carregamento
+- Fallback com warnings para múltiplas abas e browsers sem suporte
