@@ -115,10 +115,15 @@ function showTab(name) {
   sections[name]?.classList.add("show");
   els("#tabs a").forEach(a => a.classList.toggle("active", a.dataset.tab === name));
   if (user) $("hero").style.display = "none";
-  if (name === "relatorios") {
+  
+   if (name === "relatorios") {
   setTimeout(() => {
-    try { initReportMonthPatch(); renderGrupoKPIs(); } catch (e) { console.error(e); }
-  }, 0);
+    try {
+      initReportMonthPatch();
+      renderGrupoKPIs();
+      renderDashboard(updateMoneyButton);
+    } catch (e) { console.error(e); }
+  }, 50);
 }
 }
 els("#tabs a").forEach(a => a.onclick = (e) => { e.preventDefault(); showTab(a.dataset.tab); });
