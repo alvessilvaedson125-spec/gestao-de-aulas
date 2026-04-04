@@ -288,3 +288,18 @@ public/js/
 - firestore.rules atualizado: turmas, alunosGrupo, matriculas, mensalidadesGrupo
 - Índices Firestore criados em staging e produção
 - CSS: turma-card, painel de alunos, ok-btn, warn-btn
+
+## v2.25.0 — Módulo de Grupo — Presença, Navegação e Trancar Matrícula
+
+- Controle de presença por aula:
+  - Modal de chamada com data selecionável
+  - Status por aluno: Presente / Ausente / Justificado
+  - Chamada salva e recarregada por data
+  - Alunos trancados não aparecem na chamada
+- Navegação de meses nas mensalidades (◀ ▶)
+- Trancar e reativar matrícula:
+  - Badge "Trancado" no card do aluno
+  - Aluno trancado não aparece no contador de vagas
+  - Mensalidade suspensa enquanto trancado
+- Fix: contador de condutores, conduzidas e total exclui trancados
+- firestore.rules atualizado com coleção presencas
