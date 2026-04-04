@@ -313,3 +313,16 @@ public/js/
 - Bloco atualiza ao mudar mês/ano nos filtros de relatório
 - Fix: gráfico anual não renderizava ao abrir a aba Relatórios
 - app.js: listeners Firestore para turmas, matriculas e mensalidadesGrupo
+
+## v2.27.0 — Skeleton Loader
+
+- Criado public/js/ui/skeletonUI.js
+- Skeleton loaders implementados em todas as abas:
+  - Agenda: grid do calendário com 35 células animadas
+  - Alunos: cards com barra de progresso e botões
+  - Evolução: árvore + lista de anotações
+  - Relatórios: grid de KPIs + gráfico de barras
+  - Grupo: cards de turma
+- Animação de pulso suave via CSS keyframes
+- Skeletons removidos automaticamente quando dados chegam do Firestore
+- CSS: skeleton, skeleton-card, skeleton-line, skeleton-kpi, skeleton-bar
