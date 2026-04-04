@@ -19,6 +19,8 @@ let turmas       = [];
 let alunosGrupo  = [];
 let matriculas   = [];
 let mensalidades = [];
+let presencas    = [];
+let unsubPresencas = null;
 let editingTurmaId   = null;
 let editingAlunoId   = null;
 let currentTurmaId   = null;
@@ -67,10 +69,18 @@ export function attachGrupoListeners() {
     snap => { mensalidades = snap.docs.map(d => ({ id: d.id, ...d.data() })); if (currentTurmaId) renderAlunosTurma(currentTurmaId); },
     err => console.error("Erro listener mensalidades:", err)
   );
+
+  if (unsubPresencas) unsubPresencas();
+unsubPresencas = onSnapshot(
+  query(collection(_ctx.db, "presencas"), where("ownerUid","==",_ctx.user.uid)),
+  snap => { presencas = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
+  err => console.error("Erro listener presencas:", err)
+);
+
 }
 
 export function detachGrupoListeners() {
-  unsubTurmas?.(); unsubAlunos?.(); unsubMatriculas?.(); unsubMensalidades?.();
+  unsubTurmas?.(); unsubAlunos?.(); unsubMatriculas?.(); unsubMensalidades?.();unsubPresencas?.();
 }
 
 /* ======================= Render Turmas ======================= */
@@ -108,14 +118,16 @@ function renderTurmas() {
       ${t.notes ? `<div class="muted turma-notes">${t.notes}</div>` : ""}
       <div class="turma-actions">
         <button class="btn small primary" data-act="alunos">👥 Gerenciar Alunos</button>
+<button class="btn small" data-act="chamada">📋 Chamada</button>
         <button class="btn small" data-act="edit">Editar</button>
         <button class="btn small" data-act="del">Excluir</button>
       </div>
       <div class="turma-alunos-panel" id="panel-${t.id}" style="display:none"></div>`;
 
-    card.querySelector('[data-act="alunos"]').onclick = () => toggleAlunosPanel(t.id);
-    card.querySelector('[data-act="edit"]').onclick   = () => editTurma(t);
-    card.querySelector('[data-act="del"]').onclick    = () => deleteTurma(t.id, t.name);
+   card.querySelector('[data-act="alunos"]').onclick   = () => toggleAlunosPanel(t.id);
+card.querySelector('[data-act="chamada"]').onclick  = () => openChamadaModal(t.id);
+card.querySelector('[data-act="edit"]').onclick     = () => editTurma(t);
+card.querySelector('[data-act="del"]').onclick      = () => deleteTurma(t.id, t.name);
     box.appendChild(card);
   }
 
@@ -536,6 +548,144 @@ function openEditAlunoModal(matriculaId, alunoId) {
     } catch (err) {
       console.error(err);
       showAlert("Erro ao atualizar aluno.", "error");
+    }
+  };
+}
+
+/* ======================= Chamada ======================= */
+function getProximaSexta() {
+  const hoje = new Date();
+  const dia  = hoje.getDay();
+  const diff = dia <= 5 ? 5 - dia : 6;
+  const sexta = new Date(hoje);
+  sexta.setDate(hoje.getDate() + (dia === 5 ? 0 : diff));
+  return sexta.toISOString().slice(0, 10);
+}
+
+function openChamadaModal(turmaId) {
+  const turma = turmas.find(t => t.id === turmaId);
+  const mats  = matriculas.filter(m => m.turmaId === turmaId && m.status !== "trancado");
+
+  const existing = document.getElementById("chamadaModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "chamadaModal";
+  modal.className = "modal";
+  modal.style.display = "flex";
+
+  const dataDefault = getProximaSexta();
+
+  modal.innerHTML = `
+    <div class="box" style="max-width:640px">
+      <div class="modal-title-row">
+        <h3>Chamada — ${turma?.name || ""}</h3>
+        <button class="btn small" id="btnCloseChamada">✕</button>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:flex-end; margin-bottom:16px; flex-wrap:wrap">
+        <div style="flex:1">
+          <label>Data da Aula</label>
+          <input type="date" id="chamadaData" value="${dataDefault}">
+        </div>
+        <button class="btn small" id="btnCarregarChamada">Carregar / Nova</button>
+      </div>
+
+      <div id="chamadaLista"></div>
+
+      <div class="actions" style="margin-top:16px">
+        <button class="btn primary" id="btnSalvarChamada">Salvar Chamada</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  document.getElementById("btnCloseChamada").onclick = () => modal.remove();
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+
+  // Estado temporário da chamada
+  let chamadaState = {};
+  mats.forEach(m => { chamadaState[m.id] = "presente"; });
+
+  function renderChamadaLista(data) {
+    const lista = document.getElementById("chamadaLista");
+    if (!lista) return;
+
+    // Verifica se já existe chamada salva para esta data
+    const existentes = presencas.filter(p => p.turmaId === turmaId && p.data === data);
+    if (existentes.length > 0) {
+      existentes.forEach(p => { chamadaState[p.matriculaId] = p.status; });
+    }
+
+    const grupos = [
+      { label: "🕺 Condutores / Condutoras", papeis: ["Condutor","Condutora"] },
+      { label: "💃 Conduzidos / Conduzidas", papeis: ["Conduzido","Conduzida"] },
+    ];
+
+    let html = "";
+    for (const grupo of grupos) {
+      const gmats = mats.filter(m => grupo.papeis.includes(m.papel));
+      if (gmats.length === 0) continue;
+      html += `<div class="grupo-papel-label">${grupo.label}</div>`;
+      for (const mat of gmats) {
+        const aluno  = alunosGrupo.find(a => a.id === mat.alunoId);
+        const status = chamadaState[mat.id] || "presente";
+        html += `
+          <div class="chamada-row">
+            <div class="chamada-nome">${aluno?.name || "(Aluno)"}</div>
+            <div class="chamada-btns">
+              <button class="btn small chamada-opt ${status === "presente"   ? "chamada-presente"   : ""}" data-mat="${mat.id}" data-val="presente">✓ Presente</button>
+              <button class="btn small chamada-opt ${status === "ausente"    ? "chamada-ausente"    : ""}" data-mat="${mat.id}" data-val="ausente">✗ Ausente</button>
+              <button class="btn small chamada-opt ${status === "justificado"? "chamada-justificado": ""}" data-mat="${mat.id}" data-val="justificado">~ Justificado</button>
+            </div>
+          </div>`;
+      }
+    }
+
+    if (mats.length === 0) html = `<div class="muted">Nenhum aluno ativo nesta turma.</div>`;
+    lista.innerHTML = html;
+
+    lista.querySelectorAll(".chamada-opt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const matId = btn.dataset.mat;
+        const val   = btn.dataset.val;
+        chamadaState[matId] = val;
+        lista.querySelectorAll(`[data-mat="${matId}"]`).forEach(b => {
+          b.classList.remove("chamada-presente","chamada-ausente","chamada-justificado");
+        });
+        btn.classList.add(`chamada-${val}`);
+      });
+    });
+  }
+
+  renderChamadaLista(dataDefault);
+
+  document.getElementById("btnCarregarChamada").onclick = () => {
+    const data = document.getElementById("chamadaData")?.value;
+    if (data) renderChamadaLista(data);
+  };
+
+  document.getElementById("btnSalvarChamada").onclick = async () => {
+    const data = document.getElementById("chamadaData")?.value;
+    if (!data) { showAlert("Informe a data da aula.", "error"); return; }
+    try {
+      for (const [matriculaId, status] of Object.entries(chamadaState)) {
+        const existing = presencas.find(p => p.turmaId === turmaId && p.matriculaId === matriculaId && p.data === data);
+        if (existing) {
+          await updateDoc(doc(_ctx.db, "presencas", existing.id), { status, updatedAt: serverTimestamp() });
+        } else {
+          await addDoc(collection(_ctx.db, "presencas"), {
+            turmaId, matriculaId, data, status,
+            ownerUid:  _ctx.user?.uid || "dev",
+            createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+          });
+        }
+      }
+      showAlert("Chamada salva com sucesso.");
+      modal.remove();
+    } catch (err) {
+      console.error(err);
+      showAlert("Erro ao salvar chamada.", "error");
     }
   };
 }

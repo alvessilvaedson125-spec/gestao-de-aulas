@@ -708,3 +708,23 @@ body.modal-open { overflow: hidden; }
 
 .ok-btn   { color: var(--ok);   border-color: var(--ok);   background: rgba(37,192,138,.1); }
 .warn-btn { color: var(--warn); border-color: var(--warn); background: rgba(255,194,74,.1); }
+
+/* ==================== GRUPO — CHAMADA ==================== */
+.chamada-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.04);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.chamada-nome { font-weight: 600; font-size: 14px; flex: 1; min-width: 120px; }
+.chamada-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.chamada-presente   { color: var(--ok);   border-color: var(--ok);   background: rgba(37,192,138,.15); }
+.chamada-ausente    { color: var(--danger); border-color: var(--danger); background: rgba(255,107,107,.15); }
+.chamada-justificado { color: var(--warn); border-color: var(--warn); background: rgba(255,194,74,.15); }

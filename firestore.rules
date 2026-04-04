@@ -57,6 +57,13 @@ service cloud.firestore {
       allow update, delete: if isOwner();
     }
 
+match /presencas/{id} {
+  allow read: if isOwner();
+  allow create: if signedIn() && setsOwnerToSelf();
+  allow update, delete: if isOwner();
+}
+
+
     match /{document=**} {
       allow read, write: if false;
     }
