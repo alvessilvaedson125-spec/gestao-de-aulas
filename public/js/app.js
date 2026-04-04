@@ -35,7 +35,8 @@ import {
 import {
   initReports, renderReportMonthKPIs, renderDashboard, drawBars,
   ensureYearSelects, fillRepYearInvest, fillRepStudentSelect,
-  renderRepStudent, initRepStudentArea, initReportMonthPatch
+  renderRepStudent, initRepStudentArea, initReportMonthPatch,
+  renderGrupoKPIs
 } from "./ui/reportsUI.js";
 
 import { initReportPDF, bindReportPDFButton } from "./ui/reportPDF.js";
@@ -61,6 +62,9 @@ let students = [], lessons = [], evolutions = [];
 let unsubS = null, unsubL = null, unsubE = null;
 let editingEvolutionId = null;
 let cashEntries = [];
+let turmas       = [];
+let matriculas   = [];
+let mensalidades = [];
 window._cashEntries = cashEntries;
 let unsubCash = null;
 
@@ -112,8 +116,10 @@ function showTab(name) {
   els("#tabs a").forEach(a => a.classList.toggle("active", a.dataset.tab === name));
   if (user) $("hero").style.display = "none";
   if (name === "relatorios") {
-    setTimeout(() => { try { initReportMonthPatch(); } catch (e) { console.error(e); } }, 0);
-  }
+  setTimeout(() => {
+    try { initReportMonthPatch(); renderGrupoKPIs(); } catch (e) { console.error(e); }
+  }, 0);
+}
 }
 els("#tabs a").forEach(a => a.onclick = (e) => { e.preventDefault(); showTab(a.dataset.tab); });
 $("btnEnterSystem").onclick = () => $("btnGoogle").click();
@@ -249,15 +255,19 @@ initEvolution({
 });
 
 initReports({
-  get lessons()     { return lessons; },
-  get students()    { return students; },
-  get cashEntries() { return cashEntries; }
+  get lessons()      { return lessons; },
+  get students()     { return students; },
+  get cashEntries()  { return cashEntries; },
+  get turmas()       { return turmas; },
+  get matriculas()   { return matriculas; },
+  get mensalidades() { return mensalidades; }
 });
 
-$("repYear").onchange    = () => renderDashboard(updateMoneyButton);
+$("repYear").onchange    = () => { renderDashboard(updateMoneyButton); renderGrupoKPIs(); };
 $("repCompare").onchange = () => renderDashboard(updateMoneyButton);
 if ($("repYearInvest")) $("repYearInvest").onchange = () => renderDashboard(updateMoneyButton);
 if ($("repStuSelect"))  $("repStuSelect").onchange  = renderRepStudent;
+if ($("repMonth"))      $("repMonth").onchange      = () => { renderReportMonthKPIs(); renderGrupoKPIs(); };
 window.addEventListener("resize", () => drawBars());
 
 initReportPDF({
@@ -319,6 +329,24 @@ function attach() {
   });
 
   attachGrupoListeners();
+
+const colTurmas      = collection(db, "turmas");
+const colMatriculas  = collection(db, "matriculas");
+const colMensalidades= collection(db, "mensalidadesGrupo");
+
+onSnapshot(
+  query(colTurmas, where("ownerUid","==",user.uid)),
+  snap => { turmas = snap.docs.map(withId); renderGrupoKPIs(); }
+);
+onSnapshot(
+  query(colMatriculas, where("ownerUid","==",user.uid)),
+  snap => { matriculas = snap.docs.map(withId); renderGrupoKPIs(); }
+);
+onSnapshot(
+  query(colMensalidades, where("ownerUid","==",user.uid)),
+  snap => { mensalidades = snap.docs.map(withId); renderGrupoKPIs(); }
+);
+
 }
 
 function detach() {

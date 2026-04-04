@@ -728,3 +728,13 @@ body.modal-open { overflow: hidden; }
 .chamada-presente   { color: var(--ok);   border-color: var(--ok);   background: rgba(37,192,138,.15); }
 .chamada-ausente    { color: var(--danger); border-color: var(--danger); background: rgba(255,107,107,.15); }
 .chamada-justificado { color: var(--warn); border-color: var(--warn); background: rgba(255,194,74,.15); }
+
+/* ==================== RELATÓRIOS — BLOCO GRUPO ==================== */
+.grupo-kpi-wrap    { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+.grupo-kpi-header  { margin-bottom: 16px; }
+.grupo-kpi-grid    { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.grupo-turma-row   { padding: 12px; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); margin-bottom: 8px; }
+.grupo-turma-nome  { font-weight: 600; margin-bottom: 6px; }
+.grupo-turma-info  { display: flex; gap: 8px; flex-wrap: wrap; }
+.ok-pill           { background: rgba(37,192,138,.1);  border-color: var(--ok);   color: var(--ok); }
+.warn-pill         { background: rgba(255,194,74,.1);  border-color: var(--warn); color: var(--warn); }

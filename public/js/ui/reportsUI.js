@@ -11,9 +11,12 @@ import {
 
 /* ======================= Contexto injetado ======================= */
 let _ctx = {
-  get lessons()     { return []; },
-  get students()    { return []; },
-  get cashEntries() { return []; },
+  get lessons()      { return []; },
+  get students()     { return []; },
+  get cashEntries()  { return []; },
+  get turmas()       { return []; },
+  get matriculas()   { return []; },
+  get mensalidades() { return []; },
 };
 
 export function initReports(ctx) {
@@ -274,4 +277,105 @@ export function drawBars(arrY, arrC) {
   for (let i = 0; i < 12; i++) { const x = pad + i*gap*2 + gap*0.3 + barW + 4; const h = Math.round((arrC[i]/max)*innerH); ctx.fillRect(x, H-pad-h, barW, h); }
   ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted"); ctx.font = "12px sans-serif"; ctx.textAlign = "center";
   for (let i = 0; i < 12; i++) { const x = pad + i*gap*2 + gap*0.3 + barW; ctx.fillText(lbl[i], x, H-pad+14); }
+}
+
+/* ======================= Bloco 3 — Grupo ==================== */
+export function renderGrupoKPIs() {
+  const box = document.getElementById("grupoKPIBox");
+  if (!box) return;
+
+  const m = _repMonth();
+  const y = _repYear();
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  const turmas     = _ctx.turmas     || [];
+  const matriculas = _ctx.matriculas || [];
+  const mensalidades = _ctx.mensalidades || [];
+
+  const turmasAtivas = turmas.filter(t => t.active !== false);
+  const matsAtivas   = matriculas.filter(m => m.status !== "trancado");
+  const matsTrancadas= matriculas.filter(m => m.status === "trancado");
+
+  // Receita esperada = soma das mensalidades individuais de alunos ativos
+  const receitaEsperada = matsAtivas.reduce((acc, mat) => {
+    const val = Number(String(mat.mensalidade || "0").replace(",",".")) || 0;
+    return acc + val;
+  }, 0);
+
+  // Receita realizada = mensalidades pagas no mês/ano
+  const receitaRealizada = mensalidades
+    .filter(mn => mn.mes === m && mn.ano === y && mn.status === "pago")
+    .reduce((acc, mn) => {
+      const mat = matriculas.find(x => x.id === mn.matriculaId);
+      const val = Number(String(mat?.mensalidade || "0").replace(",",".")) || 0;
+      return acc + val;
+    }, 0);
+
+  const pagoIds     = mensalidades.filter(mn => mn.mes === m && mn.ano === y && mn.status === "pago").map(mn => mn.matriculaId);
+  const inadimplentes = matsAtivas.filter(mat => !pagoIds.includes(mat.id));
+
+  // Por turma
+  let turmasHTML = "";
+  for (const t of turmasAtivas) {
+    const tmats  = matsAtivas.filter(mat => mat.turmaId === t.id);
+    const tPagos = tmats.filter(mat => pagoIds.includes(mat.id)).length;
+    const tTotal = tmats.length;
+    const pct    = tTotal > 0 ? Math.round((tPagos / tTotal) * 100) : 0;
+    const cls    = pct >= 80 ? "ok" : pct >= 50 ? "warn" : "danger";
+
+    turmasHTML += `
+      <div class="grupo-turma-row">
+        <div class="grupo-turma-nome">${t.name}</div>
+        <div class="grupo-turma-info">
+          <span class="pill-mini ok-pill">${tPagos} pagos</span>
+          <span class="pill-mini warn-pill">${tTotal - tPagos} pendentes</span>
+        </div>
+        <div class="pkgbar" style="margin-top:6px">
+          <div class="fill ${cls}" style="width:${pct}%"></div>
+        </div>
+        <div class="muted" style="font-size:11px; margin-top:4px">${pct}% adimplente</div>
+      </div>`;
+  }
+
+  box.innerHTML = `
+    <div class="grupo-kpi-header">
+      <h3 style="margin:0">🎭 Grupo — ${MESES[m]} ${y}</h3>
+    </div>
+
+    <div class="grupo-kpi-grid">
+      <div class="cardx kpi-card">
+        <div class="kpi-title">Turmas ativas</div>
+        <div class="kpi-value">${turmasAtivas.length}</div>
+      </div>
+      <div class="cardx kpi-card">
+        <div class="kpi-title">Alunos ativos</div>
+        <div class="kpi-value">${matsAtivas.length}</div>
+        <div class="kpi-sub">${matsTrancadas.length} trancados</div>
+      </div>
+      <div class="cardx kpi-card">
+        <div class="kpi-title">Receita esperada</div>
+        <div class="kpi-value">${formatBRL(receitaEsperada)}</div>
+        <div class="kpi-sub">Mensalidades ativas</div>
+      </div>
+      <div class="cardx kpi-card highlight">
+        <div class="kpi-title">Receita realizada</div>
+        <div class="kpi-value">${formatBRL(receitaRealizada)}</div>
+        <div class="kpi-sub">${pagoIds.length} pagamentos confirmados</div>
+      </div>
+      <div class="cardx kpi-card">
+        <div class="kpi-title">Inadimplentes</div>
+        <div class="kpi-value" style="color:var(--danger)">${inadimplentes.length}</div>
+        <div class="kpi-sub">alunos com mensalidade pendente</div>
+      </div>
+      <div class="cardx kpi-card">
+        <div class="kpi-title">Taxa de adimplência</div>
+        <div class="kpi-value">${matsAtivas.length > 0 ? Math.round((pagoIds.length / matsAtivas.length) * 100) : 0}%</div>
+      </div>
+    </div>
+
+    ${turmasAtivas.length > 0 ? `
+      <div style="margin-top:16px">
+        <div class="grupo-papel-label">Por turma</div>
+        ${turmasHTML}
+      </div>` : ""}`;
 }
