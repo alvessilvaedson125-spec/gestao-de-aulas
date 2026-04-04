@@ -3,7 +3,7 @@ import { $, pad2, ymdKey } from "../utils/uiHelpers.js";
 import { showAlert } from "./helpers.js";
 import { updateDoc, deleteDoc, doc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { savePackageToHistory, openPackageHistory } from "./packageHistoryUI.js";
-
+import { validatePackageForm } from "./formValidation.js";
 
 
 
@@ -195,6 +195,7 @@ function getDragAfterElement(container, y) {
 export function bindPkgModal(db) {
   $("btnPkgClose").onclick = () => $("pkgModal").classList.remove("show");
   $("btnPkgSave").onclick  = async () => {
+    if (!validatePackageForm()) return;
     const pkgTargetId = $("pkgModal").dataset.targetId;
     if (!pkgTargetId) return;
     try {

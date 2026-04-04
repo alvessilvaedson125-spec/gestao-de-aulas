@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = "gestao-v304";
+const CACHE_NAME = "gestao-v305";
   const FILES_TO_CACHE = [
   "manifest.json",
   "icons/icon-192.png",

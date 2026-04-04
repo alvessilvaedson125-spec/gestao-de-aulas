@@ -41,6 +41,11 @@ import {
 import { initReportPDF, bindReportPDFButton } from "./ui/reportPDF.js";
 import { initPackageHistory } from "./ui/packageHistoryUI.js";
 
+import {
+  validateLessonForm, validatePackageForm,
+  validateCashForm, validateStudentForm, validateEvolutionForm
+} from "./ui/formValidation.js";
+
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
 window.addEventListener("keydown", (e) => { if (e.key === "Shift") isShiftPressed = true; });
@@ -199,6 +204,7 @@ initCash({
   get user()    { return user; },
   get colCash() { return colCash; }
 });
+bindCashButton();
 
 initLessons({
   get lessons()    { return lessons; },
@@ -321,7 +327,9 @@ function attachGlobalCashListener() {
 
 /* ======================= Alunos ======================= */
 let editingStudentId = null;
+
 $("btnSaveStudent").onclick = async () => {
+   if (!validateStudentForm()) return;
   const base = {
     name:         $("studentName").value.trim(),
     phone:        $("studentPhone").value.trim(),

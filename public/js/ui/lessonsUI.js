@@ -6,6 +6,7 @@ import { addLesson, updateLesson, deleteLesson } from "../services/lessonService
 import {
   addDoc, updateDoc, deleteDoc, doc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { validateLessonForm } from "./formValidation.js";
 
 /* ======================= Contexto injetado ======================= */
 let _ctx = {
@@ -61,7 +62,11 @@ export function requestDeleteLesson(id) {
 }
 
 /* ======================= Salvar ======================= */
+
+
+
 export async function saveLesson() {
+   if (!validateLessonForm()) return;
   const dateLocal = $("lessonDate").value;
   const recOn     = $("recEnabled")?.checked;
   const recDays   = Number($("recEvery")?.value || 7);

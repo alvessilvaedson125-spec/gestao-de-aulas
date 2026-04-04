@@ -1130,3 +1130,15 @@ body.modal-open{ overflow: hidden; }
   }
 
 }
+
+/* ======================= Validação de formulários ======================= */
+.field-error {
+  border-color: var(--danger, #ff6b6b) !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.field-error-msg {
+  color: var(--danger, #ff6b6b);
+  font-size: 11px;
+  margin-top: 4px;
+}

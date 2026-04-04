@@ -6,6 +6,8 @@ import {
   serverTimestamp, onSnapshot, query, where, orderBy
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
+import { validateCashForm } from "./formValidation.js";
+
 /* ======================= Contexto injetado ======================= */
 let _ctx = {
   get db()      { return null; },
@@ -24,6 +26,7 @@ export function bindCashButton() {
   if (!btn || btn.dataset.bound === "1") return;
   btn.dataset.bound = "1";
   btn.addEventListener("click", async () => {
+      if (!validateCashForm()) return;
     const data      = document.getElementById("cashDate")?.value;
     const valorRaw  = document.getElementById("cashAmount")?.value;
     const categoria = document.getElementById("cashCategory")?.value;
