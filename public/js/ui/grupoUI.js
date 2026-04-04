@@ -198,15 +198,23 @@ const ano = currentAno;
         html += `
           <div class="aluno-mat-card">
             <div class="aluno-mat-info">
-              <div class="aluno-mat-nome">${aluno?.name || "(Aluno)"}</div>
+              <div class="aluno-mat-nome">
+  ${aluno?.name || "(Aluno)"}
+  ${mat.status === "trancado" ? `<span class="badge warn" style="margin-left:8px">Trancado</span>` : ""}
+</div>
               <div class="muted">${mat.papel} • ${mat.tipo === "bolsista" ? "Bolsista" : "Pagante"} • ${formatBRL(parseBRLToNumber(mat.mensalidade || 0))}/mês</div>
               ${aluno?.phone ? `<div class="muted">${aluno.phone}</div>` : ""}
             </div>
             <div class="aluno-mat-actions">
-  <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
-    ${pago ? "✓ Pago" : "Pendente"}
-  </button>
+  ${mat.status !== "trancado" ? `
+    <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
+      ${pago ? "✓ Pago" : "Pendente"}
+    </button>
+  ` : `<span class="badge warn">Trancado</span>`}
   <button class="btn small" data-editmat="${mat.id}" data-alunoId="${mat.alunoId}">Editar</button>
+  <button class="btn small ${mat.status === "trancado" ? "ok-btn" : "warn-btn"}" data-trancar="${mat.id}" data-trancado="${mat.status === "trancado"}">
+    ${mat.status === "trancado" ? "↩ Reativar" : "🔒 Trancar"}
+  </button>
   <button class="btn small" data-desmat="${mat.id}">Remover</button>
 </div>
           </div>`;
@@ -237,6 +245,10 @@ document.getElementById(`btnMesProximo-${turmaId}`)?.addEventListener("click", (
 
   panel.querySelectorAll("[data-desmat]").forEach(btn => {
     btn.addEventListener("click", () => desmatricular(btn.dataset.desmat));
+  });
+
+  panel.querySelectorAll("[data-trancar]").forEach(btn => {
+    btn.addEventListener("click", () => trancarMatricula(btn.dataset.trancar, btn.dataset.trancado === "true"));
   });
 
   panel.querySelectorAll("[data-editmat]").forEach(btn => {
@@ -705,4 +717,21 @@ function openChamadaModal(turmaId) {
       showAlert("Erro ao salvar chamada.", "error");
     }
   };
+}
+
+async function trancarMatricula(matriculaId, isTrancado) {
+  const novoStatus = isTrancado ? "ativo" : "trancado";
+  const msg = isTrancado
+    ? "Reativar esta matrícula?"
+    : "Trancar esta matrícula? O aluno ficará suspenso mas não será removido.";
+  if (!confirm(msg)) return;
+  try {
+    await updateDoc(doc(_ctx.db, "matriculas", matriculaId), {
+      status: novoStatus, updatedAt: serverTimestamp()
+    });
+    showAlert(isTrancado ? "Matrícula reativada." : "Matrícula trancada.");
+  } catch (err) {
+    console.error(err);
+    showAlert("Erro ao atualizar matrícula.", "error");
+  }
 }
