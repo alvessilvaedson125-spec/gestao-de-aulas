@@ -303,3 +303,13 @@ public/js/
   - Mensalidade suspensa enquanto trancado
 - Fix: contador de condutores, conduzidas e total exclui trancados
 - firestore.rules atualizado com coleção presencas
+
+## v2.26.0 — Integração do Grupo nos Relatórios
+
+- Bloco 3 adicionado na aba Relatórios: Grupo — mês selecionado
+- KPIs do grupo: turmas ativas, alunos ativos, trancados,
+  receita esperada, receita realizada, inadimplentes, taxa de adimplência
+- Por turma: barra de progresso de adimplência com cor dinâmica
+- Bloco atualiza ao mudar mês/ano nos filtros de relatório
+- Fix: gráfico anual não renderizava ao abrir a aba Relatórios
+- app.js: listeners Firestore para turmas, matriculas e mensalidadesGrupo
