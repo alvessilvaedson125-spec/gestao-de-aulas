@@ -738,3 +738,74 @@ body.modal-open { overflow: hidden; }
 .grupo-turma-info  { display: flex; gap: 8px; flex-wrap: wrap; }
 .ok-pill           { background: rgba(37,192,138,.1);  border-color: var(--ok);   color: var(--ok); }
 .warn-pill         { background: rgba(255,194,74,.1);  border-color: var(--warn); color: var(--warn); }
+
+
+/* ==================== SKELETON LOADER ==================== */
+@keyframes skeleton-pulse {
+  0%   { opacity: .6; }
+  50%  { opacity: .3; }
+  100% { opacity: .6; }
+}
+
+.skeleton {
+  background: var(--line);
+  border-radius: 8px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 6px;
+  background: var(--line);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+
+.skeleton-line.short  { width: 40%; }
+.skeleton-line.medium { width: 65%; }
+.skeleton-line.full   { width: 100%; }
+.skeleton-line.title  { height: 20px; width: 50%; margin-bottom: 14px; }
+
+.skeleton-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.skeleton-kpi-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-bar {
+  height: 120px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.skeleton-bar-item {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: var(--line);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}

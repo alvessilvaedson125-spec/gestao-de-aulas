@@ -51,6 +51,8 @@ import {
   initGrupo, bindTurmaForm, attachGrupoListeners, detachGrupoListeners
 } from "./ui/grupoUI.js";
 
+import { showAllSkeletons, hideAllSkeletons, hideSkeleton } from "./ui/skeletonUI.js";
+
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
 window.addEventListener("keydown", (e) => { if (e.key === "Shift") isShiftPressed = true; });
@@ -177,6 +179,7 @@ onAuthStateChanged(auth, (u) => {
   if (!logged) { showCover(); return; }
   $("hero").style.display = "none";
   $("tabs").style.display = "flex";
+  showAllSkeletons();
   attach();
   attachGlobalCashListener();
   showTab("agenda");
@@ -302,16 +305,17 @@ function attach() {
   const qE = query(colEvol,     where("ownerUid","==",user.uid), orderBy("date","desc"));
 
   unsubS = onSnapshot(qS, (snap) => {
-    students = snap.docs.map(withId);
-    $("kpiActiveStudents").textContent = students.filter(s => s.active === true).length;
-    fillStudentSelects();
-    renderStudentFilter();
-    fillRepStudentSelect();
-    initRepStudentArea();
-    renderStudents();
-    renderDashboard(updateMoneyButton);
-    buildEvoTree();
-  });
+  students = snap.docs.map(withId);
+  $("kpiActiveStudents").textContent = students.filter(s => s.active === true).length;
+  fillStudentSelects();
+  renderStudentFilter();
+  fillRepStudentSelect();
+  initRepStudentArea();
+  renderStudents();
+  renderDashboard(updateMoneyButton);
+  buildEvoTree();
+  hideSkeleton("alunos");
+});
 
   unsubL = onSnapshot(qL, (snap) => {
     lessons = snap.docs.map(withId);
@@ -323,6 +327,8 @@ function attach() {
     fillRepYearInvest();
     renderDashboard(updateMoneyButton);
     renderReportMonthKPIs();
+    hideSkeleton("agenda");
+    hideSkeleton("relatorios");
   });
 
   unsubE = onSnapshot(qE, (snap) => {
@@ -331,6 +337,7 @@ function attach() {
     renderEvoKPIs();
     buildEvoTree();
     initRepStudentArea();
+    hideSkeleton("evolucao");
   });
 
   attachGrupoListeners();
@@ -341,15 +348,15 @@ const colMensalidades= collection(db, "mensalidadesGrupo");
 
 onSnapshot(
   query(colTurmas, where("ownerUid","==",user.uid)),
-  snap => { turmas = snap.docs.map(withId); renderGrupoKPIs(); }
+  snap => { turmas = snap.docs.map(withId); renderGrupoKPIs(); hideSkeleton("grupo"); }
 );
 onSnapshot(
   query(colMatriculas, where("ownerUid","==",user.uid)),
-  snap => { matriculas = snap.docs.map(withId); renderGrupoKPIs(); }
+  snap => { matriculas = snap.docs.map(withId); renderGrupoKPIs(); hideSkeleton("grupo"); }
 );
 onSnapshot(
   query(colMensalidades, where("ownerUid","==",user.uid)),
-  snap => { mensalidades = snap.docs.map(withId); renderGrupoKPIs(); }
+  snap => { mensalidades = snap.docs.map(withId); renderGrupoKPIs(); hideSkeleton("grupo"); }
 );
 
 }
