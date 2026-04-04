@@ -187,11 +187,12 @@ function renderAlunosTurma(turmaId) {
               ${aluno?.phone ? `<div class="muted">${aluno.phone}</div>` : ""}
             </div>
             <div class="aluno-mat-actions">
-              <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
-                ${pago ? "✓ Pago" : "Pendente"}
-              </button>
-              <button class="btn small" data-desmat="${mat.id}">Remover</button>
-            </div>
+  <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
+    ${pago ? "✓ Pago" : "Pendente"}
+  </button>
+  <button class="btn small" data-editmat="${mat.id}" data-alunoId="${mat.alunoId}">Editar</button>
+  <button class="btn small" data-desmat="${mat.id}">Remover</button>
+</div>
           </div>`;
       }
     }
@@ -208,6 +209,10 @@ function renderAlunosTurma(turmaId) {
   panel.querySelectorAll("[data-desmat]").forEach(btn => {
     btn.addEventListener("click", () => desmatricular(btn.dataset.desmat));
   });
+
+  panel.querySelectorAll("[data-editmat]").forEach(btn => {
+  btn.addEventListener("click", () => openEditAlunoModal(btn.dataset.editmat, btn.dataset.alunoid));
+});
 }
 
 /* ======================= Mensalidade ======================= */
@@ -455,4 +460,82 @@ function clearTurmaForm() {
   if ($("turmaStatus"))      $("turmaStatus").value      = "true";
   if ($("turmaNotes"))       $("turmaNotes").value       = "";
   editingTurmaId = null;
+}
+
+function openEditAlunoModal(matriculaId, alunoId) {
+  const aluno = alunosGrupo.find(a => a.id === alunoId);
+  const mat   = matriculas.find(m => m.id === matriculaId);
+  if (!aluno || !mat) return;
+
+  const existing = document.getElementById("editAlunoModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "editAlunoModal";
+  modal.className = "modal";
+  modal.style.display = "flex";
+
+  modal.innerHTML = `
+    <div class="box" style="max-width:560px">
+      <div class="modal-title-row">
+        <h3>Editar Aluno — ${aluno.name}</h3>
+        <button class="btn small" id="btnCloseEditAluno">✕</button>
+      </div>
+      <div class="grid2">
+        <div><label>Nome</label><input id="editAlunoName" value="${aluno.name || ""}"></div>
+        <div><label>Telefone</label><input id="editAlunoPhone" value="${aluno.phone || ""}"></div>
+      </div>
+      <div><label>E-mail</label><input id="editAlunoEmail" value="${aluno.email || ""}"></div>
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <label>Papel</label>
+          <select id="editMatPapel">
+            ${PAPEIS.map(p => `<option value="${p}" ${mat.papel === p ? "selected" : ""}>${p}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <select id="editMatTipo">
+            <option value="pagante" ${mat.tipo === "pagante" ? "selected" : ""}>Pagante</option>
+            <option value="bolsista" ${mat.tipo === "bolsista" ? "selected" : ""}>Bolsista</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Mensalidade individual (R$)</label>
+        <input id="editMatMensalidade" value="${mat.mensalidade || ""}">
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button class="btn primary" id="btnSaveEditAluno">Salvar</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  document.getElementById("btnCloseEditAluno").onclick = () => modal.remove();
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+
+  document.getElementById("btnSaveEditAluno").onclick = async () => {
+    const name  = document.getElementById("editAlunoName")?.value.trim();
+    if (!name) { showAlert("Informe o nome.", "error"); return; }
+    try {
+      await updateDoc(doc(_ctx.db, "alunosGrupo", alunoId), {
+        name,
+        phone: document.getElementById("editAlunoPhone")?.value.trim() || "",
+        email: document.getElementById("editAlunoEmail")?.value.trim() || "",
+        updatedAt: serverTimestamp()
+      });
+      await updateDoc(doc(_ctx.db, "matriculas", matriculaId), {
+        papel:       document.getElementById("editMatPapel")?.value,
+        tipo:        document.getElementById("editMatTipo")?.value,
+        mensalidade: document.getElementById("editMatMensalidade")?.value || "0",
+        updatedAt:   serverTimestamp()
+      });
+      showAlert("Aluno atualizado.");
+      modal.remove();
+    } catch (err) {
+      console.error(err);
+      showAlert("Erro ao atualizar aluno.", "error");
+    }
+  };
 }
