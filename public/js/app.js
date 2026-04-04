@@ -46,6 +46,10 @@ import {
   validateCashForm, validateStudentForm, validateEvolutionForm
 } from "./ui/formValidation.js";
 
+import {
+  initGrupo, bindTurmaForm, attachGrupoListeners, detachGrupoListeners
+} from "./ui/grupoUI.js";
+
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
 window.addEventListener("keydown", (e) => { if (e.key === "Shift") isShiftPressed = true; });
@@ -89,6 +93,7 @@ const sections = {
   evolucao:   $("evolucao"),
   relatorios: $("relatorios"),
   caixa:      $("caixa"),
+  grupo:      $("grupo"),
   backup:     $("backup")
 };
 function hideAllSections() {
@@ -268,6 +273,12 @@ initPackageHistory({
   get students() { return students; }
 });
 
+initGrupo({
+  get db()   { return db; },
+  get user() { return user; }
+});
+bindTurmaForm();
+
 /* ======================= Firestore listeners ======================= */
 function attach() {
   if (!user) return;
@@ -306,10 +317,13 @@ function attach() {
     buildEvoTree();
     initRepStudentArea();
   });
+
+  attachGrupoListeners();
 }
 
 function detach() {
   unsubS?.(); unsubL?.(); unsubE?.(); unsubCash?.();
+  detachGrupoListeners();
 }
 
 function attachGlobalCashListener() {
