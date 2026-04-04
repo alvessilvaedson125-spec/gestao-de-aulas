@@ -1142,3 +1142,50 @@ body.modal-open{ overflow: hidden; }
   font-size: 11px;
   margin-top: 4px;
 }
+
+/* ==================== Classes que substituem inline styles ==================== */
+.header-row          { display: flex; align-items: center; gap: 8px; }
+.header-title        { font-weight: 700; }
+.header-subtitle     { color: var(--muted); }
+.hero-pills          { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.hero-action         { margin-top: 12px; }
+.tabs-row            { margin: 6px 0 10px 0; }
+.side-title          { margin: 8px 0 6px 0; }
+.upcoming-wrap       { margin-top: 14px; }
+.upcoming-header     { display: flex; gap: 10px; align-items: center; }
+.upcoming-header h3  { margin: 8px 0; }
+.section-header      { display: flex; align-items: center; justify-content: space-between; }
+.section-header-actions { display: flex; gap: 10px; align-items: center; }
+.form-grid           { display: flex; gap: 12px; flex-wrap: wrap; }
+.form-field          { display: flex; flex-direction: column; }
+.field-lg            { flex: 1 1 420px; }
+.field-md            { flex: 1 1 200px; }
+.field-sm            { flex: 1 1 160px; }
+.field-full          { flex: 1 1 100%; }
+.students-list       { margin-top: 14px; }
+.inactive-wrap       { margin-top: 14px; }
+.inactive-header     { display: flex; align-items: center; justify-content: space-between; }
+.inactive-header h3  { margin: 0; }
+.tree-subtitle       { margin-bottom: 6px; }
+.evo-content         { display: flex; flex-direction: column; gap: 12px; }
+.evolutions-list     { margin-top: 16px; }
+.report-actions      { display: flex; gap: 8px; align-items: center; }
+.rep-stu-card        { margin-top: 12px; padding: 16px; }
+.rep-stu-select      { min-width: 260px; }
+.chart-card          { grid-column: span 2; margin-top: 16px; }
+.rep-year-invest     { display: flex; flex-direction: column; gap: 4px; }
+.ranking-card        { grid-column: span 4; }
+.ranking-header      { display: flex; align-items: center; justify-content: space-between; }
+.cash-form           { gap: 12px; margin-top: 12px; }
+.cash-action         { margin-top: 16px; }
+.cash-list           { margin-top: 20px; }
+.backup-actions      { display: flex; gap: 8px; }
+.backup-info         { margin-top: 8px; }
+.modal-title-row     { display: flex; align-items: center; justify-content: space-between; }
+.pkg-box             { max-width: 560px; }
+.receipt-box         { max-width: 900px; }
+.recurrence-box      { margin-top: 8px; }
+.recurrence-toggle   { cursor: pointer; }
+.recurrence-controls { display: flex; gap: 8px; }
+.recurrence-count    { width: 120px; }
+.recurrence-hint     { margin-top: 6px; }
