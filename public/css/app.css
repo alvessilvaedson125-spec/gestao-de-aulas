@@ -201,9 +201,6 @@ section.card {
   flex-direction: column;
   gap: 6px;
   margin-bottom: 8px;
-  position: sticky;
-  top: var(--header-h);
-  z-index: 5;
   padding: 8px 0;
 }
 .cal-head-top {
@@ -213,7 +210,17 @@ section.card {
   gap: 10px;
   flex-wrap: wrap;
 }
-.cal-head-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.cal-head-filters { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 8px;
+  align-items: center;
+}
+.cal-head-filters select.btn,
+.cal-head-filters .btn {
+  width: auto;
+  flex: 0 0 auto;
+}
 .cal-head-meta    { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 11px; opacity: .6; }
 .cal-head select.btn, .cal-head .btn { padding: 5px 8px; font-size: 12px; border-radius: 8px; }
 .cal-nav         { display: flex; align-items: center; gap: 12px; }
