@@ -420,30 +420,35 @@
 
     <div class="footer" id="kpiExtra">* Receita considera apenas aulas com status "Realizada".</div>
   </section>
+<!-- ==================== CAIXA ==================== -->
+<section id="caixa" class="section card">
+  <h2>Caixa</h2>
 
-  <!-- ==================== CAIXA ==================== -->
-  <section id="caixa" class="section card">
-    <h2>Caixa – Entradas Externas</h2>
-
-    <div class="grid2 cash-form">
-      <div><label>Data</label><input type="date" id="cashDate"></div>
-      <div><label>Valor (R$)</label><input type="text" id="cashAmount" placeholder="0,00"></div>
-      <div>
-        <label>Categoria</label>
-        <select id="cashCategory">
-          <option value="grupo">Aulas em grupo</option>
-          <option value="workshop">Workshop</option>
-          <option value="aulao">Aulão</option>
-        </select>
-      </div>
-      <div><label>Descrição</label><input type="text" id="cashDescription" placeholder="Ex: Grupo Fevereiro"></div>
+  <div class="grid2 cash-form">
+    <div>
+      <label>Tipo</label>
+      <select id="cashTipo">
+        <option value="entrada">↑ Entrada</option>
+        <option value="saida">↓ Saída</option>
+      </select>
     </div>
-
-    <div class="cash-action">
-      <button id="btnSaveCash" class="btn primary">Salvar Entrada</button>
+    <div><label>Data</label><input type="date" id="cashDate"></div>
+    <div><label>Valor (R$)</label><input type="text" id="cashAmount" placeholder="0,00"></div>
+    <div>
+      <label>Categoria</label>
+      <select id="cashCategory"></select>
     </div>
-    <div id="cashList" class="cash-list"></div>
-  </section>
+    <div class="form-field field-full">
+      <label>Descrição</label>
+      <input type="text" id="cashDescription" placeholder="Ex: Grupo Abril">
+    </div>
+  </div>
+
+  <div class="cash-action">
+    <button id="btnSaveCash" class="btn primary">Salvar Lançamento</button>
+  </div>
+  <div id="cashList" class="cash-list"></div>
+</section>
 
   <!-- ==================== GRUPO ==================== -->
 <section id="grupo" class="section card">
