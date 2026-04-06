@@ -375,3 +375,10 @@ public/js/
   - Confirmação antes de lançar
 - reportsUI.js: getCashForMonth separado por tipo entrada/saída
 - sw.js atualizado para gestao-v306
+
+## v2.32.0 — Banner de edição nos Alunos
+
+- Banner visual "✏️ Editando: Nome do Aluno" aparece ao editar um aluno
+- Formulário abre automaticamente ao clicar Editar
+- Banner escondido ao clicar Limpar ou salvar
+- CSS: student-edit-banner com destaque roxo
