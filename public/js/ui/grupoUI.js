@@ -15,21 +15,20 @@ let _ctx = {
 export function initGrupo(ctx) { _ctx = ctx; }
 
 /* ======================= Estado ======================= */
-let turmas       = [];
-let alunosGrupo  = [];
-let matriculas   = [];
-let mensalidades = [];
-let presencas    = [];
-let unsubPresencas = null;
-let editingTurmaId   = null;
-let editingAlunoId   = null;
-let currentTurmaId   = null;
-let currentMes = new Date().getMonth();
-let currentAno = new Date().getFullYear();
-let unsubTurmas      = null;
-let unsubAlunos      = null;
-let unsubMatriculas  = null;
-let unsubMensalidades= null;
+let turmas        = [];
+let alunosGrupo   = [];
+let matriculas    = [];
+let mensalidades  = [];
+let presencas     = [];
+let unsubPresencas    = null;
+let editingTurmaId    = null;
+let currentTurmaId    = null;
+let currentMes        = new Date().getMonth();
+let currentAno        = new Date().getFullYear();
+let unsubTurmas       = null;
+let unsubAlunos       = null;
+let unsubMatriculas   = null;
+let unsubMensalidades = null;
 
 /* ======================= Constantes ======================= */
 const DIAS   = ["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
@@ -40,7 +39,6 @@ const MESES  = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","A
 export function attachGrupoListeners() {
   if (!_ctx.user) return;
 
-  // Turmas
   if (unsubTurmas) unsubTurmas();
   unsubTurmas = onSnapshot(
     query(collection(_ctx.db, "turmas"), where("ownerUid","==",_ctx.user.uid), orderBy("createdAt","desc")),
@@ -48,7 +46,6 @@ export function attachGrupoListeners() {
     err => console.error("Erro listener turmas:", err)
   );
 
-  // Alunos do grupo
   if (unsubAlunos) unsubAlunos();
   unsubAlunos = onSnapshot(
     query(collection(_ctx.db, "alunosGrupo"), where("ownerUid","==",_ctx.user.uid), orderBy("name","asc")),
@@ -56,33 +53,38 @@ export function attachGrupoListeners() {
     err => console.error("Erro listener alunosGrupo:", err)
   );
 
-  // Matrículas
   if (unsubMatriculas) unsubMatriculas();
   unsubMatriculas = onSnapshot(
     query(collection(_ctx.db, "matriculas"), where("ownerUid","==",_ctx.user.uid)),
-    snap => { matriculas = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTurmas(); if (currentTurmaId) renderAlunosTurma(currentTurmaId); },
+    snap => {
+      matriculas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTurmas();
+      if (currentTurmaId) renderAlunosTurma(currentTurmaId);
+    },
     err => console.error("Erro listener matriculas:", err)
   );
 
-  // Mensalidades
   if (unsubMensalidades) unsubMensalidades();
   unsubMensalidades = onSnapshot(
     query(collection(_ctx.db, "mensalidadesGrupo"), where("ownerUid","==",_ctx.user.uid)),
-    snap => { mensalidades = snap.docs.map(d => ({ id: d.id, ...d.data() })); if (currentTurmaId) renderAlunosTurma(currentTurmaId); },
+    snap => {
+      mensalidades = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (currentTurmaId) renderAlunosTurma(currentTurmaId);
+    },
     err => console.error("Erro listener mensalidades:", err)
   );
 
   if (unsubPresencas) unsubPresencas();
-unsubPresencas = onSnapshot(
-  query(collection(_ctx.db, "presencas"), where("ownerUid","==",_ctx.user.uid)),
-  snap => { presencas = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
-  err => console.error("Erro listener presencas:", err)
-);
-
+  unsubPresencas = onSnapshot(
+    query(collection(_ctx.db, "presencas"), where("ownerUid","==",_ctx.user.uid)),
+    snap => { presencas = snap.docs.map(d => ({ id: d.id, ...d.data() })); },
+    err => console.error("Erro listener presencas:", err)
+  );
 }
 
 export function detachGrupoListeners() {
-  unsubTurmas?.(); unsubAlunos?.(); unsubMatriculas?.(); unsubMensalidades?.();unsubPresencas?.();
+  unsubTurmas?.(); unsubAlunos?.(); unsubMatriculas?.();
+  unsubMensalidades?.(); unsubPresencas?.();
 }
 
 /* ======================= Render Turmas ======================= */
@@ -91,15 +93,15 @@ function renderTurmas() {
   box.innerHTML = "";
 
   if (turmas.length === 0) {
-    box.innerHTML = `<div class="muted" style="margin-top:16px">Nenhuma turma cadastrada ainda.</div>`;
+    box.innerHTML = `<div class="muted turma-sem-dados">Nenhuma turma cadastrada ainda.</div>`;
     return;
   }
 
   for (const t of turmas) {
-const mats       = matriculas.filter(m => m.turmaId === t.id);
-const ativas     = mats.filter(m => m.status !== "trancado");
-const condutores = ativas.filter(m => ["Condutor","Condutora"].includes(m.papel)).length;
-const conduzidas = ativas.filter(m => ["Conduzido","Conduzida"].includes(m.papel)).length;
+    const mats       = matriculas.filter(m => m.turmaId === t.id);
+    const ativas     = mats.filter(m => m.status !== "trancado");
+    const condutores = ativas.filter(m => ["Condutor","Condutora"].includes(m.papel)).length;
+    const conduzidas = ativas.filter(m => ["Conduzido","Conduzida"].includes(m.papel)).length;
 
     const card = document.createElement("div");
     card.className = "turma-card";
@@ -121,16 +123,16 @@ const conduzidas = ativas.filter(m => ["Conduzido","Conduzida"].includes(m.papel
       ${t.notes ? `<div class="muted turma-notes">${t.notes}</div>` : ""}
       <div class="turma-actions">
         <button class="btn small primary" data-act="alunos">👥 Gerenciar Alunos</button>
-<button class="btn small" data-act="chamada">📋 Chamada</button>
+        <button class="btn small" data-act="chamada">📋 Chamada</button>
         <button class="btn small" data-act="edit">Editar</button>
         <button class="btn small" data-act="del">Excluir</button>
       </div>
       <div class="turma-alunos-panel" id="panel-${t.id}" style="display:none"></div>`;
 
-   card.querySelector('[data-act="alunos"]').onclick   = () => toggleAlunosPanel(t.id);
-card.querySelector('[data-act="chamada"]').onclick  = () => openChamadaModal(t.id);
-card.querySelector('[data-act="edit"]').onclick     = () => editTurma(t);
-card.querySelector('[data-act="del"]').onclick      = () => deleteTurma(t.id, t.name);
+    card.querySelector('[data-act="alunos"]').onclick  = () => toggleAlunosPanel(t.id);
+    card.querySelector('[data-act="chamada"]').onclick = () => openChamadaModal(t.id);
+    card.querySelector('[data-act="edit"]').onclick    = () => editTurma(t);
+    card.querySelector('[data-act="del"]').onclick     = () => deleteTurma(t.id, t.name);
     box.appendChild(card);
   }
 
@@ -140,7 +142,7 @@ card.querySelector('[data-act="del"]').onclick      = () => deleteTurma(t.id, t.
   }
 }
 
-/* ======================= Painel de Alunos da Turma ======================= */
+/* ======================= Painel de Alunos ======================= */
 function toggleAlunosPanel(turmaId) {
   if (currentTurmaId === turmaId) {
     currentTurmaId = null;
@@ -157,32 +159,27 @@ function toggleAlunosPanel(turmaId) {
   if (panel) { panel.style.display = "block"; renderAlunosTurma(turmaId); }
 }
 
-function getMesAno() {
-  const now = new Date();
-  return { mes: now.getMonth(), ano: now.getFullYear() };
-}
-
 function renderAlunosTurma(turmaId) {
   const panel = document.getElementById(`panel-${turmaId}`); if (!panel) return;
   const turma = turmas.find(t => t.id === turmaId);
   const mats  = matriculas.filter(m => m.turmaId === turmaId);
-  const mes = currentMes;
-const ano = currentAno;
+  const mes   = currentMes;
+  const ano   = currentAno;
+
   let html = `
     <div class="painel-header">
       <h4>Alunos — ${turma?.name || ""}</h4>
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
-  <button class="btn small" id="btnMesAnterior-${turmaId}">◀</button>
-  <span class="muted" style="min-width:120px; text-align:center">${MESES[mes]} ${ano}</span>
-  <button class="btn small" id="btnMesProximo-${turmaId}">▶</button>
-  <button class="btn small primary" id="btnMatricular-${turmaId}">+ Matricular Aluno</button>
-</div>
+      <div class="painel-mes-nav">
+        <button class="btn small" id="btnMesAnterior-${turmaId}">◀</button>
+        <span class="muted painel-mes-label">${MESES[mes]} ${ano}</span>
+        <button class="btn small" id="btnMesProximo-${turmaId}">▶</button>
+        <button class="btn small primary" id="btnMatricular-${turmaId}">+ Matricular Aluno</button>
+      </div>
     </div>`;
 
   if (mats.length === 0) {
-    html += `<div class="muted" style="margin:12px 0">Nenhum aluno matriculado nesta turma.</div>`;
+    html += `<div class="muted painel-sem-alunos">Nenhum aluno matriculado nesta turma.</div>`;
   } else {
-    // Agrupa por papel
     const grupos = [
       { label: "🕺 Condutores / Condutoras", papeis: ["Condutor","Condutora"] },
       { label: "💃 Conduzidos / Conduzidas", papeis: ["Conduzido","Conduzida"] },
@@ -200,24 +197,24 @@ const ano = currentAno;
           <div class="aluno-mat-card">
             <div class="aluno-mat-info">
               <div class="aluno-mat-nome">
-  ${aluno?.name || "(Aluno)"}
-  ${mat.status === "trancado" ? `<span class="badge warn" style="margin-left:8px">Trancado</span>` : ""}
-</div>
+                ${aluno?.name || "(Aluno)"}
+                ${mat.status === "trancado" ? `<span class="badge warn aluno-mat-badge-trancado">Trancado</span>` : ""}
+              </div>
               <div class="muted">${mat.papel} • ${mat.tipo === "bolsista" ? "Bolsista" : "Pagante"} • ${formatBRL(parseBRLToNumber(mat.mensalidade || 0))}/mês</div>
               ${aluno?.phone ? `<div class="muted">${aluno.phone}</div>` : ""}
             </div>
             <div class="aluno-mat-actions">
-  ${mat.status !== "trancado" ? `
-    <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
-      ${pago ? "✓ Pago" : "Pendente"}
-    </button>
-  ` : `<span class="badge warn">Trancado</span>`}
-  <button class="btn small" data-editmat="${mat.id}" data-alunoId="${mat.alunoId}">Editar</button>
-  <button class="btn small ${mat.status === "trancado" ? "ok-btn" : "warn-btn"}" data-trancar="${mat.id}" data-trancado="${mat.status === "trancado"}">
-    ${mat.status === "trancado" ? "↩ Reativar" : "🔒 Trancar"}
-  </button>
-  <button class="btn small" data-desmat="${mat.id}">Remover</button>
-</div>
+              ${mat.status !== "trancado" ? `
+                <button class="btn small ${pago ? "ok-btn" : "warn-btn"}" data-mens="${mat.id}" data-pago="${pago}">
+                  ${pago ? "✓ Pago" : "Pendente"}
+                </button>
+              ` : `<span class="badge warn">Trancado</span>`}
+              <button class="btn small" data-editmat="${mat.id}" data-alunoId="${mat.alunoId}">Editar</button>
+              <button class="btn small ${mat.status === "trancado" ? "ok-btn" : "warn-btn"}" data-trancar="${mat.id}" data-trancado="${mat.status === "trancado"}">
+                ${mat.status === "trancado" ? "↩ Reativar" : "🔒 Trancar"}
+              </button>
+              <button class="btn small" data-desmat="${mat.id}">Remover</button>
+            </div>
           </div>`;
       }
     }
@@ -226,35 +223,27 @@ const ano = currentAno;
   panel.innerHTML = html;
 
   document.getElementById(`btnMatricular-${turmaId}`)?.addEventListener("click", () => openMatricularModal(turmaId));
-
-
-document.getElementById(`btnMesAnterior-${turmaId}`)?.addEventListener("click", () => {
-  if (currentMes === 0) { currentMes = 11; currentAno--; }
-  else { currentMes--; }
-  renderAlunosTurma(turmaId);
-});
-
-document.getElementById(`btnMesProximo-${turmaId}`)?.addEventListener("click", () => {
-  if (currentMes === 11) { currentMes = 0; currentAno++; }
-  else { currentMes++; }
-  renderAlunosTurma(turmaId);
-});
+  document.getElementById(`btnMesAnterior-${turmaId}`)?.addEventListener("click", () => {
+    if (currentMes === 0) { currentMes = 11; currentAno--; } else { currentMes--; }
+    renderAlunosTurma(turmaId);
+  });
+  document.getElementById(`btnMesProximo-${turmaId}`)?.addEventListener("click", () => {
+    if (currentMes === 11) { currentMes = 0; currentAno++; } else { currentMes++; }
+    renderAlunosTurma(turmaId);
+  });
 
   panel.querySelectorAll("[data-mens]").forEach(btn => {
     btn.addEventListener("click", () => toggleMensalidade(btn.dataset.mens, btn.dataset.pago === "true", mes, ano));
   });
-
   panel.querySelectorAll("[data-desmat]").forEach(btn => {
     btn.addEventListener("click", () => desmatricular(btn.dataset.desmat));
   });
-
   panel.querySelectorAll("[data-trancar]").forEach(btn => {
     btn.addEventListener("click", () => trancarMatricula(btn.dataset.trancar, btn.dataset.trancado === "true"));
   });
-
   panel.querySelectorAll("[data-editmat]").forEach(btn => {
-  btn.addEventListener("click", () => openEditAlunoModal(btn.dataset.editmat, btn.dataset.alunoid));
-});
+    btn.addEventListener("click", () => openEditAlunoModal(btn.dataset.editmat, btn.dataset.alunoid));
+  });
 }
 
 /* ======================= Mensalidade ======================= */
@@ -297,20 +286,18 @@ function openMatricularModal(turmaId) {
   const alunosOpts = alunosGrupo.map(a => `<option value="${a.id}">${a.name}</option>`).join("");
 
   modal.innerHTML = `
-    <div class="box" style="max-width:560px">
+    <div class="box modal-box-md">
       <div class="modal-title-row">
         <h3>Matricular em — ${turma?.name || ""}</h3>
         <button class="btn small" id="btnCloseMatricular">✕</button>
       </div>
-
-      <div style="margin-bottom:16px">
-        <label style="font-weight:600">Aluno existente ou novo?</label>
-        <div style="display:flex; gap:8px; margin-top:8px">
+      <div class="modal-aluno-toggle">
+        <label>Aluno existente ou novo?</label>
+        <div class="modal-aluno-btns">
           <button class="btn small" id="btnUseExisting">Aluno existente</button>
           <button class="btn small primary" id="btnUseNew">+ Cadastrar novo</button>
         </div>
       </div>
-
       <div id="existingWrap">
         <label>Selecione o aluno</label>
         <select id="matAlunoSelect">
@@ -318,7 +305,6 @@ function openMatricularModal(turmaId) {
           ${alunosOpts}
         </select>
       </div>
-
       <div id="newAlunoWrap" style="display:none">
         <div class="grid2">
           <div><label>Nome</label><input id="newAlunoName" placeholder="Nome completo"></div>
@@ -326,8 +312,7 @@ function openMatricularModal(turmaId) {
         </div>
         <div><label>E-mail</label><input id="newAlunoEmail" placeholder="email@exemplo.com"></div>
       </div>
-
-      <div class="grid2" style="margin-top:12px">
+      <div class="grid2 modal-field-mt">
         <div>
           <label>Papel</label>
           <select id="matPapel">
@@ -342,14 +327,12 @@ function openMatricularModal(turmaId) {
           </select>
         </div>
       </div>
-
-      <div style="margin-top:12px">
+      <div class="modal-field-mt">
         <label>Mensalidade individual (R$)</label>
         <input id="matMensalidade" type="text" placeholder="${turma?.mensalidade || '0,00'}" value="${turma?.mensalidade || ''}">
-        <div class="muted" style="margin-top:4px">Deixe vazio para usar o valor padrão da turma</div>
+        <div class="muted modal-hint">Deixe vazio para usar o valor padrão da turma</div>
       </div>
-
-      <div class="actions" style="margin-top:16px">
+      <div class="actions modal-actions-mt">
         <button class="btn primary" id="btnConfirmarMatricula">Confirmar Matrícula</button>
       </div>
     </div>`;
@@ -369,7 +352,6 @@ function openMatricularModal(turmaId) {
   };
   document.getElementById("btnCloseMatricular").onclick = () => modal.remove();
   modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
-
   document.getElementById("btnConfirmarMatricula").onclick = () => confirmarMatricula(turmaId, turma, useNew, modal);
 }
 
@@ -377,7 +359,6 @@ async function confirmarMatricula(turmaId, turma, useNew, modal) {
   const papel       = document.getElementById("matPapel")?.value;
   const tipo        = document.getElementById("matTipo")?.value;
   const mensalidade = document.getElementById("matMensalidade")?.value || turma?.mensalidade || "0";
-
   let alunoId = null;
 
   try {
@@ -388,7 +369,7 @@ async function confirmarMatricula(turmaId, turma, useNew, modal) {
       if (!name) { showAlert("Informe o nome do aluno.", "error"); return; }
       const ref = await addDoc(collection(_ctx.db, "alunosGrupo"), {
         name, phone, email,
-        ownerUid:  _ctx.user?.uid || "dev",
+        ownerUid: _ctx.user?.uid || "dev",
         createdAt: serverTimestamp(), updatedAt: serverTimestamp()
       });
       alunoId = ref.id;
@@ -397,13 +378,12 @@ async function confirmarMatricula(turmaId, turma, useNew, modal) {
       if (!alunoId) { showAlert("Selecione um aluno.", "error"); return; }
     }
 
-    // Verifica se já matriculado
     const jaMatriculado = matriculas.find(m => m.turmaId === turmaId && m.alunoId === alunoId);
     if (jaMatriculado) { showAlert("Aluno já matriculado nesta turma.", "error"); return; }
 
     await addDoc(collection(_ctx.db, "matriculas"), {
       turmaId, alunoId, papel, tipo, mensalidade,
-      ownerUid:  _ctx.user?.uid || "dev",
+      ownerUid: _ctx.user?.uid || "dev",
       createdAt: serverTimestamp(), updatedAt: serverTimestamp()
     });
 
@@ -504,6 +484,7 @@ function clearTurmaForm() {
   editingTurmaId = null;
 }
 
+/* ======================= Modal Editar Aluno ======================= */
 function openEditAlunoModal(matriculaId, alunoId) {
   const aluno = alunosGrupo.find(a => a.id === alunoId);
   const mat   = matriculas.find(m => m.id === matriculaId);
@@ -518,7 +499,7 @@ function openEditAlunoModal(matriculaId, alunoId) {
   modal.style.display = "flex";
 
   modal.innerHTML = `
-    <div class="box" style="max-width:560px">
+    <div class="box modal-box-md">
       <div class="modal-title-row">
         <h3>Editar Aluno — ${aluno.name}</h3>
         <button class="btn small" id="btnCloseEditAluno">✕</button>
@@ -528,7 +509,7 @@ function openEditAlunoModal(matriculaId, alunoId) {
         <div><label>Telefone</label><input id="editAlunoPhone" value="${aluno.phone || ""}"></div>
       </div>
       <div><label>E-mail</label><input id="editAlunoEmail" value="${aluno.email || ""}"></div>
-      <div class="grid2" style="margin-top:12px">
+      <div class="grid2 modal-field-mt">
         <div>
           <label>Papel</label>
           <select id="editMatPapel">
@@ -543,11 +524,11 @@ function openEditAlunoModal(matriculaId, alunoId) {
           </select>
         </div>
       </div>
-      <div style="margin-top:12px">
+      <div class="modal-field-mt">
         <label>Mensalidade individual (R$)</label>
         <input id="editMatMensalidade" value="${mat.mensalidade || ""}">
       </div>
-      <div class="actions" style="margin-top:16px">
+      <div class="actions modal-actions-mt">
         <button class="btn primary" id="btnSaveEditAluno">Salvar</button>
       </div>
     </div>`;
@@ -558,7 +539,7 @@ function openEditAlunoModal(matriculaId, alunoId) {
   modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
 
   document.getElementById("btnSaveEditAluno").onclick = async () => {
-    const name  = document.getElementById("editAlunoName")?.value.trim();
+    const name = document.getElementById("editAlunoName")?.value.trim();
     if (!name) { showAlert("Informe o nome.", "error"); return; }
     try {
       await updateDoc(doc(_ctx.db, "alunosGrupo", alunoId), {
@@ -584,9 +565,9 @@ function openEditAlunoModal(matriculaId, alunoId) {
 
 /* ======================= Chamada ======================= */
 function getProximaSexta() {
-  const hoje = new Date();
-  const dia  = hoje.getDay();
-  const diff = dia <= 5 ? 5 - dia : 6;
+  const hoje  = new Date();
+  const dia   = hoje.getDay();
+  const diff  = dia <= 5 ? 5 - dia : 6;
   const sexta = new Date(hoje);
   sexta.setDate(hoje.getDate() + (dia === 5 ? 0 : diff));
   return sexta.toISOString().slice(0, 10);
@@ -607,23 +588,20 @@ function openChamadaModal(turmaId) {
   const dataDefault = getProximaSexta();
 
   modal.innerHTML = `
-    <div class="box" style="max-width:640px">
+    <div class="box modal-box-lg">
       <div class="modal-title-row">
         <h3>Chamada — ${turma?.name || ""}</h3>
         <button class="btn small" id="btnCloseChamada">✕</button>
       </div>
-
-      <div style="display:flex; gap:12px; align-items:flex-end; margin-bottom:16px; flex-wrap:wrap">
-        <div style="flex:1">
+      <div class="chamada-data-row">
+        <div class="chamada-data-wrap">
           <label>Data da Aula</label>
           <input type="date" id="chamadaData" value="${dataDefault}">
         </div>
         <button class="btn small" id="btnCarregarChamada">Carregar / Nova</button>
       </div>
-
       <div id="chamadaLista"></div>
-
-      <div class="actions" style="margin-top:16px">
+      <div class="actions modal-actions-mt">
         <button class="btn primary" id="btnSalvarChamada">Salvar Chamada</button>
       </div>
     </div>`;
@@ -633,15 +611,12 @@ function openChamadaModal(turmaId) {
   document.getElementById("btnCloseChamada").onclick = () => modal.remove();
   modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
 
-  // Estado temporário da chamada
   let chamadaState = {};
   mats.forEach(m => { chamadaState[m.id] = "presente"; });
 
   function renderChamadaLista(data) {
-    const lista = document.getElementById("chamadaLista");
-    if (!lista) return;
+    const lista = document.getElementById("chamadaLista"); if (!lista) return;
 
-    // Verifica se já existe chamada salva para esta data
     const existentes = presencas.filter(p => p.turmaId === turmaId && p.data === data);
     if (existentes.length > 0) {
       existentes.forEach(p => { chamadaState[p.matriculaId] = p.status; });
@@ -664,9 +639,9 @@ function openChamadaModal(turmaId) {
           <div class="chamada-row">
             <div class="chamada-nome">${aluno?.name || "(Aluno)"}</div>
             <div class="chamada-btns">
-              <button class="btn small chamada-opt ${status === "presente"   ? "chamada-presente"   : ""}" data-mat="${mat.id}" data-val="presente">✓ Presente</button>
-              <button class="btn small chamada-opt ${status === "ausente"    ? "chamada-ausente"    : ""}" data-mat="${mat.id}" data-val="ausente">✗ Ausente</button>
-              <button class="btn small chamada-opt ${status === "justificado"? "chamada-justificado": ""}" data-mat="${mat.id}" data-val="justificado">~ Justificado</button>
+              <button class="btn small chamada-opt ${status === "presente"    ? "chamada-presente"    : ""}" data-mat="${mat.id}" data-val="presente">✓ Presente</button>
+              <button class="btn small chamada-opt ${status === "ausente"     ? "chamada-ausente"     : ""}" data-mat="${mat.id}" data-val="ausente">✗ Ausente</button>
+              <button class="btn small chamada-opt ${status === "justificado" ? "chamada-justificado" : ""}" data-mat="${mat.id}" data-val="justificado">~ Justificado</button>
             </div>
           </div>`;
       }
@@ -706,7 +681,7 @@ function openChamadaModal(turmaId) {
         } else {
           await addDoc(collection(_ctx.db, "presencas"), {
             turmaId, matriculaId, data, status,
-            ownerUid:  _ctx.user?.uid || "dev",
+            ownerUid: _ctx.user?.uid || "dev",
             createdAt: serverTimestamp(), updatedAt: serverTimestamp()
           });
         }
@@ -720,6 +695,7 @@ function openChamadaModal(turmaId) {
   };
 }
 
+/* ======================= Trancar Matrícula ======================= */
 async function trancarMatricula(matriculaId, isTrancado) {
   const novoStatus = isTrancado ? "ativo" : "trancado";
   const msg = isTrancado

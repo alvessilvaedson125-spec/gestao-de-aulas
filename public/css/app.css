@@ -809,3 +809,20 @@ body.modal-open { overflow: hidden; }
   background: var(--line);
   animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
+
+/* ==================== GRUPO — CLASSES DE MODAIS ==================== */
+.modal-box-md       { max-width: 560px; }
+.modal-box-lg       { max-width: 640px; }
+.modal-aluno-toggle { margin-bottom: 16px; }
+.modal-aluno-toggle label { font-weight: 600; }
+.modal-aluno-btns   { display: flex; gap: 8px; margin-top: 8px; }
+.modal-hint         { margin-top: 4px; }
+.modal-field-mt     { margin-top: 12px; }
+.modal-actions-mt   { margin-top: 16px; }
+.painel-mes-nav     { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.painel-mes-label   { min-width: 120px; text-align: center; }
+.chamada-data-row   { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; flex-wrap: wrap; }
+.chamada-data-wrap  { flex: 1; }
+.aluno-mat-badge-trancado { margin-left: 8px; }
+.turma-sem-dados    { margin-top: 16px; }
+.painel-sem-alunos  { margin: 12px 0; }
