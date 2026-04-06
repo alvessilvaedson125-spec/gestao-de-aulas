@@ -933,3 +933,15 @@ body.modal-open { overflow: hidden; }
 .kpi-hero { border-color: var(--brand) !important; }
 .grupo-adim-pct { font-size: 11px; margin-top: 4px; }
 .grupo-por-turma { margin-top: 16px; }
+
+/* ==================== ALUNOS — BANNER EDIÇÃO ==================== */
+.student-edit-banner {
+  background: rgba(122,108,255,.15);
+  border: 1px solid rgba(122,108,255,.4);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  margin-top: 12px;
+  font-size: 14px;
+}

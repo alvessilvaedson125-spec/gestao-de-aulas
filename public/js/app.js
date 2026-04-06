@@ -214,7 +214,20 @@ initStudents({
     $("studentPackageEnd").value   = s.packageEnd || "";
     $("studentTotalLessons").value = s.totalLessons ?? 0;
     $("studentNotes").value        = s.notes || "";
-    showAlert("Modo edição: " + (s.name || ""));
+
+    // Abre o formulário
+    const formWrap = document.getElementById("studentFormWrap");
+    formWrap?.classList.add("form-open");
+    formWrap?.classList.remove("form-collapsed");
+    $("btnToggleStudentForm").textContent = "Fechar";
+
+    // Banner de edição
+    const banner = document.getElementById("studentEditBanner");
+    if (banner) {
+      banner.textContent = `✏️ Editando: ${s.name || "(sem nome)"}`;
+      banner.style.display = "block";
+    }
+
     window.scrollTo({ top: $("alunos").offsetTop - 60, behavior: "smooth" });
   }
 });
@@ -419,6 +432,14 @@ function clearStudentForm() {
   ["studentName","studentPhone","studentEmail","studentPackageStart","studentPackageEnd","studentTotalLessons","studentNotes"].forEach(id => $(id).value = "");
   $("studentActive").value = "true";
   editingStudentId = null;
+
+  // Esconde banner e fecha formulário
+  const banner = document.getElementById("studentEditBanner");
+  if (banner) banner.style.display = "none";
+  const formWrap = document.getElementById("studentFormWrap");
+  formWrap?.classList.remove("form-open");
+  formWrap?.classList.add("form-collapsed");
+  $("btnToggleStudentForm").textContent = "+ Novo Aluno";
 }
 
 /* ======================= Selects compartilhados ======================= */
