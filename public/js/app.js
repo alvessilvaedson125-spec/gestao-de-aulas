@@ -274,7 +274,9 @@ initReports({
   get cashEntries()  { return cashEntries; },
   get turmas()       { return turmas; },
   get matriculas()   { return matriculas; },
-  get mensalidades() { return mensalidades; }
+  get mensalidades() { return mensalidades; },
+  get db()           { return db; },
+  get user()         { return user; }
 });
 
 $("repYear").onchange    = () => { renderDashboard(updateMoneyButton); renderGrupoKPIs(); };

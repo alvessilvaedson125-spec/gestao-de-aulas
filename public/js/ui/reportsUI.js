@@ -9,6 +9,12 @@ import {
   calculateRevenueConcentration
 } from "../services/reportService.js";
 
+import {
+  collection, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+import { showAlert } from "./helpers.js";
+
 /* ======================= Contexto injetado ======================= */
 let _ctx = {
   get lessons()      { return []; },
@@ -17,6 +23,8 @@ let _ctx = {
   get turmas()       { return []; },
   get matriculas()   { return []; },
   get mensalidades() { return []; },
+  get db()           { return null; },
+  get user()         { return null; },
 };
 
 export function initReports(ctx) { _ctx = ctx; }
@@ -186,6 +194,8 @@ export function renderRepStudent() {
   const stu    = (_ctx.students || []).find(s => String(s.id) === id);
   const report = calculateYearlyStudentReport(_ctx.lessons || [], id, year, parseISODateLocal, parseBRLToNumber);
   box.innerHTML = `<h3>${stu?.name?.trim()||"(sem nome)"}</h3><p>Total de aulas realizadas: <b>${report.lessons.length}</b></p><p>Investimento no ano: <b>${brl(report.total)}</b></p>`;
+
+
 }
 
 export function initRepStudentArea() {
@@ -423,6 +433,7 @@ export function renderGrupoKPIs() {
   box.innerHTML = `
     <div class="grupo-kpi-header">
       <h3>🎭 Grupo — ${MESES_LONGO[m]} ${y}</h3>
+      <button class="btn small primary" id="btnLancarGrupoCaixa">💰 Lançar no Caixa</button>
     </div>
     <div class="grupo-kpi-grid">
       <div class="cardx kpi-card">
@@ -459,4 +470,38 @@ export function renderGrupoKPIs() {
         <div class="grupo-papel-label">Por turma</div>
         ${turmasHTML}
       </div>` : ""}`;
+
+      document.getElementById("btnLancarGrupoCaixa")?.addEventListener("click", () => {
+  lancarGrupoNoCaixa(m, y, receitaRealizada, matriculas, mensalidades);
+});
+}
+
+/* ======================= Lançar grupo no Caixa ======================= */
+async function lancarGrupoNoCaixa(m, y, receitaRealizada, matriculas, mensalidades) {
+  if (receitaRealizada <= 0) {
+    showAlert("Nenhuma mensalidade paga neste mês para lançar.", "error");
+    return;
+  }
+
+  const mesLabel = MESES_LONGO[m];
+  const descricao = `Mensalidades grupo — ${mesLabel} ${y}`;
+
+  if (!confirm(`Lançar ${formatBRL(receitaRealizada)} no Caixa como entrada?\n\n"${descricao}"\n\nIsso criará uma entrada no Caixa. Confirma?`)) return;
+
+  try {
+    const colCash = collection(_ctx.db, "caixa");
+    await addDoc(colCash, {
+      tipo:      "entrada",
+      data:      new Date(y, m, 1),
+      valor:     receitaRealizada,
+      categoria: "grupo",
+      descricao,
+      criadoEm:  serverTimestamp(),
+      ownerUid:  _ctx.user?.uid || "dev"
+    });
+    showAlert(`${formatBRL(receitaRealizada)} lançado no Caixa com sucesso.`);
+  } catch (err) {
+    console.error(err);
+    showAlert("Erro ao lançar no Caixa.", "error");
+  }
 }

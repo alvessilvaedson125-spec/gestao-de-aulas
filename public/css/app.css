@@ -731,7 +731,7 @@ body.modal-open { overflow: hidden; }
 
 /* ==================== RELATÓRIOS — BLOCO GRUPO ==================== */
 .grupo-kpi-wrap    { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
-.grupo-kpi-header  { margin-bottom: 16px; }
+.grupo-kpi-header  { margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .grupo-kpi-grid    { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 .grupo-turma-row   { padding: 12px; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); margin-bottom: 8px; }
 .grupo-turma-nome  { font-weight: 600; margin-bottom: 6px; }
