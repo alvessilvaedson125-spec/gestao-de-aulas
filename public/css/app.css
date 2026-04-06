@@ -878,3 +878,42 @@ body.modal-open { overflow: hidden; }
   gap: 8px;
   margin-bottom: 16px;
 }
+
+/* ==================== GRUPO — HISTÓRICO DE CHAMADAS ==================== */
+.historico-lista { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; }
+
+.historico-chamada-card {
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  overflow: hidden;
+}
+
+.historico-chamada-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.historico-chamada-header:hover { background: rgba(122,108,255,.08); }
+
+.historico-chamada-data   { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.historico-chamada-resumo { display: flex; gap: 10px; flex-wrap: wrap; }
+.historico-toggle         { font-size: 12px; color: var(--muted); }
+
+.chamada-presente-badge { color: var(--ok);     font-size: 12px; font-weight: 600; }
+.chamada-ausente-badge  { color: var(--danger); font-size: 12px; font-weight: 600; }
+.chamada-just-badge     { color: var(--warn);   font-size: 12px; font-weight: 600; }
+
+.historico-detalhe { padding: 8px 14px 12px; border-top: 1px solid var(--line); }
+.historico-detalhe-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 13px;
+}
+.historico-detalhe-row:last-child { border-bottom: none; }

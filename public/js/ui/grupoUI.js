@@ -122,17 +122,19 @@ function renderTurmas() {
       </div>
       ${t.notes ? `<div class="muted turma-notes">${t.notes}</div>` : ""}
       <div class="turma-actions">
-        <button class="btn small primary" data-act="alunos">👥 Gerenciar Alunos</button>
-        <button class="btn small" data-act="chamada">📋 Chamada</button>
-        <button class="btn small" data-act="edit">Editar</button>
-        <button class="btn small" data-act="del">Excluir</button>
-      </div>
+  <button class="btn small primary" data-act="alunos">👥 Gerenciar Alunos</button>
+  <button class="btn small" data-act="chamada">📋 Chamada</button>
+  <button class="btn small" data-act="historico">📅 Histórico</button>
+  <button class="btn small" data-act="edit">Editar</button>
+  <button class="btn small" data-act="del">Excluir</button>
+</div>
       <div class="turma-alunos-panel" id="panel-${t.id}" style="display:none"></div>`;
 
-    card.querySelector('[data-act="alunos"]').onclick  = () => toggleAlunosPanel(t.id);
-    card.querySelector('[data-act="chamada"]').onclick = () => openChamadaModal(t.id);
-    card.querySelector('[data-act="edit"]').onclick    = () => editTurma(t);
-    card.querySelector('[data-act="del"]').onclick     = () => deleteTurma(t.id, t.name);
+    card.querySelector('[data-act="alunos"]').onclick   = () => toggleAlunosPanel(t.id);
+card.querySelector('[data-act="chamada"]').onclick  = () => openChamadaModal(t.id);
+card.querySelector('[data-act="historico"]').onclick= () => openHistoricoChamadas(t.id);
+card.querySelector('[data-act="edit"]').onclick     = () => editTurma(t);
+card.querySelector('[data-act="del"]').onclick      = () => deleteTurma(t.id, t.name);
     box.appendChild(card);
   }
 
@@ -711,4 +713,100 @@ async function trancarMatricula(matriculaId, isTrancado) {
     console.error(err);
     showAlert("Erro ao atualizar matrícula.", "error");
   }
+}
+
+/* ======================= Histórico de Chamadas ======================= */
+function openHistoricoChamadas(turmaId) {
+  const turma = turmas.find(t => t.id === turmaId);
+  const existing = document.getElementById("historicoChamadasModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "historicoChamadasModal";
+  modal.className = "modal";
+  modal.style.display = "flex";
+
+  // Agrupa presenças por data
+  const presencasTurma = presencas.filter(p => p.turmaId === turmaId);
+  const porData = new Map();
+  for (const p of presencasTurma) {
+    if (!porData.has(p.data)) porData.set(p.data, []);
+    porData.get(p.data).push(p);
+  }
+
+  // Ordena datas decrescente
+  const datas = [...porData.keys()].sort((a, b) => b.localeCompare(a));
+
+  let historicoHTML = "";
+  if (datas.length === 0) {
+    historicoHTML = `<div class="muted">Nenhuma chamada registrada ainda.</div>`;
+  } else {
+    for (const data of datas) {
+      const registros   = porData.get(data);
+      const presentes   = registros.filter(p => p.status === "presente").length;
+      const ausentes    = registros.filter(p => p.status === "ausente").length;
+      const justificados= registros.filter(p => p.status === "justificado").length;
+      const dataFmt     = new Date(data + "T12:00:00").toLocaleDateString("pt-BR");
+      const detalheId   = `detalhe-${data.replace(/-/g,"")}-${turmaId}`;
+
+      let detalheHTML = "";
+      for (const reg of registros) {
+        const aluno = alunosGrupo.find(a => {
+          const mat = matriculas.find(m => m.id === reg.matriculaId);
+          return mat && a.id === mat.alunoId;
+        });
+        const nome = aluno?.name || "(Aluno)";
+        const cls  = reg.status === "presente" ? "chamada-presente" : reg.status === "ausente" ? "chamada-ausente" : "chamada-justificado";
+        const icon = reg.status === "presente" ? "✓" : reg.status === "ausente" ? "✗" : "~";
+        detalheHTML += `
+          <div class="historico-detalhe-row">
+            <span>${nome}</span>
+            <span class="btn small chamada-opt ${cls}">${icon} ${reg.status.charAt(0).toUpperCase() + reg.status.slice(1)}</span>
+          </div>`;
+      }
+
+      historicoHTML += `
+        <div class="historico-chamada-card">
+          <div class="historico-chamada-header" data-toggle="${detalheId}">
+            <div>
+              <div class="historico-chamada-data">${dataFmt}</div>
+              <div class="historico-chamada-resumo">
+                <span class="chamada-presente-badge">✓ ${presentes} presentes</span>
+                ${ausentes > 0 ? `<span class="chamada-ausente-badge">✗ ${ausentes} ausentes</span>` : ""}
+                ${justificados > 0 ? `<span class="chamada-just-badge">~ ${justificados} justificados</span>` : ""}
+              </div>
+            </div>
+            <span class="historico-toggle">▼</span>
+          </div>
+          <div class="historico-detalhe" id="${detalheId}" style="display:none">
+            ${detalheHTML}
+          </div>
+        </div>`;
+    }
+  }
+
+  modal.innerHTML = `
+    <div class="box modal-box-lg">
+      <div class="modal-title-row">
+        <h3>📅 Histórico de Chamadas — ${turma?.name || ""}</h3>
+        <button class="btn small" id="btnCloseHistorico">✕</button>
+      </div>
+      <div class="historico-lista">${historicoHTML}</div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  document.getElementById("btnCloseHistorico").onclick = () => modal.remove();
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+
+  modal.querySelectorAll("[data-toggle]").forEach(header => {
+    header.addEventListener("click", () => {
+      const detalhe = document.getElementById(header.dataset.toggle);
+      const toggle  = header.querySelector(".historico-toggle");
+      if (!detalhe) return;
+      const isOpen = detalhe.style.display === "block";
+      detalhe.style.display = isOpen ? "none" : "block";
+      if (toggle) toggle.textContent = isOpen ? "▼" : "▲";
+    });
+  });
 }
