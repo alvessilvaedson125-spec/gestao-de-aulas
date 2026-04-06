@@ -19,23 +19,27 @@ let _ctx = {
   get mensalidades() { return []; },
 };
 
-export function initReports(ctx) {
-  _ctx = ctx;
-}
+export function initReports(ctx) { _ctx = ctx; }
 
 /* ======================= Helpers ======================= */
+const MESES_CURTO = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const MESES_LONGO = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
 function brl(v) { return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v || 0)); }
-function _repYear() { const el = document.getElementById("repYear"); return Number(el && el.value) || new Date().getFullYear(); }
+function _repYear()  { const el = document.getElementById("repYear");  return Number(el && el.value) || new Date().getFullYear(); }
 function _repMonth() { const el = document.getElementById("repMonth"); return Number(el && el.value !== "" ? el.value : new Date().getMonth()); }
 
-function calculateCashRevenueForMonth(year, month) {
+function getCashForMonth(year, month, tipo = null) {
   const cashEntries = _ctx.cashEntries;
-  if (!cashEntries || !cashEntries.length) return 0;
+  if (!cashEntries?.length) return 0;
   return cashEntries
     .filter(e => {
-      if (!e || !e.data) return false;
+      if (!e?.data) return false;
       const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
-      return d.getFullYear() === year && d.getMonth() === month;
+      if (d.getFullYear() !== year || d.getMonth() !== month) return false;
+      if (tipo === "entrada") return e.tipo !== "saida";
+      if (tipo === "saida")   return e.tipo === "saida";
+      return true;
     })
     .reduce((acc, e) => acc + Number(e.valor || 0), 0);
 }
@@ -44,18 +48,16 @@ function calculateCashRevenueForMonth(year, month) {
 export function setupReportMonthFilter() {
   const sel    = document.getElementById("repMonth");
   const yearSel= document.getElementById("repYear");
-  if (!sel) return;
-  if (sel.dataset._filled === "1") return;
-  const meses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  if (!sel || sel.dataset._filled === "1") return;
   sel.innerHTML = "";
   for (let i = 0; i < 12; i++) {
-    const o = document.createElement("option"); o.value = String(i); o.textContent = meses[i]; sel.appendChild(o);
+    const o = document.createElement("option"); o.value = String(i); o.textContent = MESES_CURTO[i]; sel.appendChild(o);
   }
   sel.value = String(new Date().getMonth());
   if (yearSel) yearSel.value = String(new Date().getFullYear());
   sel.dataset._filled = "1";
-  if (sel.dataset._bound !== "1") { sel.addEventListener("change", renderReportMonthKPIs); sel.dataset._bound = "1"; }
-  if (yearSel && yearSel.dataset._repYearBound !== "1") { yearSel.addEventListener("change", renderReportMonthKPIs); yearSel.dataset._repYearBound = "1"; }
+  if (sel.dataset._bound !== "1")          { sel.addEventListener("change", renderReportMonthKPIs); sel.dataset._bound = "1"; }
+  if (yearSel?.dataset._repYearBound !== "1") { yearSel.addEventListener("change", renderReportMonthKPIs); yearSel.dataset._repYearBound = "1"; }
 }
 
 export function initReportMonthPatch() {
@@ -71,31 +73,31 @@ export function renderReportMonthKPIs() {
   if (!Array.isArray(lessons)) return;
 
   const arr = lessons.filter(l => {
-    if (!l || !l.date) return false;
+    if (!l?.date) return false;
     const d = parseISODateLocal(l.date);
-    if (!(d instanceof Date) || isNaN(d)) return false;
-    return d.getFullYear() === y && d.getMonth() === m;
+    return d instanceof Date && !isNaN(d) && d.getFullYear() === y && d.getMonth() === m;
   });
 
-  const monthCount    = arr.length;
-  const lessonRevenue = calculateRealizedRevenueForLessons(arr, parseBRLToNumber);
-  const cashRevenue   = calculateCashRevenueForMonth(y, m);
-  const monthRevTotal = lessonRevenue + cashRevenue;
-
-  const paidCount    = arr.filter(l => String(l.status) === "2").length;
-  const monthAvg     = paidCount > 0 ? monthRevTotal / paidCount : 0;
-  const activeCount  = Number(document.getElementById("kpiActiveStudents")?.textContent || 0);
-  const revPerActive = activeCount > 0 ? monthRevTotal / activeCount : 0;
+  const monthCount      = arr.length;
+  const lessonRevenue   = calculateRealizedRevenueForLessons(arr, parseBRLToNumber);
+  const cashEntradas    = getCashForMonth(y, m, "entrada");
+  const cashSaidas      = getCashForMonth(y, m, "saida");
+  const receitaBruta    = lessonRevenue + cashEntradas;
+  const receitaLiquida  = receitaBruta - cashSaidas;
+  const paidCount       = arr.filter(l => String(l.status) === "2").length;
+  const monthAvg        = paidCount > 0 ? receitaBruta / paidCount : 0;
+  const activeCount     = Number(document.getElementById("kpiActiveStudents")?.textContent || 0);
+  const revPerActive    = activeCount > 0 ? receitaBruta / activeCount : 0;
   const forecastRevenue = arr.filter(l => ["0","1","2"].includes(String(l.status))).reduce((acc, l) => acc + parseBRLToNumber(l.price), 0);
 
   let prevMonth = m - 1, prevYear = y;
   if (prevMonth < 0) { prevMonth = 11; prevYear = y - 1; }
   const prevLessons   = lessons.filter(l => { if (!l?.date) return false; const d = parseISODateLocal(l.date); return d.getFullYear() === prevYear && d.getMonth() === prevMonth && String(l.status) === "2"; });
   const prevLessonRev = prevLessons.reduce((acc, l) => acc + parseBRLToNumber(l.price), 0);
-  const prevCashRev   = calculateCashRevenueForMonth(prevYear, prevMonth);
+  const prevCashRev   = getCashForMonth(prevYear, prevMonth, "entrada");
   const prevTotal     = prevLessonRev + prevCashRev;
-  const growth        = prevTotal > 0 ? ((monthRevTotal - prevTotal) / prevTotal) * 100 : 0;
-  const absDiff       = monthRevTotal - prevTotal;
+  const growth        = prevTotal > 0 ? ((receitaBruta - prevTotal) / prevTotal) * 100 : 0;
+  const absDiff       = receitaBruta - prevTotal;
 
   const today = new Date(); today.setHours(0,0,0,0);
   const todayArr     = lessons.filter(l => { const d = parseISODateLocal(l.date); d.setHours(0,0,0,0); return d.getTime() === today.getTime(); });
@@ -108,7 +110,9 @@ export function renderReportMonthKPIs() {
 
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set("kpiMonth",         String(monthCount));
-  set("kpiMonthRev",      formatBRL(monthRevTotal));
+  set("kpiMonthRev",      formatBRL(receitaBruta));
+  set("kpiMonthLiquido",  formatBRL(receitaLiquida));
+  set("kpiMonthSaidas",   formatBRL(cashSaidas));
   set("kpiMonthForecast", formatBRL(forecastRevenue));
   set("kpiMonthPaid",     String(paidCount));
   set("kpiMonthAvg",      formatBRL(monthAvg));
@@ -118,9 +122,12 @@ export function renderReportMonthKPIs() {
   set("avgPerStudent",    formatBRL(avgYear));
 
   const elRef = document.getElementById("kpiMonthGrowthRef");
-  if (elRef) {
-    const mn = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-    elRef.textContent = `vs ${mn[prevMonth]} ${prevYear} (${absDiff > 0 ? "+" : ""}${formatBRL(absDiff)})`;
+  if (elRef) elRef.textContent = `vs ${MESES_CURTO[prevMonth]} ${prevYear} (${absDiff > 0 ? "+" : ""}${formatBRL(absDiff)})`;
+
+  // Atualiza classe do crescimento
+  const elGrowth = document.getElementById("kpiMonthGrowth");
+  if (elGrowth) {
+    elGrowth.className = "n " + (growth > 0 ? "kpi-up" : growth < 0 ? "kpi-down" : "kpi-neutral");
   }
 }
 
@@ -188,8 +195,10 @@ export function initRepStudentArea() {
 
 /* ======================= Dashboard anual ======================= */
 let rankingExpanded = false;
-let _barsY = Array(12).fill(0);
-let _barsC = Array(12).fill(0);
+let _barsParticulares = Array(12).fill(0);
+let _barsCaixaEntradas = Array(12).fill(0);
+let _barsCaixaSaidas   = Array(12).fill(0);
+let _barsCompare      = Array(12).fill(0);
 let _chartCtx = null;
 
 export function renderDashboard(updateMoneyButton) {
@@ -205,26 +214,40 @@ export function renderDashboard(updateMoneyButton) {
   if ($("cmpYear"))   $("cmpYear").textContent   = String(cy);
   if ($("barsYear"))  $("barsYear").textContent  = String(y);
 
-  _barsY = Array(12).fill(0); _barsC = Array(12).fill(0);
+  _barsParticulares  = Array(12).fill(0);
+  _barsCaixaEntradas = Array(12).fill(0);
+  _barsCaixaSaidas   = Array(12).fill(0);
+  _barsCompare       = Array(12).fill(0);
+
   for (const l of lessons || []) {
-    if (!l || !l.date || String(l.status) !== "2") continue;
+    if (!l?.date || String(l.status) !== "2") continue;
     const d = parseISODateLocal(l.date); if (!(d instanceof Date) || isNaN(d)) continue;
     const m = d.getMonth(); const v = parseBRLToNumber(l.price || 0);
-    if (d.getFullYear() === y)  _barsY[m] += v;
-    if (d.getFullYear() === cy) _barsC[m] += v;
+    if (d.getFullYear() === y)  _barsParticulares[m] += v;
+    if (d.getFullYear() === cy) _barsCompare[m] += v;
   }
   for (const c of cashEntries || []) {
-    if (!c || !c.data) continue;
-    const d = c.data?.toDate ? c.data.toDate() : new Date(c.data); if (!(d instanceof Date) || isNaN(d)) continue;
+    if (!c?.data) continue;
+    const d = c.data?.toDate ? c.data.toDate() : new Date(c.data);
+    if (!(d instanceof Date) || isNaN(d)) continue;
     const m = d.getMonth(); const v = Number(c.valor || 0);
-    if (d.getFullYear() === y)  _barsY[m] += v;
-    if (d.getFullYear() === cy) _barsC[m] += v;
+    if (d.getFullYear() === y) {
+      if (c.tipo === "saida") _barsCaixaSaidas[m] += v;
+      else                    _barsCaixaEntradas[m] += v;
+    }
+    if (d.getFullYear() === cy && c.tipo !== "saida") _barsCompare[m] += v;
   }
 
-  const comparison = calculateYearComparison(_barsY, _barsC);
+  const barsTotal  = _barsParticulares.map((v, i) => v + _barsCaixaEntradas[i]);
+  const comparison = calculateYearComparison(barsTotal, _barsCompare);
   const yearTotal  = comparison.yearTotal || 0;
+  const yearSaidas = _barsCaixaSaidas.reduce((a, b) => a + b, 0);
+  const yearLiquido= yearTotal - yearSaidas;
   const delta      = comparison.delta || 0;
+
   if ($("kpiYearRev"))     $("kpiYearRev").textContent     = formatBRL(yearTotal);
+  if ($("kpiYearLiquido")) $("kpiYearLiquido").textContent = formatBRL(yearLiquido);
+  if ($("kpiYearSaidas"))  $("kpiYearSaidas").textContent  = formatBRL(yearSaidas);
   if ($("kpiYearDelta"))   $("kpiYearDelta").textContent   = (delta >= 0 ? "+" : "") + delta.toFixed(1) + "%";
   if ($("yearTotalFooter"))$("yearTotalFooter").textContent = formatBRL(yearTotal);
 
@@ -232,7 +255,7 @@ export function renderDashboard(updateMoneyButton) {
   if ($("kpiTop1Share")) $("kpiTop1Share").textContent = (concentration.top1Percent || 0).toFixed(1) + "%";
   if ($("kpiTop3Share")) $("kpiTop3Share").textContent = (concentration.top3Percent || 0).toFixed(1) + "%";
 
-  drawBars(_barsY, _barsC);
+  drawBars(_barsParticulares, _barsCaixaEntradas, _barsCaixaSaidas, _barsCompare);
 
   const fullList = calculateYearlyStudentRanking(lessons || [], students || [], invY, parseISODateLocal, v => (+v || 0));
   const list     = rankingExpanded ? fullList : fullList.slice(0, 10);
@@ -255,66 +278,127 @@ export function renderDashboard(updateMoneyButton) {
   }
 }
 
-export function drawBars(arrY, arrC) {
-  arrY = arrY || Array(12).fill(0);
-  arrC = arrC || Array(12).fill(0);
+/* ======================= Gráfico com escala ======================= */
+export function drawBars(arrParticulares, arrCaixaEntradas, arrCaixaSaidas, arrCompare) {
+  arrParticulares  = arrParticulares  || Array(12).fill(0);
+  arrCaixaEntradas = arrCaixaEntradas || Array(12).fill(0);
+  arrCaixaSaidas   = arrCaixaSaidas   || Array(12).fill(0);
+  arrCompare       = arrCompare       || Array(12).fill(0);
+
   const canvas = $("chartYear"); if (!canvas) return;
   const cssW   = canvas.clientWidth || 600;
-  const cssH   = Number(canvas.getAttribute("height") || 140);
-  canvas.width = cssW;
+  const cssH   = 180;
+  canvas.height = cssH;
+  canvas.width  = cssW;
   if (!_chartCtx) _chartCtx = canvas.getContext("2d");
-  const ctx = _chartCtx; const W = canvas.width; const H = cssH;
+  const ctx = _chartCtx;
+  const W = canvas.width; const H = cssH;
   ctx.clearRect(0, 0, W, H);
-  const pad = 24, innerW = W - pad*2, innerH = H - pad*2;
+
+  const padL = 52, padR = 16, padT = 12, padB = 24;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+
+  const allVals = [...arrParticulares, ...arrCaixaEntradas, ...arrCaixaSaidas, ...arrCompare];
+  const max = Math.max(1, ...allVals);
+
+  // Escala Y
+  const steps = 4;
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--line");
+  ctx.lineWidth = 0.5;
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted");
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "right";
+  for (let i = 0; i <= steps; i++) {
+    const val = Math.round((max / steps) * i);
+    const y   = H - padB - Math.round((val / max) * innerH);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    const label = val >= 1000 ? `R$${(val/1000).toFixed(0)}k` : `R$${val}`;
+    ctx.fillText(label, padL - 4, y + 3);
+  }
+
+  // Barras
+  const groupW = innerW / 12;
+  const barCount = 4;
+  const barW = (groupW * 0.8) / barCount;
+  const gap  = groupW * 0.1;
+
+  const cores = ["#5ea0ff", "#7a6cff", "#ff6b6b", "#404a60"];
+  const arrs  = [arrParticulares, arrCaixaEntradas, arrCaixaSaidas, arrCompare];
+
+  for (let i = 0; i < 12; i++) {
+    const x0 = padL + i * groupW + gap;
+    for (let b = 0; b < barCount; b++) {
+      const v = arrs[b][i];
+      if (v <= 0) continue;
+      const h = Math.round((v / max) * innerH);
+      const x = x0 + b * (barW + 1);
+      const y = H - padB - h;
+      ctx.fillStyle = cores[b];
+      ctx.fillRect(x, y, barW, h);
+    }
+  }
+
+  // Labels meses
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted");
+  ctx.font = "11px sans-serif";
+  ctx.textAlign = "center";
   const lbl = ["J","F","M","A","M","J","J","A","S","O","N","D"];
-  const max = Math.max(1, ...arrY, ...arrC);
-  const gap = innerW / 24, barW = gap * 0.8;
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--line"); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
-  ctx.fillStyle = "#5ea0ff";
-  for (let i = 0; i < 12; i++) { const x = pad + i*gap*2 + gap*0.3; const h = Math.round((arrY[i]/max)*innerH); ctx.fillRect(x, H-pad-h, barW, h); }
-  ctx.fillStyle = "#7a6cff";
-  for (let i = 0; i < 12; i++) { const x = pad + i*gap*2 + gap*0.3 + barW + 4; const h = Math.round((arrC[i]/max)*innerH); ctx.fillRect(x, H-pad-h, barW, h); }
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted"); ctx.font = "12px sans-serif"; ctx.textAlign = "center";
-  for (let i = 0; i < 12; i++) { const x = pad + i*gap*2 + gap*0.3 + barW; ctx.fillText(lbl[i], x, H-pad+14); }
+  for (let i = 0; i < 12; i++) {
+    const x = padL + i * groupW + groupW / 2;
+    ctx.fillText(lbl[i], x, H - padB + 14);
+  }
+
+  // Legenda
+  const legenda = [
+    { cor: "#5ea0ff", label: "Particulares" },
+    { cor: "#7a6cff", label: "Caixa entradas" },
+    { cor: "#ff6b6b", label: "Caixa saídas" },
+    { cor: "#404a60", label: "Comparativo" },
+  ];
+  let lx = padL;
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "left";
+  for (const leg of legenda) {
+    ctx.fillStyle = leg.cor;
+    ctx.fillRect(lx, padT - 2, 10, 10);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted");
+    ctx.fillText(leg.label, lx + 13, padT + 7);
+    lx += 90;
+    if (lx > W - 80) break;
+  }
 }
 
-/* ======================= Bloco 3 — Grupo ==================== */
+/* ======================= Bloco Grupo ======================= */
 export function renderGrupoKPIs() {
-  const box = document.getElementById("grupoKPIBox");
-  if (!box) return;
+  const box = document.getElementById("grupoKPIBox"); if (!box) return;
 
   const m = _repMonth();
   const y = _repYear();
-  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-
-  const turmas     = _ctx.turmas     || [];
-  const matriculas = _ctx.matriculas || [];
+  const turmas       = _ctx.turmas       || [];
+  const matriculas   = _ctx.matriculas   || [];
   const mensalidades = _ctx.mensalidades || [];
 
-  const turmasAtivas = turmas.filter(t => t.active !== false);
-  const matsAtivas   = matriculas.filter(m => m.status !== "trancado");
-  const matsTrancadas= matriculas.filter(m => m.status === "trancado");
+  const turmasAtivas  = turmas.filter(t => t.active !== false);
+  const matsAtivas    = matriculas.filter(m => m.status !== "trancado");
+  const matsTrancadas = matriculas.filter(m => m.status === "trancado");
 
-  // Receita esperada = soma das mensalidades individuais de alunos ativos
   const receitaEsperada = matsAtivas.reduce((acc, mat) => {
-    const val = Number(String(mat.mensalidade || "0").replace(",",".")) || 0;
-    return acc + val;
+    return acc + (Number(String(mat.mensalidade || "0").replace(",",".")) || 0);
   }, 0);
 
-  // Receita realizada = mensalidades pagas no mês/ano
+  const pagoIds = mensalidades.filter(mn => mn.mes === m && mn.ano === y && mn.status === "pago").map(mn => mn.matriculaId);
+
   const receitaRealizada = mensalidades
     .filter(mn => mn.mes === m && mn.ano === y && mn.status === "pago")
     .reduce((acc, mn) => {
       const mat = matriculas.find(x => x.id === mn.matriculaId);
-      const val = Number(String(mat?.mensalidade || "0").replace(",",".")) || 0;
-      return acc + val;
+      return acc + (Number(String(mat?.mensalidade || "0").replace(",",".")) || 0);
     }, 0);
 
-  const pagoIds     = mensalidades.filter(mn => mn.mes === m && mn.ano === y && mn.status === "pago").map(mn => mn.matriculaId);
   const inadimplentes = matsAtivas.filter(mat => !pagoIds.includes(mat.id));
+  const adimplencia   = matsAtivas.length > 0 ? Math.round((pagoIds.length / matsAtivas.length) * 100) : 0;
 
-  // Por turma
   let turmasHTML = "";
   for (const t of turmasAtivas) {
     const tmats  = matsAtivas.filter(mat => mat.turmaId === t.id);
@@ -322,7 +406,6 @@ export function renderGrupoKPIs() {
     const tTotal = tmats.length;
     const pct    = tTotal > 0 ? Math.round((tPagos / tTotal) * 100) : 0;
     const cls    = pct >= 80 ? "ok" : pct >= 50 ? "warn" : "danger";
-
     turmasHTML += `
       <div class="grupo-turma-row">
         <div class="grupo-turma-nome">${t.name}</div>
@@ -330,18 +413,17 @@ export function renderGrupoKPIs() {
           <span class="pill-mini ok-pill">${tPagos} pagos</span>
           <span class="pill-mini warn-pill">${tTotal - tPagos} pendentes</span>
         </div>
-        <div class="pkgbar" style="margin-top:6px">
+        <div class="pkgbar">
           <div class="fill ${cls}" style="width:${pct}%"></div>
         </div>
-        <div class="muted" style="font-size:11px; margin-top:4px">${pct}% adimplente</div>
+        <div class="muted grupo-adim-pct">${pct}% adimplente</div>
       </div>`;
   }
 
   box.innerHTML = `
     <div class="grupo-kpi-header">
-      <h3 style="margin:0">🎭 Grupo — ${MESES[m]} ${y}</h3>
+      <h3>🎭 Grupo — ${MESES_LONGO[m]} ${y}</h3>
     </div>
-
     <div class="grupo-kpi-grid">
       <div class="cardx kpi-card">
         <div class="kpi-title">Turmas ativas</div>
@@ -364,17 +446,16 @@ export function renderGrupoKPIs() {
       </div>
       <div class="cardx kpi-card">
         <div class="kpi-title">Inadimplentes</div>
-        <div class="kpi-value" style="color:var(--danger)">${inadimplentes.length}</div>
-        <div class="kpi-sub">alunos com mensalidade pendente</div>
+        <div class="kpi-value kpi-down">${inadimplentes.length}</div>
+        <div class="kpi-sub">mensalidades pendentes</div>
       </div>
       <div class="cardx kpi-card">
         <div class="kpi-title">Taxa de adimplência</div>
-        <div class="kpi-value">${matsAtivas.length > 0 ? Math.round((pagoIds.length / matsAtivas.length) * 100) : 0}%</div>
+        <div class="kpi-value ${adimplencia >= 80 ? "kpi-up" : adimplencia >= 50 ? "kpi-neutral" : "kpi-down"}">${adimplencia}%</div>
       </div>
     </div>
-
     ${turmasAtivas.length > 0 ? `
-      <div style="margin-top:16px">
+      <div class="grupo-por-turma">
         <div class="grupo-papel-label">Por turma</div>
         ${turmasHTML}
       </div>` : ""}`;

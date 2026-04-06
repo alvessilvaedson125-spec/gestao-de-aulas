@@ -917,3 +917,19 @@ body.modal-open { overflow: hidden; }
   font-size: 13px;
 }
 .historico-detalhe-row:last-child { border-bottom: none; }
+
+/* ==================== RELATÓRIOS — REDESIGN ==================== */
+.rep-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin: 20px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.kpi-hero-value { font-size: 24px !important; }
+.kpi-hero { border-color: var(--brand) !important; }
+.grupo-adim-pct { font-size: 11px; margin-top: 4px; }
+.grupo-por-turma { margin-top: 16px; }

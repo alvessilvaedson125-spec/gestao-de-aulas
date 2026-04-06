@@ -294,132 +294,159 @@
       </div>
     </div>
   </section>
-
-  <!-- ==================== RELATÓRIOS ==================== -->
-  <section id="relatorios" class="section card">
-    <div class="report-header">
-      <div class="report-top">
-        <h2>Relatórios</h2>
-        <div class="report-actions">
-          <button id="btnMonthlyReportPDF" class="btn primary small">📄 Exportar PDF do Mês</button>
-          <button id="btnHideMoney" class="btn ghost small">👁 Ocultar valores</button>
-        </div>
+<!-- ==================== RELATÓRIOS ==================== -->
+<section id="relatorios" class="section card">
+  <div class="report-header">
+    <div class="report-top">
+      <h2>Relatórios</h2>
+      <div class="report-actions">
+        <button id="btnMonthlyReportPDF" class="btn primary small">📄 Exportar PDF do Mês</button>
+        <button id="btnHideMoney" class="btn ghost small">👁 Ocultar valores</button>
       </div>
     </div>
+  </div>
 
-    <div class="report-filters">
-      <div><label>Ano</label><select id="repYear" class="btn"></select></div>
-      <div><label>Mês</label><select id="repMonth" class="btn"></select></div>
-      <div><label>Comparar com</label><select id="repCompare" class="btn"></select></div>
-    </div>
+  <div class="report-filters">
+    <div><label>Ano</label><select id="repYear" class="btn"></select></div>
+    <div><label>Mês</label><select id="repMonth" class="btn"></select></div>
+    <div><label>Comparar com</label><select id="repCompare" class="btn"></select></div>
+  </div>
 
-    <!-- KPIs -->
-    <div class="kpi-grid" id="kpiBox">
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Concentração Top 1</div>
-        <div class="kpi-value" id="kpiTop1Share">0%</div>
-        <div class="kpi-sub">% da receita anual (aulas realizadas)</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Concentração Top 3</div>
-        <div class="kpi-value" id="kpiTop3Share">0%</div>
-        <div class="kpi-sub">% da receita anual (aulas realizadas)</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Alunos ativos</div>
-        <div class="n" id="kpiActiveStudents">0</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Aulas pagas (mês)</div>
-        <div class="n" id="kpiMonthPaid">0</div>
-      </div>
-      <div class="cardx kpi-card highlight">
-        <div class="kpi-title">Hoje</div>
-        <div class="n" id="kpiDay">0</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Mês (aulas)</div>
-        <div class="n" id="kpiMonth">0</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Receita (mês)</div>
-        <div class="n" id="kpiMonthRev">R$ 0,00</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Receita prevista (mês)</div>
-        <div class="n" id="kpiMonthForecast">R$ 0,00</div>
-        <div class="muted">Aulas agendadas + confirmadas + realizadas</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Ticket médio (mês)</div>
-        <div class="n" id="kpiMonthAvg">R$ 0,00</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Receita por aluno ativo</div>
-        <div class="n" id="kpiRevPerActive">R$ 0,00</div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Crescimento mensal</div>
-        <div class="n" id="kpiMonthGrowth">0%</div>
-        <div class="muted" id="kpiMonthGrowthRef"></div>
-      </div>
-      <div class="cardx kpi-card">
-        <div class="kpi-title">Receita (ano)</div>
-        <div class="n" id="kpiYearRev">R$ 0,00</div>
-        <div class="footer">
-          Variação vs <span id="cmpYear">—</span>:
-          <span id="kpiYearDelta">—</span>
-        </div>
-      </div>
+  <!-- ===== VISÃO GERAL DO NEGÓCIO ===== -->
+  <div class="rep-section-title">📊 Visão Geral — Mês</div>
+  <div class="kpi-grid rep-destaque">
+    <div class="cardx kpi-card kpi-hero">
+      <div class="kpi-title">Receita bruta (mês)</div>
+      <div class="n kpi-hero-value" id="kpiMonthRev">R$ 0,00</div>
+      <div class="kpi-sub">Particulares + Caixa entradas</div>
     </div>
+    <div class="cardx kpi-card kpi-hero">
+      <div class="kpi-title">Receita líquida (mês)</div>
+      <div class="n kpi-hero-value" id="kpiMonthLiquido">R$ 0,00</div>
+      <div class="kpi-sub">Bruta − saídas do caixa</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Saídas (mês)</div>
+      <div class="n kpi-down" id="kpiMonthSaidas">R$ 0,00</div>
+      <div class="kpi-sub">Aluguel, material, outros</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Crescimento mensal</div>
+      <div class="n" id="kpiMonthGrowth">0%</div>
+      <div class="muted" id="kpiMonthGrowthRef"></div>
+    </div>
+  </div>
 
-    <!-- Relatório por aluno -->
-    <div class="card rep-stu-card">
-      <label>Aluno</label>
-      <select id="repStuSelect" class="btn rep-stu-select">
-        <option value="">Selecione um aluno…</option>
-      </select>
-      <div class="pill muted">Ano atual de filtro: <span id="repYearEcho">—</span></div>
+  <!-- ===== KPIs PARTICULARES ===== -->
+  <div class="rep-section-title">🎯 Aulas Particulares — Mês</div>
+  <div class="kpi-grid">
+    <div class="cardx kpi-card highlight">
+      <div class="kpi-title">Hoje</div>
+      <div class="n" id="kpiDay">0</div>
     </div>
-    <div class="cardx" id="repStuBox">
-      <div class="muted">Selecione um aluno para ver o detalhamento.</div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Aulas no mês</div>
+      <div class="n" id="kpiMonth">0</div>
     </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Aulas pagas</div>
+      <div class="n" id="kpiMonthPaid">0</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita prevista</div>
+      <div class="n" id="kpiMonthForecast">R$ 0,00</div>
+      <div class="kpi-sub">Agendadas + confirmadas + realizadas</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Ticket médio</div>
+      <div class="n" id="kpiMonthAvg">R$ 0,00</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita por aluno ativo</div>
+      <div class="n" id="kpiRevPerActive">R$ 0,00</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Alunos ativos</div>
+      <div class="n" id="kpiActiveStudents">0</div>
+    </div>
+  </div>
 
-    <!-- Gráfico -->
-    <div class="cardx chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Arrecadação mês a mês — <span id="barsYear">—</span></div>
-        <div class="chart-total">Total: <b id="yearTotalFooter">R$ 0,00</b></div>
-      </div>
-      <canvas id="chartYear" height="140"></canvas>
+  <!-- ===== KPIs ANUAIS ===== -->
+  <div class="rep-section-title">📅 Visão Anual</div>
+  <div class="kpi-grid">
+    <div class="cardx kpi-card kpi-hero">
+      <div class="kpi-title">Receita bruta (ano)</div>
+      <div class="n kpi-hero-value" id="kpiYearRev">R$ 0,00</div>
+      <div class="footer">Variação vs <span id="cmpYear">—</span>: <span id="kpiYearDelta">—</span></div>
     </div>
-
-    <!-- Média e ranking -->
-    <div class="cardx">
-      <div>Média por aluno (ano)</div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Receita líquida (ano)</div>
+      <div class="n" id="kpiYearLiquido">R$ 0,00</div>
+      <div class="kpi-sub">Bruta − saídas do ano</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Saídas (ano)</div>
+      <div class="n kpi-down" id="kpiYearSaidas">R$ 0,00</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Concentração Top 1</div>
+      <div class="kpi-value" id="kpiTop1Share">0%</div>
+      <div class="kpi-sub">% da receita anual</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Concentração Top 3</div>
+      <div class="kpi-value" id="kpiTop3Share">0%</div>
+      <div class="kpi-sub">% da receita anual</div>
+    </div>
+    <div class="cardx kpi-card">
+      <div class="kpi-title">Média por aluno (ano)</div>
       <div class="n" id="avgPerStudent">R$ 0,00</div>
-      <div class="footer">Receita anual / alunos com aulas no ano</div>
+      <div class="footer">Receita anual / alunos com aulas</div>
     </div>
+  </div>
 
-    <div class="rep-year-invest">
-      <label for="repYearInvest">Ano</label>
-      <select id="repYearInvest" class="btn"></select>
+  <!-- ===== GRÁFICO ===== -->
+  <div class="cardx chart-card">
+    <div class="chart-header">
+      <div class="chart-title">Arrecadação mês a mês — <span id="barsYear">—</span></div>
+      <div class="chart-total">Total: <b id="yearTotalFooter">R$ 0,00</b></div>
     </div>
+    <canvas id="chartYear" height="180"></canvas>
+  </div>
 
-    <div class="cardx ranking-card">
-      <div class="ranking-header">
-        <div>Investido por aluno (ano)</div>
-        <div class="muted">Investido por aluno — <span id="listYear"></span></div>
-      </div>
-      <div class="listbox" id="byStudentList"></div>
-      <div id="rankingToggleContainer"></div>
+  <!-- ===== RELATÓRIO POR ALUNO ===== -->
+  <div class="rep-section-title">👤 Relatório por Aluno</div>
+  <div class="card rep-stu-card">
+    <label>Aluno</label>
+    <select id="repStuSelect" class="btn rep-stu-select">
+      <option value="">Selecione um aluno…</option>
+    </select>
+    <div class="pill muted">Ano atual de filtro: <span id="repYearEcho">—</span></div>
+  </div>
+  <div class="cardx" id="repStuBox">
+    <div class="muted">Selecione um aluno para ver o detalhamento.</div>
+  </div>
+
+  <!-- ===== RANKING ===== -->
+  <div class="rep-section-title">🏆 Ranking por Aluno</div>
+  <div class="rep-year-invest">
+    <label for="repYearInvest">Ano</label>
+    <select id="repYearInvest" class="btn"></select>
+  </div>
+  <div class="cardx ranking-card">
+    <div class="ranking-header">
+      <div>Investido por aluno</div>
+      <div class="muted">— <span id="listYear"></span></div>
     </div>
+    <div class="listbox" id="byStudentList"></div>
+    <div id="rankingToggleContainer"></div>
+  </div>
 
-<!-- Bloco Grupo -->
-<div id="grupoKPIBox" class="grupo-kpi-wrap"></div>
+  <!-- ===== BLOCO GRUPO ===== -->
+  <div id="grupoKPIBox" class="grupo-kpi-wrap"></div>
 
-    <div class="footer" id="kpiExtra">* Receita considera apenas aulas com status "Realizada".</div>
-  </section>
+  <div class="footer" id="kpiExtra">* Receita considera apenas aulas com status "Realizada".</div>
+</section>
 <!-- ==================== CAIXA ==================== -->
 <section id="caixa" class="section card">
   <h2>Caixa</h2>
