@@ -348,3 +348,11 @@ public/js/
 - Navegação por mês (◀ ▶) — mostra apenas lançamentos do mês selecionado
 - Visual: badge colorido por tipo, valor verde/vermelho
 - Fix: import duplicado do cashUI.js removido do app.js
+
+## v2.30.0 — Histórico de Chamadas
+
+- Botão "📅 Histórico" adicionado em cada card de turma
+- Modal com lista de todas as chamadas registradas ordenadas por data
+- Resumo por chamada: presentes, ausentes, justificados
+- Detalhe expansível por chamada com status individual de cada aluno
+- CSS: historico-chamada-card, historico-detalhe-row, badges por status
