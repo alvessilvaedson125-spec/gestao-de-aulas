@@ -15,6 +15,41 @@ let _ctx = {
 
 export function initCash(ctx) { _ctx = ctx; }
 
+let _cashMes = new Date().getMonth();
+let _cashAno = new Date().getFullYear();
+
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+export function bindCashNav(onFilter) {
+  const btnAnterior = document.getElementById("btnCashMesAnterior");
+  const btnProximo  = document.getElementById("btnCashMesProximo");
+  const label       = document.getElementById("cashMesLabel");
+
+  function updateLabel() {
+    if (label) label.textContent = `${MESES[_cashMes]} ${_cashAno}`;
+  }
+
+  updateLabel();
+
+  btnAnterior?.addEventListener("click", () => {
+    if (_cashMes === 0) { _cashMes = 11; _cashAno--; }
+    else { _cashMes--; }
+    updateLabel();
+    onFilter(_cashMes, _cashAno);
+  });
+
+  btnProximo?.addEventListener("click", () => {
+    if (_cashMes === 11) { _cashMes = 0; _cashAno++; }
+    else { _cashMes++; }
+    updateLabel();
+    onFilter(_cashMes, _cashAno);
+  });
+}
+
+export function getCashMesAno() {
+  return { mes: _cashMes, ano: _cashAno };
+}
+
 /* ======================= Categorias ======================= */
 const CATEGORIAS_ENTRADA = ["grupo", "workshop", "aulao", "outros"];
 const CATEGORIAS_SAIDA   = ["aluguel", "material", "transporte", "outros"];
@@ -84,10 +119,18 @@ export function renderCashEntries(cashEntries) {
   if (!container) return;
   container.innerHTML = "";
 
-  if (!cashEntries.length) {
-    container.innerHTML = `<div class="muted">Nenhum lançamento registrado.</div>`;
+  // Filtra pelo mês/ano atual
+  const filtered = cashEntries.filter(e => {
+    const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
+    return d.getMonth() === _cashMes && d.getFullYear() === _cashAno;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="muted">Nenhum lançamento em ${MESES[_cashMes]} ${_cashAno}.</div>`;
     return;
   }
+
+  cashEntries = filtered;
 
   // Totais
   const totalEntradas = cashEntries.filter(e => e.tipo !== "saida").reduce((acc, e) => acc + Number(e.valor || 0), 0);

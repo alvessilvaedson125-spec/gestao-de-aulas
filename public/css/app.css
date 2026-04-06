@@ -871,3 +871,10 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 600px) {
   .cash-resumo { grid-template-columns: 1fr; }
 }
+
+.cash-nav-mes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}

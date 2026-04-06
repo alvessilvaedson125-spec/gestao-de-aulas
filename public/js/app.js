@@ -22,7 +22,7 @@ import {
 import {
   renderStudents, initStudents, openPkgModal, bindPkgModal
 } from "./ui/studentsUI.js";
-import { initCash, bindCashButton, renderCashEntries } from "./ui/cashUI.js";
+
 import {
   initLessons, editLesson, requestDeleteLesson, bindLessonButtons
 } from "./ui/lessonsUI.js";
@@ -52,6 +52,8 @@ import {
 } from "./ui/grupoUI.js";
 
 import { showAllSkeletons, hideAllSkeletons, hideSkeleton } from "./ui/skeletonUI.js";
+
+import { initCash, bindCashButton, renderCashEntries, bindCashNav, getCashMesAno } from "./ui/cashUI.js";
 
 /* ======================= Shift key ======================= */
 let isShiftPressed = false;
@@ -224,6 +226,10 @@ initCash({
   get colCash() { return colCash; }
 });
 bindCashButton();
+
+bindCashNav((mes, ano) => {
+  renderCashEntries(cashEntries);
+});
 
 initLessons({
   get lessons()    { return lessons; },
