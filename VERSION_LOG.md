@@ -356,3 +356,22 @@ public/js/
 - Resumo por chamada: presentes, ausentes, justificados
 - Detalhe expansível por chamada com status individual de cada aluno
 - CSS: historico-chamada-card, historico-detalhe-row, badges por status
+
+## v2.31.0 — Redesign Relatórios + Gráfico com Escala + Lançar Grupo no Caixa
+
+- Relatórios reorganizados em 4 blocos com títulos de seção:
+  - Visão Geral do Mês: receita bruta, líquida, saídas, crescimento
+  - Aulas Particulares: KPIs do mês
+  - Visão Anual: receita bruta/líquida/saídas do ano + gráfico
+  - Grupo: bloco integrado com KPIs de mensalidades
+- Gráfico anual redesenhado com:
+  - Escala Y com valores em R$
+  - 4 barras por mês: Particulares, Caixa entradas, Caixa saídas, Comparativo
+  - Legenda de cores
+  - Altura aumentada para 180px
+- Saídas do Caixa integradas nos cálculos de receita líquida
+- Botão "💰 Lançar no Caixa" no bloco do Grupo:
+  - Cria entrada automática com valor das mensalidades pagas do mês
+  - Confirmação antes de lançar
+- reportsUI.js: getCashForMonth separado por tipo entrada/saída
+- sw.js atualizado para gestao-v306
