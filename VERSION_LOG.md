@@ -326,3 +326,13 @@ public/js/
 - Animação de pulso suave via CSS keyframes
 - Skeletons removidos automaticamente quando dados chegam do Firestore
 - CSS: skeleton, skeleton-card, skeleton-line, skeleton-kpi, skeleton-bar
+
+## v2.28.0 — Refatoração CSS do módulo de grupo
+
+- Inline styles removidos do grupoUI.js
+- Novas classes CSS adicionadas ao app.css:
+  modal-box-md, modal-box-lg, modal-aluno-toggle, modal-aluno-btns,
+  modal-hint, modal-field-mt, modal-actions-mt, painel-mes-nav,
+  painel-mes-label, chamada-data-row, chamada-data-wrap,
+  aluno-mat-badge-trancado, turma-sem-dados, painel-sem-alunos
+- grupoUI.js mais limpo e manutenível
