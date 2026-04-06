@@ -336,3 +336,15 @@ public/js/
   painel-mes-label, chamada-data-row, chamada-data-wrap,
   aluno-mat-badge-trancado, turma-sem-dados, painel-sem-alunos
 - grupoUI.js mais limpo e manutenível
+
+## v2.29.0 — Caixa com entradas, saídas e navegação por mês
+
+- Caixa evoluído de "entradas externas" para controle financeiro completo
+- Tipos de lançamento: Entrada e Saída
+- Categorias separadas por tipo:
+  - Entradas: Aulas em grupo, Workshop, Aulão, Outros
+  - Saídas: Aluguel de sala, Material didático, Transporte, Outros
+- Resumo do mês: total de entradas, saídas e saldo
+- Navegação por mês (◀ ▶) — mostra apenas lançamentos do mês selecionado
+- Visual: badge colorido por tipo, valor verde/vermelho
+- Fix: import duplicado do cashUI.js removido do app.js
