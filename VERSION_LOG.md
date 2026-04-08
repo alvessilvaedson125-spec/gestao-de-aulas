@@ -1,187 +1,176 @@
 # 📘 VERSION LOG
-
-Bailado Carioca – Gestão de Aulas
-Atualizado até v2.16.0 | Status: Oficial
+## Bailado Carioca – Gestão de Aulas
+**Versão atual:** v2.33.0 | **Status:** Produção
 
 ---
 
-# 🔒 Política de Versionamento
+## 🔒 Política de Versionamento
 
 - **Major**: mudanças estruturais profundas
-- **Minor**: melhorias arquiteturais e extração de módulos
+- **Minor**: novas funcionalidades e melhorias arquiteturais
 - **Patch**: correções e estabilizações
 
-Deploy em produção sempre vinculado a versão documentada.
-Sequência obrigatória: staging → validar → commit → production → tag → VERSION_LOG
+Sequência obrigatória: `staging → validar → commit → production → tag → VERSION_LOG`
 
 ---
 
-# 📦 Histórico de Versões
+## 📦 Histórico de Versões
 
 ---
 
-## v2.16.0 — Extração do módulo de relatórios
+## v2.33.0 — Responsividade Mobile
+- Header: subtítulo oculto em mobile, email truncado
+- Abas: scroll horizontal numa linha, sem quebra
+- Filtros da Agenda: grid 2 colunas em mobile
+- Calendário: células menores, chips compactos, padding reduzido
+- Evolução e Relatórios: KPIs em 2 colunas
+- Modais: largura 98vw, padding reduzido
+- Caixa: resumo em 2 colunas, card empilhado
+- Grupo: KPIs em 2 colunas, header em coluna
+- Breakpoint dedicado: max-width 480px
 
-- Criado `public/js/ui/reportsUI.js`
-- Extraídos: `renderReportMonthKPIs`, `renderDashboard`, `drawBars`,
-  `ensureYearSelects`, `fillRepYearInvest`, `fillRepStudentSelect`,
-  `renderRepStudent`, `initRepStudentArea`, `setupReportMonthFilter`,
-  `initReportMonthPatch`, `calculateCashRevenueForMonth`
-- Padrão `_ctx` com getters para `lessons`, `students` e `cashEntries`
-- **Refatoração completa** — todos os módulos extraídos do `app.js`
+## v2.32.0 — Banner de Edição nos Alunos
+- Banner visual "✏️ Editando: Nome do Aluno" ao editar aluno
+- Formulário abre automaticamente ao clicar Editar
+- Banner escondido ao salvar ou limpar
+- CSS: student-edit-banner com destaque roxo
 
----
+## v2.31.0 — Redesign Relatórios + Gráfico com Escala + Lançar Grupo no Caixa
+- Relatórios reorganizados em 4 blocos: Visão Geral, Particulares, Anual, Grupo
+- Gráfico com escala Y, 4 barras por mês, legenda de cores
+- Saídas do Caixa integradas nos cálculos de receita líquida
+- Botão "💰 Lançar no Caixa": cria entrada automática das mensalidades do grupo
 
-## v2.15.0 — Extração do módulo de evolução
+## v2.30.0 — Histórico de Chamadas
+- Botão "📅 Histórico" em cada card de turma
+- Modal com chamadas ordenadas por data, resumo e detalhe expansível por aluno
 
-- Criado `public/js/ui/evolutionUI.js`
-- Extraídos: `renderEvolutions`, `buildEvoTree`, `exportEvolutionPDF`
-- Padrão `_ctx` com getters para `evolutions`, `students` e `db`
+## v2.29.0 — Caixa com Entradas, Saídas e Navegação por Mês
+- Entradas e Saídas com categorias separadas
+- Resumo do mês: entradas, saídas e saldo
+- Navegação por mês (◀ ▶)
+- Fix: import duplicado do cashUI.js removido
 
----
+## v2.28.0 — Refatoração CSS do Módulo de Grupo
+- Inline styles removidos do grupoUI.js
+- 14 novas classes CSS adicionadas ao app.css
+- Código mais limpo e manutenível
 
-## v2.14.0 — Extração do módulo de recibo
+## v2.27.0 — Skeleton Loader
+- Criado skeletonUI.js
+- Skeleton animado em todas as abas durante carregamento
+- Removido automaticamente quando dados chegam do Firestore
 
-- Criado `public/js/ui/receiptUI.js`
-- Extraídos: `openReceiptFromLesson`, `openReceiptFromStudent`,
-  `generateReceiptPDF`, `fillPackageAuto`, `toggleReceiptBoxes`,
-  `bindReceiptButtons`, `fillReceiptStudents`, `getLessonsInRange`
-- Padrão `_ctx` com getters para `lessons` e `students`
+## v2.26.0 — Integração do Grupo nos Relatórios
+- Bloco Grupo adicionado nos Relatórios com KPIs de mensalidades
+- Por turma: barra de progresso de adimplência
+- Fix: gráfico não renderizava ao abrir aba Relatórios
 
----
+## v2.25.0 — Presença, Navegação de Meses e Trancar Matrícula
+- Chamada por aula: Presente / Ausente / Justificado
+- Navegação de meses nas mensalidades
+- Trancar e reativar matrícula com badge visual
+- Fix: contador de vagas exclui matrículas trancadas
 
-## v2.13.0 — Extração do módulo de aulas
+## v2.24.0 — Módulo Aulas em Grupo
+- Nova aba Grupo: turmas, matrículas, mensalidades individuais
+- Papéis: Condutor / Condutora / Conduzido / Conduzida
+- Tipos: Pagante / Bolsista
+- Base de alunos separada dos particulares
+- firestore.rules atualizado com 4 novas coleções
 
-- Criado `public/js/ui/lessonsUI.js`
-- Extraídos: `openLessonModal`, `editLesson`, `requestDeleteLesson`,
-  `saveLesson`, `deleteLessonConfirmed`, `bindLessonButtons`
-- Padrão `_ctx` com getters para acesso reativo
+## v2.23.0 — Expansão da Cobertura de Testes
+- 21 suites, 66 testes passando
+- Cobertura: reportService, formatService, dateService
 
----
+## v2.22.0 — Refatoração Completa do CSS
+- app.css reorganizado sem duplicatas
+- 3 breakpoints: 900px, 768px, 600px
 
-## v2.12.0 — Extração do módulo de caixa
+## v2.21.0 — Limpeza do index.html
+- Inline styles removidos, bug de div corrigido
+- Ordem das seções corrigida
 
-- Criado `public/js/ui/cashUI.js`
-- Extraídos: `bindCashButton`, `renderCashEntries`, `initCash`
-- `renderCashEntries` agora recebe `cashEntries` como parâmetro
-- Padrão `_ctx` com getters para `db`, `user` e `colCash`
+## v2.20.0 — Modo Offline Robusto
+- enableIndexedDbPersistence ativado
+- App funciona offline após primeiro carregamento
 
----
+## v2.19.0 — Validação Visual de Formulários
+- Criado formValidation.js
+- Validação com borda vermelha e mensagem por campo
+- 5 formulários validados
 
-## v2.11.0 — Extração do módulo de alunos
+## v2.18.0 — Histórico de Pacotes por Aluno
+- Criado packageHistoryUI.js
+- Pacotes salvos em subcoleção /alunos/{id}/pacotes
+- Modal com histórico completo e barra de progresso
 
-- Criado `public/js/ui/studentsUI.js`
-- Extraídos: `renderStudents`, `enableStudentDrag`, `getDragAfterElement`,
-  `openPkgModal`, `bindPkgModal`, `hasActivePackage`, `parsePkgDate`, `inPkgRange`
-- Padrão `_ctx` com getters para acesso reativo
+## v2.17.0 — Relatório Mensal em PDF
+- Criado reportPDF.js
+- Exporta KPIs, aulas realizadas e entradas do caixa em PDF via jsPDF
 
----
+## v2.16.0 — Extração do Módulo de Relatórios
+- Criado reportsUI.js
+- Refatoração completa — todos os módulos extraídos do app.js
 
-## v2.10.0 — Extração do módulo de calendário
+## v2.15.0 — Extração do Módulo de Evolução
+- Criado evolutionUI.js
 
-- Criado `public/js/ui/calendarUI.js`
-- Extraídos: `renderCalendar`, `renderDayDetails`, `renderUpcoming`,
-  `renderFilterEcho`, `bindCalendarEvents`, `initCalendar`
-- Padrão `_ctx` com getters para acesso reativo a `lessons` e `students`
+## v2.14.0 — Extração do Módulo de Recibo
+- Criado receiptUI.js
 
----
+## v2.13.0 — Extração do Módulo de Aulas
+- Criado lessonsUI.js
 
-## v2.9.0 — Extração do módulo de helpers
+## v2.12.0 — Extração do Módulo de Caixa
+- Criado cashUI.js
 
-- Criada pasta `public/js/ui/`
-- Criado `public/js/ui/helpers.js`
-- Extraídos: `BRAND_NAME`, `toInputDate`, `toLocalDateTimeString`,
-  `hhmmLocal`, `showAlert`, `maskBRLInput`, `bindBRLMasks`,
-  `firstName`, `normalizePhoneBR`, `buildWhatsAppMessage`
+## v2.11.0 — Extração do Módulo de Alunos
+- Criado studentsUI.js
 
----
+## v2.10.0 — Extração do Módulo de Calendário
+- Criado calendarUI.js
 
-## v2.8.0 — Limpeza e organização do projeto
+## v2.9.0 — Extração do Módulo de Helpers
+- Criada pasta public/js/ui/
+- Criado helpers.js
 
-- Removidos 10 arquivos desnecessários e duplicatas
-- `app.js` limpo: duplicatas removidas
-- Redução de ~3000 para 1641 linhas sem perda de funcionalidade
-- Árvore do projeto organizada e documentada
+## v2.8.0 — Limpeza e Organização do Projeto
+- 10 arquivos removidos, app.js reduzido de 3000 para 1641 linhas
 
----
-
-## v2.7.0 — Consolidação PWA e Promoção Controlada para Produção
-
-- Manifest atualizado com campo `id` explícito
-- Inclusão de ícone 512x512 maskable
-- Substituição completa dos ícones oficiais
-- Nova identidade PWA forçada
-- Correção definitiva de cache de instalação Edge
-- Revalidação do Service Worker
-- Fluxo formal staging → production consolidado
-- ✔ Ícone oficial amarelo ativo em produção
-
----
+## v2.7.0 — Consolidação PWA
+- Manifest, ícones, Service Worker e identidade PWA estabilizados
 
 ## v2.6.2 — Estabilização Estrutural Reativa
-
-- Reestruturação da função `attach()`
-- Correção de fechamento incorreto que quebrava `onSnapshot`
-- Normalização de datas no snapshot de `cashEntries`
-- Remoção de listener duplicado
-- Hardening matemático: guards contra NaN, `safeArray`, `safeNumber`
-- ✔ Reatividade restaurada | ✔ Caixa funcional | ✔ Ranking consistente
-
----
+- Correção do attach(), reatividade restaurada, Caixa funcional
 
 ## v2.5.x — Consolidação Financeira
+- Cálculo híbrido Aulas + Caixa, KPIs consolidados
 
-- Cálculo híbrido: Aulas + Caixa
-- KPIs consolidados, comparativo anual, ranking por aluno
-- Crescimento percentual implementado
+## v2.4.x — Recorrência de Aulas
+- Campo recurrenceGroupId, exclusão segura
 
----
-
-## v2.4.x — Implementação de Recorrência
-
-- Campo `recurrenceGroupId` introduzido via `crypto.randomUUID()`
-- Sem impacto na renderização
-- Estrutura de exclusão segura
-
----
-
-## v2.3.x — Consolidação Multi-Ambiente
-
-- Separação production / staging
-- Configuração dinâmica por hostname
-- Isolamento completo de banco por ambiente
-- Deploy por alias Firebase
-
----
+## v2.3.x — Multi-Ambiente
+- Separação production / staging, isolamento completo de banco
 
 ## v2.2.x — Modularização Inicial
+- Separação core / services / utils
 
-- Separação `core` / `services` / `utils`
-- Extração de `reportService`
-- Padronização de retorno de funções
-- Redução de acoplamento
-
----
-
-## v2.1.x — Estrutura Base Estável
-
-- CRUD Alunos e Aulas
-- Módulo Evolução
-- Caixa inicial
-- Snapshot reativo implementado
+## v2.1.x — Estrutura Base
+- CRUD Alunos e Aulas, Módulo Evolução, Caixa inicial
 
 ---
 
-## Estrutura atual do projeto
+## 🗂 Estrutura atual do projeto
 
+```
 public/js/
-├── app.js              ← orquestrador (~200 linhas)
+├── app.js
 ├── core/
 │   ├── firebase.js
 │   ├── firebase.production.js
 │   └── firebase.staging.js
 ├── services/
-│   ├── authService.js
 │   ├── lessonService.js
 │   ├── studentService.js
 │   └── reportService.js
@@ -190,195 +179,18 @@ public/js/
 │   ├── formatService.js
 │   └── uiHelpers.js
 └── ui/
-├── helpers.js
-├── calendarUI.js
-├── studentsUI.js
-├── cashUI.js
-├── lessonsUI.js
-├── receiptUI.js
-├── evolutionUI.js
-└── reportsUI.js
-
-## v2.17.0 — Relatório Mensal em PDF
-
-- Criado public/js/ui/reportPDF.js
-- Botão "📄 Exportar PDF do Mês" adicionado na aba Relatórios
-- Relatório inclui: cabeçalho, KPIs do mês, lista de aulas realizadas,
-  entradas do caixa e total geral
-- Respeita o mês/ano selecionado nos filtros de relatório
-- Gerado via jsPDF, sem dependências extras
-
-## v2.18.0 — Histórico de pacotes por aluno
-
-- Criado public/js/ui/packageHistoryUI.js
-- Botão "Histórico" adicionado em cada card de aluno
-- Pacote anterior salvo automaticamente antes de cada renovação
-- Modal de histórico mostra pacote atual e todos os anteriores
-- Inclui: período, aulas realizadas, valor investido e barra de progresso
-- firestore.rules atualizado com subcoleção /alunos/{id}/pacotes
-- firebase.json atualizado com configuração do Firestore
-- Índices compostos criados em staging e produção
-- Correção do drawBars no reportsUI.js
-
-## v2.19.0 — Validação visual de formulários
-
-- Criado public/js/ui/formValidation.js
-- Validação com borda vermelha e mensagem de erro por campo
-- Erro limpo automaticamente ao digitar/mudar o campo
-- Formulários validados:
-  - Nova Aula: aluno, data e estilo obrigatórios
-  - Novo Pacote: início, fim e total obrigatórios
-  - Caixa: data, valor e descrição obrigatórios
-  - Aluno: nome obrigatório
-  - Evolução: aluno e data obrigatórios
-- CSS adicionado: .field-error e .field-error-msg
-- sw.js atualizado para gestao-v305
-
-## v2.20.0 — Modo offline robusto
-
-- Ativado enableIndexedDbPersistence em firebase.production.js e firebase.staging.js
-- Dados persistem localmente via IndexedDB
-- App funciona offline após primeiro carregamento
-- Fallback com warnings para múltiplas abas e browsers sem suporte
-
-## v2.21.0 — Limpeza e organização do index.html
-
-- Inline styles removidos e substituídos por classes CSS
-- Bug corrigido na seção Relatórios (div mal fechada)
-- Scripts inline consolidados em um único bloco
-- Ordem das seções corrigida (Caixa antes do Backup)
-- Indentação e estrutura HTML reorganizada
-- Novas classes utilitárias adicionadas ao app.css:
-  .header-row, .section-header, .form-grid, .form-field,
-  .field-lg/md/sm/full, .modal-title-row, entre outras
-
-  ## v2.22.0 — Refatoração completa do CSS
-
-- app.css reorganizado: Variáveis → Base → Layout → Componentes → Seções → Modais → Responsivo
-- Duplicatas removidas: cal-head-top, cal-head-filters, upcoming-row, evo-card-body, btn
-- Inline styles do index.html substituídos por classes CSS
-- Filtros da agenda corrigidos (layout em linha, sem empilhamento)
-- Sticky removido do cal-head (não travava mais durante scroll)
-- Responsivo consolidado em 3 breakpoints: 900px, 768px e 600px
-
-## v2.23.0 — Expansão da cobertura de testes
-
-- Criado tests/reportService.test.js — 40 testes cobrindo:
-  calculateTotalRevenueFromLessons, extractUniqueStudentIdsFromLessons,
-  calculateAveragePerStudent, calculateTotalRevenueForStudent,
-  calculateRealizedRevenueForLessons, calculateForecastRevenueForLessons,
-  calculateYearlyStudentReport, calculateYearlyStudentRanking,
-  calculateYearComparison, calculateRevenueConcentration
-- Criado tests/formatService.test.js — 12 testes cobrindo:
-  parseBRLToNumber, formatBRL, formatBRLFromCents
-- Criado tests/dateService.test.js — 5 testes cobrindo:
-  parseISODateLocal
-- Total: 21 suites, 66 testes passando
-
-## v2.24.0 — Módulo Aulas em Grupo
-
-- Nova aba "Grupo" no app
-- Cadastro de turmas: nome, dia, horário, capacidade por papel, mensalidade padrão
-- Cadastro de alunos do grupo: nome, telefone, e-mail (base separada dos particulares)
-- Matrículas por turma: papel (Condutor/Condutora/Conduzido/Conduzida), tipo (Pagante/Bolsista), mensalidade individual
-- Controle de mensalidades por mês: Pendente / Pago
-- Edição de aluno e matrícula
-- Painel de alunos por turma com agrupamento por papel
-- Contador de vagas: condutores, conduzidas e total
-- firestore.rules atualizado: turmas, alunosGrupo, matriculas, mensalidadesGrupo
-- Índices Firestore criados em staging e produção
-- CSS: turma-card, painel de alunos, ok-btn, warn-btn
-
-## v2.25.0 — Módulo de Grupo — Presença, Navegação e Trancar Matrícula
-
-- Controle de presença por aula:
-  - Modal de chamada com data selecionável
-  - Status por aluno: Presente / Ausente / Justificado
-  - Chamada salva e recarregada por data
-  - Alunos trancados não aparecem na chamada
-- Navegação de meses nas mensalidades (◀ ▶)
-- Trancar e reativar matrícula:
-  - Badge "Trancado" no card do aluno
-  - Aluno trancado não aparece no contador de vagas
-  - Mensalidade suspensa enquanto trancado
-- Fix: contador de condutores, conduzidas e total exclui trancados
-- firestore.rules atualizado com coleção presencas
-
-## v2.26.0 — Integração do Grupo nos Relatórios
-
-- Bloco 3 adicionado na aba Relatórios: Grupo — mês selecionado
-- KPIs do grupo: turmas ativas, alunos ativos, trancados,
-  receita esperada, receita realizada, inadimplentes, taxa de adimplência
-- Por turma: barra de progresso de adimplência com cor dinâmica
-- Bloco atualiza ao mudar mês/ano nos filtros de relatório
-- Fix: gráfico anual não renderizava ao abrir a aba Relatórios
-- app.js: listeners Firestore para turmas, matriculas e mensalidadesGrupo
-
-## v2.27.0 — Skeleton Loader
-
-- Criado public/js/ui/skeletonUI.js
-- Skeleton loaders implementados em todas as abas:
-  - Agenda: grid do calendário com 35 células animadas
-  - Alunos: cards com barra de progresso e botões
-  - Evolução: árvore + lista de anotações
-  - Relatórios: grid de KPIs + gráfico de barras
-  - Grupo: cards de turma
-- Animação de pulso suave via CSS keyframes
-- Skeletons removidos automaticamente quando dados chegam do Firestore
-- CSS: skeleton, skeleton-card, skeleton-line, skeleton-kpi, skeleton-bar
-
-## v2.28.0 — Refatoração CSS do módulo de grupo
-
-- Inline styles removidos do grupoUI.js
-- Novas classes CSS adicionadas ao app.css:
-  modal-box-md, modal-box-lg, modal-aluno-toggle, modal-aluno-btns,
-  modal-hint, modal-field-mt, modal-actions-mt, painel-mes-nav,
-  painel-mes-label, chamada-data-row, chamada-data-wrap,
-  aluno-mat-badge-trancado, turma-sem-dados, painel-sem-alunos
-- grupoUI.js mais limpo e manutenível
-
-## v2.29.0 — Caixa com entradas, saídas e navegação por mês
-
-- Caixa evoluído de "entradas externas" para controle financeiro completo
-- Tipos de lançamento: Entrada e Saída
-- Categorias separadas por tipo:
-  - Entradas: Aulas em grupo, Workshop, Aulão, Outros
-  - Saídas: Aluguel de sala, Material didático, Transporte, Outros
-- Resumo do mês: total de entradas, saídas e saldo
-- Navegação por mês (◀ ▶) — mostra apenas lançamentos do mês selecionado
-- Visual: badge colorido por tipo, valor verde/vermelho
-- Fix: import duplicado do cashUI.js removido do app.js
-
-## v2.30.0 — Histórico de Chamadas
-
-- Botão "📅 Histórico" adicionado em cada card de turma
-- Modal com lista de todas as chamadas registradas ordenadas por data
-- Resumo por chamada: presentes, ausentes, justificados
-- Detalhe expansível por chamada com status individual de cada aluno
-- CSS: historico-chamada-card, historico-detalhe-row, badges por status
-
-## v2.31.0 — Redesign Relatórios + Gráfico com Escala + Lançar Grupo no Caixa
-
-- Relatórios reorganizados em 4 blocos com títulos de seção:
-  - Visão Geral do Mês: receita bruta, líquida, saídas, crescimento
-  - Aulas Particulares: KPIs do mês
-  - Visão Anual: receita bruta/líquida/saídas do ano + gráfico
-  - Grupo: bloco integrado com KPIs de mensalidades
-- Gráfico anual redesenhado com:
-  - Escala Y com valores em R$
-  - 4 barras por mês: Particulares, Caixa entradas, Caixa saídas, Comparativo
-  - Legenda de cores
-  - Altura aumentada para 180px
-- Saídas do Caixa integradas nos cálculos de receita líquida
-- Botão "💰 Lançar no Caixa" no bloco do Grupo:
-  - Cria entrada automática com valor das mensalidades pagas do mês
-  - Confirmação antes de lançar
-- reportsUI.js: getCashForMonth separado por tipo entrada/saída
-- sw.js atualizado para gestao-v306
-
-## v2.32.0 — Banner de edição nos Alunos
-
-- Banner visual "✏️ Editando: Nome do Aluno" aparece ao editar um aluno
-- Formulário abre automaticamente ao clicar Editar
-- Banner escondido ao clicar Limpar ou salvar
-- CSS: student-edit-banner com destaque roxo
+    ├── helpers.js
+    ├── calendarUI.js
+    ├── studentsUI.js
+    ├── cashUI.js
+    ├── lessonsUI.js
+    ├── receiptUI.js
+    ├── evolutionUI.js
+    ├── reportsUI.js
+    ├── reportPDF.js
+    ├── packageHistoryUI.js
+    ├── formValidation.js
+    ├── grupoUI.js
+    ├── skeletonUI.js
+    └── cashUI.js
+```
