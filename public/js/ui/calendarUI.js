@@ -74,7 +74,7 @@ export function renderCalendar() {
         const nm   = st?.name || "(Aluno)";
         const hhmm = hhmmLocal(a.date);
         const chip = document.createElement("div");
-        chip.className = "chip" + (a.status == 2 ? " done" : a.status == 3 ? " cancel" : "");
+        chip.className = "chip" + (a.status === 2 ? " done" : a.status === 3 ? " cancel" : "");
         chip.textContent = nm;
         chip.dataset.initials = getInitials(nm);
         chip.title = `${nm} — ${a.style||""}${a.level?" • "+a.level:""} • ${hhmm}`;

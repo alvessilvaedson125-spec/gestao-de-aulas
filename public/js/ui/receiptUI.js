@@ -31,7 +31,7 @@ function getLessonsInRange(studentId, isoStart, isoEnd) {
   const S = new Date(isoStart + "T00:00:00");
   const E = new Date(isoEnd   + "T23:59:59");
   return _ctx.lessons
-    .filter(l => l.studentId === studentId && l.status !== 3)
+    .filter(l => l.studentId === studentId && l.status === 2)
     .filter(l => { const d = parseISODateLocal(l.date); return d >= S && d <= E; })
     .sort((a, b) => parseISODateLocal(a.date) - parseISODateLocal(b.date));
 }
