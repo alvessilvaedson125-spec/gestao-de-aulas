@@ -44,8 +44,8 @@ function getCashForMonth(year, month, tipo = null) {
     .filter(e => {
       if (!e?.data) return false;
       const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
-      if (d.getFullYear() !== year || d.getMonth() !== month) return false;
-      if (tipo === "entrada") return e.tipo !== "saida";
+      if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month) return false;
+      if (tipo === "entrada") return e.tipo === "entrada";
       if (tipo === "saida")   return e.tipo === "saida";
       return true;
     })
@@ -240,12 +240,12 @@ export function renderDashboard(updateMoneyButton) {
     if (!c?.data) continue;
     const d = c.data?.toDate ? c.data.toDate() : new Date(c.data);
     if (!(d instanceof Date) || isNaN(d)) continue;
-    const m = d.getMonth(); const v = Number(c.valor || 0);
-    if (d.getFullYear() === y) {
+    const m = d.getUTCMonth(); const v = Number(c.valor || 0);
+    if (d.getUTCFullYear() === y) {
       if (c.tipo === "saida") _barsCaixaSaidas[m] += v;
       else                    _barsCaixaEntradas[m] += v;
     }
-    if (d.getFullYear() === cy && c.tipo !== "saida") _barsCompare[m] += v;
+    if (d.getUTCFullYear() === cy && c.tipo === "entrada") _barsCompare[m] += v;
   }
 
   const barsTotal  = _barsParticulares.map((v, i) => v + _barsCaixaEntradas[i]);
