@@ -87,9 +87,10 @@ export function bindCashButton() {
     if (!descricao){ showAlert("Informe a descrição.", "error"); return; }
 
     try {
+      const [dy, dm, dd] = data.split("-");
       await addDoc(_ctx.colCash, {
         tipo,
-        data:      new Date(data),
+        data:      new Date(+dy, +dm - 1, +dd),
         valor:     parseBRLToNumber(valorRaw),
         categoria: categoria || null,
         descricao,
@@ -122,7 +123,7 @@ export function renderCashEntries(cashEntries) {
   // Filtra pelo mês/ano atual
   const filtered = cashEntries.filter(e => {
     const d = e.data?.toDate ? e.data.toDate() : new Date(e.data);
-    return d.getMonth() === _cashMes && d.getFullYear() === _cashAno;
+    return d.getUTCMonth() === _cashMes && d.getUTCFullYear() === _cashAno;
   });
 
   if (!filtered.length) {
@@ -133,7 +134,7 @@ export function renderCashEntries(cashEntries) {
   cashEntries = filtered;
 
   // Totais
-  const totalEntradas = cashEntries.filter(e => e.tipo !== "saida").reduce((acc, e) => acc + Number(e.valor || 0), 0);
+  const totalEntradas = cashEntries.filter(e => e.tipo === "entrada").reduce((acc, e) => acc + Number(e.valor || 0), 0);
   const totalSaidas   = cashEntries.filter(e => e.tipo === "saida").reduce((acc, e) => acc + Number(e.valor || 0), 0);
   const saldo         = totalEntradas - totalSaidas;
 
@@ -157,7 +158,8 @@ export function renderCashEntries(cashEntries) {
   const listItems = document.getElementById("cashListItems");
 
   for (const item of cashEntries) {
-    const data   = item.data?.toDate ? item.data.toDate() : new Date(item.data);
+    const _raw = item.data?.toDate ? item.data.toDate() : new Date(item.data);
+    const data = new Date(_raw.getUTCFullYear(), _raw.getUTCMonth(), _raw.getUTCDate());
     const isSaida = item.tipo === "saida";
     const card   = document.createElement("div");
     card.className = "cash-item-card";
@@ -182,6 +184,7 @@ export function renderCashEntries(cashEntries) {
     btn.addEventListener("click", async () => {
       if (!confirm("Excluir este lançamento?")) return;
       await deleteDoc(doc(_ctx.db, "caixa", btn.dataset.id));
+      showAlert("Lançamento excluído.");
     });
   });
 }
