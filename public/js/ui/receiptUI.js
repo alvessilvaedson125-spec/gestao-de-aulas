@@ -30,8 +30,9 @@ function getLessonsInRange(studentId, isoStart, isoEnd) {
   if (!studentId || !isoStart || !isoEnd) return [];
   const S = new Date(isoStart + "T00:00:00");
   const E = new Date(isoEnd   + "T23:59:59");
+  // Considera Agendada(0), Confirmada(1) e Realizada(2); exclui só Cancelada(3)
   return _ctx.lessons
-    .filter(l => l.studentId === studentId && l.status === 2)
+    .filter(l => l.studentId === studentId && l.status !== 3)
     .filter(l => { const d = parseISODateLocal(l.date); return d >= S && d <= E; })
     .sort((a, b) => parseISODateLocal(a.date) - parseISODateLocal(b.date));
 }
@@ -46,20 +47,30 @@ export function toggleReceiptBoxes() {
 }
 
 /* ======================= Fill package auto ======================= */
+let _pkgTotalManuallyEdited = false;
+
 export function fillPackageAuto() {
   const sId   = $("recStudent").value;
   const i     = $("recPkgStart").value;
   const f     = $("recPkgEnd").value;
   const qtyEl = $("recPkgQty"), totalEl = $("recPkgTotal"), datesEl = $("recPkgDates");
-  if (!sId || !i || !f) { qtyEl.value = 0; totalEl.value = 0; datesEl.value = "—"; return { qty:0, total:0, dates:[] }; }
-  const arr   = getLessonsInRange(sId, i, f);
-  const qty   = arr.length;
-  const total = arr.reduce((sum, x) => sum + (+x.price || 0), 0);
-  const dates = arr.map(x => {
+  if (!sId || !i || !f) {
+    qtyEl.value = 0;
+    if (!_pkgTotalManuallyEdited) totalEl.value = 0;
+    datesEl.value = "—";
+    return { qty:0, total: parseBRLToNumber(totalEl.value), dates:[] };
+  }
+  const arr      = getLessonsInRange(sId, i, f);
+  const qty      = arr.length;
+  const autoTotal = arr.reduce((sum, x) => sum + (+x.price || 0), 0);
+  const dates    = arr.map(x => {
     const d = parseISODateLocal(x.date);
     return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()} (${["Agendada","Confirmada","Realizada","Cancelada"][x.status||0]})`;
   });
-  qtyEl.value = qty; totalEl.value = Number(total).toFixed(2); datesEl.value = dates.length ? dates.join("\n") : "—";
+  qtyEl.value = qty;
+  if (!_pkgTotalManuallyEdited) totalEl.value = Number(autoTotal).toFixed(2);
+  datesEl.value = dates.length ? dates.join("\n") : "—";
+  const total = _pkgTotalManuallyEdited ? parseBRLToNumber(totalEl.value) : autoTotal;
   return { qty, total, dates };
 }
 
@@ -89,6 +100,7 @@ export function openReceiptFromStudent(s) {
   $("recPkgEnd").value    = s.packageEnd   || "";
   $("recPayMethod").value = "PIX"; $("recCNPJ").value = "";
   $("recObsPacote").value = "Pagamento de pacote";
+  _pkgTotalManuallyEdited = false;
   tryFillPackageAuto();
   $("receiptModal").classList.add("show");
 }
@@ -131,7 +143,8 @@ export function generateReceiptPDF() {
     if (obs) { const lines = doc.splitTextToSize(`Observações: ${obs}`, 480); doc.text(lines, L, y); y += lines.length * lh; }
   } else {
     const i = $("recPkgStart").value, f = $("recPkgEnd").value;
-    const { qty, total, dates } = fillPackageAuto();
+    const { qty, dates } = fillPackageAuto();
+    const total = parseBRLToNumber($("recPkgTotal").value);
     doc.setFont("helvetica","bold"); doc.text("PACOTE", L, y); y += lh;
     doc.setFont("helvetica","normal");
     doc.text(`Período: ${i||"-"} a ${f||"-"}`, L, y); y += lh;
@@ -162,6 +175,8 @@ export function bindReceiptButtons() {
   $("btnReceiptPDF").onclick   = generateReceiptPDF;
   $("recType").onchange = () => { toggleReceiptBoxes(); tryFillPackageAuto(); };
   ["recStudent","recPkgStart","recPkgEnd"].forEach(id => {
-    const el = $(id); if (el) el.addEventListener("change", tryFillPackageAuto);
+    const el = $(id);
+    if (el) el.addEventListener("change", () => { _pkgTotalManuallyEdited = false; tryFillPackageAuto(); });
   });
+  $("recPkgTotal")?.addEventListener("input", () => { _pkgTotalManuallyEdited = true; });
 }
