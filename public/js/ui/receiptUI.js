@@ -68,7 +68,8 @@ export function fillPackageAuto() {
     return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()} (${["Agendada","Confirmada","Realizada","Cancelada"][x.status||0]})`;
   });
   qtyEl.value = qty;
-  if (!_pkgTotalManuallyEdited) totalEl.value = Number(autoTotal).toFixed(2);
+  // Usa vírgula decimal (padrão BR) para casar com parseBRLToNumber ao ler o campo depois
+  if (!_pkgTotalManuallyEdited) totalEl.value = Number(autoTotal).toFixed(2).replace(".", ",");
   datesEl.value = dates.length ? dates.join("\n") : "—";
   const total = _pkgTotalManuallyEdited ? parseBRLToNumber(totalEl.value) : autoTotal;
   return { qty, total, dates };
